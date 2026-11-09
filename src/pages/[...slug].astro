@@ -3,8 +3,10 @@ import { render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
 import HomeSections from '../components/HomeSections.astro';
-import { getPages, metadataOf, slugOf, twinPathOf, type Page } from '../lib/pages';
-import { translationsOf, type Translations } from '../lib/translations';
+import { jsonLdBase } from '../lib/metadata';
+import { getPages, metadataOf, slugOf, translationsOf, twinPathOf, type Page } from '../lib/pages';
+import { originalIdOf, translationJsonLd, type Translations } from '../lib/translations';
+import { uiOf } from '../lib/ui';
 
 export async function getStaticPaths() {
   const pages = await getPages();
@@ -13,24 +15,9 @@ export async function getStaticPaths() {
 
 const { page, translations } = Astro.props as { page: Page; translations: Translations };
 const meta = metadataOf(page);
+const ui = uiOf(meta.language);
 const { Content } = await render(page);
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: meta.title,
-  headline: meta.title,
-  description: meta.summary,
-  datePublished: meta.published,
-  dateModified: meta.updated,
-  inLanguage: meta.language,
-  keywords: meta.tags,
-  url: meta.canonical,
-  ...(translations.original
-    ? { translationOfWork: { '@type': 'WebPage', url: translations.original.canonical } }
-    : translations.versions.length > 1
-      ? { workTranslation: translations.versions.slice(1).map((v) => ({ '@type': 'WebPage', url: v.canonical, inLanguage: v.language })) }
-      : {}),
-};
+const jsonLd = { ...jsonLdBase('WebPage', meta), ...translationJsonLd(translations, 'WebPage') };
 ---
 <Base
   title={meta.title}
@@ -45,10 +32,10 @@ const jsonLd = {
     <header>
       <h1>{meta.title}</h1>
       <p>{meta.summary}</p>
-      <p>Published <time datetime={meta.published}>{meta.published}</time></p>
+      <p>{ui.published} <time datetime={meta.published}>{meta.published}</time></p>
     </header>
     <Content />
-    {page.id === 'index' && <HomeSections />}
+    {originalIdOf(page) === 'index' && <HomeSections language={meta.language} />}
     <SuggestCorrection title={meta.title} canonical={meta.canonical} />
   </article>
 </Base>

@@ -1,0 +1,16 @@
+---
+import ProjectLayout from '../../../layouts/Project.astro';
+import { projectRoutes } from '../../../lib/routes';
+import type { Project } from '../../../lib/projects';
+import type { Translations } from '../../../lib/translations';
+
+export const getStaticPaths = projectRoutes;
+
+interface Props {
+  project: Project;
+  translations: Translations;
+}
+
+const { project, translations } = Astro.props;
+---
+<ProjectLayout project={project} translations={translations} />

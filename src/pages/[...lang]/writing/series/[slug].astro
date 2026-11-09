@@ -1,0 +1,67 @@
+---
+import { render } from 'astro:content';
+import Base from '../../../../layouts/Base.astro';
+import Day from '../../../../components/Day.astro';
+import SuggestCorrection from '../../../../components/SuggestCorrection.astro';
+import { AUTHOR } from '../../../../../site.config.mjs';
+import { jsonLdBase } from '../../../../lib/metadata';
+import { seriesRoutes } from '../../../../lib/routes';
+import { metadataOf, partsOf, twinPathOf, type Series } from '../../../../lib/series';
+import { translationJsonLd } from '../../../../lib/translations';
+import { uiOf } from '../../../../lib/ui';
+
+export const getStaticPaths = seriesRoutes;
+
+interface Props {
+  series: Series;
+}
+
+const { series } = Astro.props;
+const meta = metadataOf(series);
+const ui = uiOf(meta.language);
+const parts = partsOf(series);
+const { Content } = await render(series.entry);
+const jsonLd = {
+  ...jsonLdBase('CreativeWorkSeries', meta),
+  creativeWorkStatus: meta.status,
+  mainEntityOfPage: meta.canonical,
+  author: { '@type': 'Person', ...AUTHOR },
+  hasPart: parts.map(({ part, title, canonical }) => ({ '@type': 'Article', position: part, headline: title, url: canonical })),
+  ...translationJsonLd(series.translations, 'CreativeWorkSeries'),
+};
+---
+<Base title={meta.title} description={meta.summary} canonical={meta.canonical} language={meta.language} twin={twinPathOf(series)} translations={series.translations}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <article class="long-form">
+    <header class="long-form-header">
+      <p class="series-kind">{ui.series}</p>
+      <h1>{meta.title}</h1>
+      <p class="summary">{meta.summary}</p>
+      <p class="byline">
+        <span>{ui.seriesStatus[meta.status]}</span>
+        <span>{ui.parts(parts.length)}</span>
+        <span>{ui.started} <Day date={meta.published} /></span>
+      </p>
+    </header>
+    <div class="long-form-body">
+      <Content />
+    </div>
+    <section aria-labelledby="parts-heading">
+      <h2 id="parts-heading">{ui.partsHeading}</h2>
+      {parts.length > 0 ? (
+        <ol class="series-parts">
+          {parts.map(({ path, title, summary, published, language }) => (
+            <li>
+              <h3><a href={path} hreflang={language === meta.language ? undefined : language}>{title}</a>{language !== meta.language && ` ${ui.inEnglish}`}</h3>
+              <p class="piece-meta"><Day date={published} /></p>
+              <p>{summary}</p>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p>{ui.noParts}</p>
+      )}
+    </section>
+    <SuggestCorrection title={meta.title} canonical={meta.canonical} />
+  </article>
+</Base>

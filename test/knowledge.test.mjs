@@ -58,7 +58,7 @@ test('Knowledge Base entries are published', async (t) => {
     assert.match(ctxSection, /href="\/knowledge\/token-budget\/"/);
     assert.match(index.slice(dev), /href="\/knowledge\/writing-tests-first\/"/);
     assert.doesNotMatch(index, /AI Engineering<\/h2>/, 'empty categories are omitted');
-    assert.match(site.read('knowledge.md'), /\[Context window\]\(\/knowledge\/context-window\/\)/);
+    assert.match(site.read('knowledge.md'), /\[Context window\]\(https:\/\/joaodavidsilva\.com\/knowledge\/context-window\.md\)/);
   });
 
   await t.test('the index filters by tag', () => {

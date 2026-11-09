@@ -1,10 +1,14 @@
 ---
 // Progressive enhancement: the form stays hidden until the script runs, so
 // without JavaScript readers browse the index below. Pagefind's client loads
-// only here, and only once the reader starts typing.
+// only here, and only once the reader starts typing. Pagefind keeps one index per page
+// language (`<html lang>`), so a reader searches the entries in the page's language.
+import { uiAt } from '../lib/ui';
+
+const ui = uiAt(Astro.url);
 ---
-<form role="search" class="knowledge-search" data-knowledge-search-form hidden>
-  <label for="knowledge-search-input">Search the Knowledge Base</label>
+<form role="search" class="knowledge-search" data-knowledge-search-form data-one={ui.results.one} data-many={ui.results.many} hidden>
+  <label for="knowledge-search-input">{ui.search}</label>
   <input id="knowledge-search-input" type="search" name="q" autocomplete="off" />
   <p aria-live="polite" data-knowledge-search-status></p>
   <ul data-knowledge-search-results></ul>
@@ -35,6 +39,7 @@
       item.append(link);
       return item;
     }));
-    status.textContent = `${search.results.length} result${search.results.length === 1 ? '' : 's'}`;
+    const count = search.results.length;
+    status.textContent = count === 1 ? form.dataset.one : form.dataset.many.replace('{n}', count);
   });
 </script>

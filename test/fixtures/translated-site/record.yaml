@@ -1,0 +1,8 @@
+record:
+  name: Fixture Person
+  headline: Engineering beyond implementation.
+  url: https://joaodavidsilva.com/
+  projects:
+    - name: Project one
+      summary: The first project.
+      source: { page: /projects/p1/privacy/ }

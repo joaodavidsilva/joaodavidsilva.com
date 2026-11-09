@@ -1,50 +1,64 @@
 import type { APIRoute } from 'astro';
-import { SITE_URL } from '../../site.config.mjs';
-import { getPages, twinPathOf } from '../lib/pages';
 import * as writing from '../lib/articles';
 import * as research from '../lib/studies';
-import { getSeries, twinPathOf as seriesTwinPathOf } from '../lib/series';
+import { getAllSeries, twinPathOf as seriesTwinPathOf } from '../lib/series';
 import * as projects from '../lib/projects';
 import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
-import { getNow, NOW } from '../lib/now';
-import { ABOUT_TITLE, getRecord } from '../lib/record';
-import { ORIGINAL_LANGUAGE, translationsOf } from '../lib/translations';
+import { getAllNow, NOW_PATH, translationsOf as nowTranslationsOf } from '../lib/now';
+import { getPages, translationsOf as pageTranslationsOf, twinPathOf } from '../lib/pages';
+import { ABOUT_PATH, getAllRecords } from '../lib/record';
+import { languagesOfSection, type Section } from '../lib/sections';
+import {
+  absolute, generatedTranslations, isTranslation, translationPointer, twinOf, type Translations,
+} from '../lib/translations';
+import { uiOf } from '../lib/ui';
 
+/** One Original: its title linking its twin, its summary, then its Translations' twins. */
+const line = (title: string, twin: string, summary: string, translations: Translations) =>
+  `- [${title}](${absolute(twin)}): ${summary}${translationPointer(translations)}`;
+
+const en = uiOf('en');
+
+/** The line of a section's index, pointing to the index in every language it exists in. */
+async function indexLine(section: Section, path: string, { title, summary }: { title: string; summary: string }) {
+  return line(title, twinOf(path), summary, generatedTranslations(path, await languagesOfSection(section)));
+}
+
+/** Every Original with a one-line summary, pointing to its available Translations (ADR-0005). */
 export const GET: APIRoute = async () => {
   const pages = await getPages();
   const lines = pages
-    .filter((page) => page.data.language === ORIGINAL_LANGUAGE)
+    .filter((page) => !isTranslation(page))
     .sort((a, b) => a.id.localeCompare(b.id))
-    .map((page) => {
-      const translations = translationsOf(page, pages).versions.slice(1);
-      const pointer = translations.length
-        ? ` (Translations: ${translations.map((v) => `[${v.name}](${new URL(v.twin, SITE_URL).href})`).join(', ')})`
-        : '';
-      return `- [${page.data.title}](${new URL(twinPathOf(page), SITE_URL).href}): ${page.data.summary}${pointer}`;
-    });
-  const articles = (await writing.getArticles()).map(
-    (article) => `- [${article.data.title}](${new URL(writing.twinPathOf(article), SITE_URL).href}): ${article.data.summary}`,
+    .map((page) => line(page.data.title, twinPathOf(page), page.data.summary, pageTranslationsOf(page, pages)));
+  const allNow = await getAllNow();
+  for (const now of allNow.filter((one) => !isTranslation(one))) {
+    lines.push(line(en.now.title, twinOf(NOW_PATH), en.now.summary, nowTranslationsOf(now, allNow)));
+  }
+  for (const { record, translations } of (await getAllRecords()).filter(({ record }) => record.language === 'en')) {
+    lines.push(line(en.about, twinOf(ABOUT_PATH), `${record.name}. ${record.headline}`, translations));
+  }
+
+  const allArticles = await writing.getAllArticles();
+  const articles = allArticles
+    .filter((article) => !isTranslation(article))
+    .map((article) => line(article.data.title, writing.twinPathOf(article), article.data.summary, writing.translationsOf(article, allArticles)));
+  const series = (await getAllSeries())
+    .filter(({ entry }) => !isTranslation(entry))
+    .map((one) => line(one.entry.data.title, seriesTwinPathOf(one), one.entry.data.summary, one.translations));
+  const allStudies = await research.getAllStudies();
+  const studies = allStudies
+    .filter((study) => !isTranslation(study))
+    .map((study) =>
+      line(study.data.title, research.twinPathOf(study), `${study.data.summary} (${study.data.status})`, research.translationsOf(study, allStudies)),
+    );
+  const allProjects = await projects.getAllProjects();
+  const projectLines = allProjects
+    .filter((project) => !isTranslation(project))
+    .map((project) => line(project.data.name, projects.twinPathOf(project), project.data.oneLine, projects.translationsOf(project, allProjects)));
+  const knowledge = (await getKnowledge()).map(({ entry, translations }) =>
+    line(entry.data.title, knowledgeTwinPathOf(entry), entry.data.summary, translations),
   );
-  const writingIndex = `- [${writing.WRITING.title}](${new URL(writing.WRITING.twin, SITE_URL).href}): ${writing.WRITING.summary}`;
-  const studies = (await research.getStudies()).map(
-    (study) =>
-      `- [${study.data.title}](${new URL(research.twinPathOf(study), SITE_URL).href}): ${study.data.summary} (${study.data.status})`,
-  );
-  const researchIndex = `- [${research.RESEARCH.title}](${new URL(research.RESEARCH.twin, SITE_URL).href}): ${research.RESEARCH.summary}`;
-  const series = (await getSeries()).map(
-    (one) => `- [${one.entry.data.title}](${new URL(seriesTwinPathOf(one), SITE_URL).href}): ${one.entry.data.summary}`,
-  );
-  const projectList = await projects.getProjects();
-  const projectLines = [
-    `- [${projects.PROJECTS_TITLE}](${new URL(projects.PROJECTS_TWIN_PATH, SITE_URL).href}): ${projects.PROJECTS_SUMMARY}`,
-    ...projectList.map((project) => `- [${project.data.name}](${new URL(projects.twinPathOf(project), SITE_URL).href}): ${project.data.oneLine}`),
-  ];
-  const knowledge = (await getKnowledge())
-    .filter(({ entry }) => entry.data.language === 'en')
-    .map(({ entry }) => `- [${entry.data.title}](${new URL(knowledgeTwinPathOf(entry), SITE_URL).href}): ${entry.data.summary}`);
-  if (await getNow()) lines.push(`- [${NOW.title}](${new URL(NOW.twin, SITE_URL).href}): ${NOW.summary}`);
-  const record = await getRecord();
-  if (record) lines.push(`- [${ABOUT_TITLE}](${new URL('/about.md', SITE_URL).href}): ${record.name}. ${record.headline}`);
   const body = [
     '# João David Silva',
     '',
@@ -54,10 +68,10 @@ export const GET: APIRoute = async () => {
     '',
     ...lines,
     '',
-    ...(articles.length || series.length ? ['## Writing', '', writingIndex, ...series, ...articles, ''] : []),
-    ...(studies.length ? ['## Research', '', researchIndex, ...studies, ''] : []),
-    ...(projectList.length ? ['## Projects', '', ...projectLines, ''] : []),
-    ...(knowledge.length ? ['## Knowledge', '', ...knowledge, ''] : []),
+    ...(articles.length || series.length ? ['## Writing', '', await indexLine('writing', '/writing/', en.writing), ...series, ...articles, ''] : []),
+    ...(studies.length ? ['## Research', '', await indexLine('research', '/research/', en.research), ...studies, ''] : []),
+    ...(projectLines.length ? ['## Projects', '', await indexLine('projects', '/projects/', en.projects), ...projectLines, ''] : []),
+    ...(knowledge.length ? ['## Knowledge', '', await indexLine('knowledge', '/knowledge/', en.knowledge), ...knowledge, ''] : []),
   ].join('\n');
   return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 };

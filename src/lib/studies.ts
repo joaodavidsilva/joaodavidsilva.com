@@ -1,60 +1,56 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { SITE_URL } from '../../site.config.mjs';
 import type { Article } from './articles';
-import { lastUpdatedOf } from './git';
+import { metadataOf as sharedMetadataOf } from './metadata';
 import { describeFolderFile } from './own-folder';
+import {
+  alternateAt, assertTranslations, inLanguage, isTranslation, locate, originalIdOf, ORIGINAL_LANGUAGE,
+  translationsOf as translationsAmong, type Language,
+} from './translations';
+import { uiOf } from './ui';
 
 export type Study = CollectionEntry<'studies'>;
 export type Status = Study['data']['status'];
 
-/** The Research index: the section listing every Study. */
-export const RESEARCH = {
-  title: 'Research',
-  summary: 'Studies: the record of each investigation, from question to limitations, in progress, concluded or abandoned.',
-  path: '/research/',
-  twin: '/research.md',
-  canonical: new URL('/research/', SITE_URL).href,
-};
+/** Where the Study with id `id` is published, in English. */
+const studyPathOf = (id: string) => `/research/${id}/`;
 
-/** The sections every Study's body has, as `##` headings in this order. */
+/** The Research index in `language`: the section listing every Study. */
+export function researchIndexOf(language: Language) {
+  return { ...uiOf(language).research, ...alternateAt('/research/', language) };
+}
+
+/** The sections every Study's body has, as `##` headings in this order (in its Original). */
 export const STUDY_SECTIONS = ['Question', 'Hypothesis', 'Method', 'Observations', 'Findings', 'Limitations'];
 
-export const STATUS_LABELS: Record<Status, string> = {
-  'in progress': 'In progress',
-  concluded: 'Concluded',
-  abandoned: 'Abandoned',
-};
+export const pathOf = (study: Study) => locate(study, studyPathOf).path;
+export const twinPathOf = (study: Study) => locate(study, studyPathOf).twin;
+export const canonicalOf = (study: Study) => locate(study, studyPathOf).canonical;
+export const translationsOf = (study: Study, studies: Study[]) => translationsAmong(study, studies, studyPathOf);
 
-const day = (date: Date) => date.toISOString().slice(0, 10);
-
-export const pathOf = (study: Study) => `/research/${study.id}/`;
-export const twinPathOf = (study: Study) => `/research/${study.id}.md`;
-export const canonicalOf = (study: Study) => new URL(pathOf(study), SITE_URL).href;
-
-/** Every Study, newest first; a Study missing a section or a data file fails the build. */
-export async function getStudies(): Promise<Study[]> {
+/**
+ * Every Study and Translation, newest first; an Original missing a section (a Translation
+ * translates the headings) or a data file fails the build.
+ */
+export async function getAllStudies(): Promise<Study[]> {
   const studies = await getCollection('studies');
+  assertTranslations(studies, { pathOf: studyPathOf, same: ['status', 'featured'] });
   for (const study of studies) {
-    assertSections(study);
+    if (!isTranslation(study)) assertSections(study);
     linksOf(study);
   }
   return studies.sort((a, b) => b.data.published.getTime() - a.data.published.getTime() || a.id.localeCompare(b.id));
 }
 
+/** Every Study in `language`, newest first. */
+export async function getStudies(language: Language = ORIGINAL_LANGUAGE): Promise<Study[]> {
+  return (await getAllStudies()).filter((study) => study.data.language === language);
+}
+
 /** The metadata shared by the page, its JSON-LD, its Markdown twin and the feed. */
 export function metadataOf(study: Study) {
-  const { title, summary, published, status, language, tags, featured } = study.data;
-  return {
-    title,
-    summary,
-    published: day(published),
-    updated: lastUpdatedOf(study.filePath!, day(published)),
-    status,
-    language,
-    tags,
-    featured,
-    canonical: canonicalOf(study),
-  };
+  const { title, summary, status, featured } = study.data;
+  return { ...sharedMetadataOf(study, studyPathOf, { title, summary }), status, featured };
 }
 
 /** The lines of a Markdown body outside fenced code blocks, with inline code removed. */
@@ -90,7 +86,7 @@ function assertSections(study: Study) {
 
 export interface StudyLink {
   title: string;
-  /** A file in the Study's own folder, served at `/research/<slug>/<file>`, or an external URL. */
+  /** A file in the Original's own folder, served at `/research/<slug>/<file>`, or an external URL. */
   href: string;
   /** For files: "recall.csv, CSV, 32 bytes". */
   description?: string;
@@ -100,7 +96,7 @@ export interface StudyLink {
 export function linksOf(study: Study): { data: StudyLink[]; scripts: StudyLink[] } {
   const resolve = (kind: string) => (link: Study['data']['data'][number]): StudyLink =>
     'file' in link
-      ? { title: link.title, href: `${pathOf(study)}${link.file}`, description: describeFolderFile(study, link.file, kind) }
+      ? { title: link.title, href: `${studyPathOf(originalIdOf(study))}${link.file}`, description: describeFolderFile(study, link.file, kind) }
       : { title: link.title, href: link.url };
   return { data: study.data.data.map(resolve('data file')), scripts: study.data.scripts.map(resolve('script')) };
 }
@@ -114,9 +110,14 @@ const CITATION = new RegExp(
   'g',
 );
 
-/** The Articles that cite the Study by linking to it, in the order given ("Discussed in"). */
+/**
+ * The Articles that cite the Study by linking to it, in the order of `articles` (every Article
+ * and Translation) ("Discussed in"): the Originals citing its Original, in the Study's language.
+ */
 export function discussedInOf(study: Study, articles: Article[]): Article[] {
-  return articles.filter((article) =>
-    proseLinesOf(article.body ?? '').some((line) => [...line.matchAll(CITATION)].some((m) => m[1] === study.id)),
-  );
+  const id = originalIdOf(study);
+  return articles
+    .filter((article) => !isTranslation(article))
+    .filter((article) => proseLinesOf(article.body ?? '').some((line) => [...line.matchAll(CITATION)].some((m) => m[1] === id)))
+    .flatMap((article) => inLanguage(article, study.data.language, articles) ?? []);
 }

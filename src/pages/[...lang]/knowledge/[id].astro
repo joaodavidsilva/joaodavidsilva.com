@@ -1,0 +1,54 @@
+---
+import { render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import SuggestCorrection from '../../../components/SuggestCorrection.astro';
+import { canonicalOf, categoryIdOf, pathOf, tagPathOf, twinPathOf, type KnowledgeEntry } from '../../../lib/knowledge';
+import { jsonLdBase } from '../../../lib/metadata';
+import { knowledgeRoutes } from '../../../lib/routes';
+import { pathIn, translationJsonLd } from '../../../lib/translations';
+import { uiOf } from '../../../lib/ui';
+
+export const getStaticPaths = knowledgeRoutes;
+
+const { item } = Astro.props as { item: KnowledgeEntry };
+const { entry, related, skillUrl, updated, translations } = item;
+const { title, summary, kind, category, tags, language } = entry.data;
+const ui = uiOf(language);
+const canonical = canonicalOf(entry);
+const { Content } = await render(entry);
+const type = kind === 'concept' ? 'DefinedTerm' : 'TechArticle';
+const jsonLd = {
+  ...jsonLdBase(type, { title, summary, updated, language, tags, canonical }),
+  about: category,
+  ...translationJsonLd(translations, type),
+};
+---
+<Base title={title} description={summary} canonical={canonical} language={language} twin={twinPathOf(entry)} translations={translations}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <article data-pagefind-body>
+    <header>
+      <p>{kind === 'concept' ? ui.concept : ui.guide} · <a href={`${pathIn('/knowledge/', language)}#${categoryIdOf(category)}`}>{category}</a></p>
+      <h1>{title}</h1>
+      <p>{summary}</p>
+      <p>{ui.lastUpdated} <time datetime={updated}>{updated}</time></p>
+    </header>
+    <Content />
+    {skillUrl && (
+      <aside aria-label={ui.skill}>
+        <p>{ui.skillPrompt} <a href={skillUrl}>{ui.skillLink.before}<code>{entry.data.skill}</code>{ui.skillLink.after}</a>.</p>
+      </aside>
+    )}
+    {related.length > 0 && (
+      <nav aria-label={ui.relatedLabel}>
+        <h2>{ui.related}</h2>
+        <ul>{related.map((target) => <li><a href={pathOf(target)}>{target.data.title}</a></li>)}</ul>
+      </nav>
+    )}
+    {tags.length > 0 && (
+      <ul class="knowledge-tags" aria-label={ui.tags}>
+        {tags.map((tag) => <li><a href={tagPathOf(tag, language)}>{tag}</a></li>)}
+      </ul>
+    )}
+    <SuggestCorrection title={title} canonical={canonical} />
+  </article>
+</Base>

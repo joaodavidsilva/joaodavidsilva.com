@@ -1,0 +1,47 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { jsonLdBase } from '../../../lib/metadata';
+import { canonicalOf, getProjects, pathOf, projectsIndexOf } from '../../../lib/projects';
+import { languageParams, languagesOfSection } from '../../../lib/sections';
+import { generatedTranslations, type Language } from '../../../lib/translations';
+import { uiOf } from '../../../lib/ui';
+import '../../../styles/projects.css';
+
+export const getStaticPaths = () => languageParams('projects');
+
+const { language } = Astro.props as { language: Language };
+const ui = uiOf(language);
+const index = projectsIndexOf(language);
+const projects = await getProjects(language);
+const translations = generatedTranslations('/projects/', await languagesOfSection('projects'));
+const jsonLd = {
+  ...jsonLdBase('CollectionPage', { ...index, language }),
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: projects.map((project, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: project.data.name,
+      url: canonicalOf(project),
+    })),
+  },
+};
+---
+<Base title={index.title} description={index.summary} canonical={index.canonical} language={language} twin={index.twin} translations={translations}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <header>
+    <h1>{index.title}</h1>
+    <p>{index.summary}</p>
+  </header>
+  <ul class="project-list">
+    {projects.map((project) => (
+      <li>
+        <h2><a href={pathOf(project)}>{project.data.name}</a></h2>
+        <p class="project-facts">
+          {ui.projectStatus[project.data.status]}{project.data.version && <> · {ui.version} {project.data.version}</>}
+        </p>
+        <p>{project.data.oneLine}</p>
+      </li>
+    ))}
+  </ul>
+</Base>

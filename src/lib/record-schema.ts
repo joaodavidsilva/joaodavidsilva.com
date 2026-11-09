@@ -1,4 +1,5 @@
 import { z } from 'astro/zod';
+import { translatable } from './translations';
 
 // Free text in the record. Phone numbers never belong in the public repository.
 const text = z
@@ -25,6 +26,7 @@ const month = z.string().regex(/^\d{4}-\d{2}$/, 'a month like 2024-01');
 
 // Strict objects: unknown fields (phone, address, …) fail the build.
 export const recordSchema = z.strictObject({
+  ...translatable,
   name: text,
   headline: text,
   url: z.url(),

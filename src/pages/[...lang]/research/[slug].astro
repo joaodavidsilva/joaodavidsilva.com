@@ -1,0 +1,60 @@
+---
+import { render } from 'astro:content';
+import LongForm from '../../../layouts/LongForm.astro';
+import DataAndScripts from '../../../components/DataAndScripts.astro';
+import DiscussedIn from '../../../components/DiscussedIn.astro';
+import { AUTHOR } from '../../../../site.config.mjs';
+import * as writing from '../../../lib/articles';
+import { jsonLdBase } from '../../../lib/metadata';
+import { readingMinutesOf } from '../../../lib/own-folder';
+import { studyRoutes } from '../../../lib/routes';
+import { linksOf, metadataOf, twinPathOf, type Study } from '../../../lib/studies';
+import { translationJsonLd, type Translations } from '../../../lib/translations';
+import { uiOf } from '../../../lib/ui';
+
+export const getStaticPaths = studyRoutes;
+
+interface Props {
+  study: Study;
+  /** The Articles in the Study's language that cite it. */
+  discussedIn: writing.Article[];
+  translations: Translations;
+}
+
+const { study, discussedIn: citing, translations } = Astro.props;
+const meta = metadataOf(study);
+const ui = uiOf(meta.language);
+const status = ui.studyStatus[meta.status];
+const discussedIn = citing.map((article) => ({ path: writing.pathOf(article), ...writing.metadataOf(article) }));
+const { Content } = await render(study);
+const jsonLd = {
+  ...jsonLdBase('ScholarlyArticle', meta),
+  mainEntityOfPage: meta.canonical,
+  creativeWorkStatus: status,
+  author: { '@type': 'Person', ...AUTHOR },
+  ...(discussedIn.length > 0 && {
+    subjectOf: discussedIn.map(({ title, canonical }) => ({ '@type': 'Article', headline: title, url: canonical })),
+  }),
+  ...translationJsonLd(translations, 'ScholarlyArticle'),
+};
+---
+<LongForm
+  title={meta.title}
+  summary={meta.summary}
+  canonical={meta.canonical}
+  language={meta.language}
+  twin={twinPathOf(study)}
+  published={meta.published}
+  updated={meta.updated}
+  tags={meta.tags}
+  readingMinutes={readingMinutesOf(study)}
+  jsonLd={jsonLd}
+  translations={translations}
+>
+  <p slot="header" class="piece-meta"><span>{ui.study}</span><span class="status" data-status={meta.status}>{ui.status}: {status}</span></p>
+  <Content />
+  <Fragment slot="after">
+    <DataAndScripts {...linksOf(study)} />
+    <DiscussedIn articles={discussedIn} />
+  </Fragment>
+</LongForm>

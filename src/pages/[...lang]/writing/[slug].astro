@@ -1,0 +1,65 @@
+---
+import { render } from 'astro:content';
+import LongForm from '../../../layouts/LongForm.astro';
+import Attachments from '../../../components/Attachments.astro';
+import Corrections from '../../../components/Corrections.astro';
+import Discuss from '../../../components/Discuss.astro';
+import SeriesNav from '../../../components/SeriesNav.astro';
+import SeriesPosition from '../../../components/SeriesPosition.astro';
+import { AUTHOR } from '../../../../site.config.mjs';
+import { articleRoutes } from '../../../lib/routes';
+import { attachmentsOf, correctionsOf, discussOf, metadataOf, twinPathOf, type Article } from '../../../lib/articles';
+import { jsonLdBase } from '../../../lib/metadata';
+import { readingMinutesOf } from '../../../lib/own-folder';
+import type { Position } from '../../../lib/series';
+import { translationJsonLd, type Translations } from '../../../lib/translations';
+
+export const getStaticPaths = articleRoutes;
+
+interface Props {
+  article: Article;
+  /** Its place in a Series, if it is a part of one. */
+  position?: Position;
+  translations: Translations;
+}
+
+const { article, position, translations } = Astro.props;
+const meta = metadataOf(article);
+const corrections = correctionsOf(article);
+const { Content } = await render(article);
+const jsonLd = {
+  ...jsonLdBase('Article', meta),
+  mainEntityOfPage: meta.canonical,
+  author: { '@type': 'Person', ...AUTHOR },
+  ...(corrections.length > 0 && {
+    correction: corrections.map(({ date, note }) => ({ '@type': 'CorrectionComment', datePublished: date, text: note })),
+  }),
+  ...(position && {
+    isPartOf: { '@type': 'CreativeWorkSeries', name: position.series.title, url: position.series.canonical },
+    position: position.part,
+  }),
+  ...translationJsonLd(translations, 'Article'),
+};
+---
+<LongForm
+  title={meta.title}
+  summary={meta.summary}
+  canonical={meta.canonical}
+  language={meta.language}
+  twin={twinPathOf(article)}
+  published={meta.published}
+  updated={meta.updated}
+  tags={meta.tags}
+  readingMinutes={readingMinutesOf(article)}
+  jsonLd={jsonLd}
+  translations={translations}
+>
+  {position && <SeriesPosition slot="header" position={position} />}
+  <Content />
+  <Fragment slot="after">
+    {position && <SeriesNav position={position} />}
+    <Attachments attachments={attachmentsOf(article)} />
+    <Corrections corrections={corrections} />
+  </Fragment>
+  <Discuss slot="discuss" links={discussOf(article)} />
+</LongForm>

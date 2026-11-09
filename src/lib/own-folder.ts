@@ -1,17 +1,17 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
-import { dirname, extname, join, resolve } from 'node:path';
+import { extname, join, resolve } from 'node:path';
+import { originalIdOf, type Translatable } from './translations';
 
 /**
  * A long-form entry (Article, Study) whose own folder, `<collection>/<id>/`, sits beside
- * its `<collection>/<id>.md` and holds its images and files.
+ * its `<collection>/<id>.md` and holds its images and files. A Translation shares its
+ * Original's own folder.
  */
-interface Entry {
-  id: string;
-  filePath?: string;
-}
+type Entry = Translatable;
 
-/** The entry's own folder, relative to the project. */
-export const folderOf = (entry: Entry) => join(dirname(entry.filePath!), entry.id);
+/** The entry's own folder (its Original's), relative to the project. */
+export const folderOf = (entry: Entry) =>
+  join(entry.filePath!.slice(0, -`${entry.id}.md`.length), originalIdOf(entry));
 
 /** Every file in the entry's own folder, to be published beside its page. */
 export function folderFilesOf(entry: Entry): { file: string; source: string }[] {

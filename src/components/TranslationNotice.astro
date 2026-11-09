@@ -1,11 +1,11 @@
 ---
-import type { Translations } from '../lib/translations';
+import type { Language, Translations } from '../lib/translations';
 import '../styles/translations.css';
 
 interface Props {
   translations: Translations;
   /** The language of the current page. */
-  language: string;
+  language: Language;
 }
 
 // Portuguese carries no label and reads its notice in Portuguese; any other Translation is

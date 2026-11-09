@@ -60,8 +60,8 @@ test('Now is published at /now/ with a Markdown twin', () => {
 test('the home twin carries Now, Featured, Recent and Active projects', () => {
   const md = site.read('index.md');
   for (const heading of ['## Now', '## Featured', '## Recent', '## Active projects']) assert.ok(md.includes(heading), heading);
-  assert.match(md, /\[Article a6\]\(\/writing\/a6\.md\)/);
-  assert.match(md, /\[Live App\]\(\/projects\/live\.md\): An active app\. \(version 2\.1\.0\)/);
+  assert.match(md, /\[Article a6\]\(https:\/\/joaodavidsilva\.com\/writing\/a6\.md\)/);
+  assert.match(md, /\[Live App\]\(https:\/\/joaodavidsilva\.com\/projects\/live\.md\): An active app\. \(version 2\.1\.0\)/);
 });
 
 test('publishing a new Article updates Recent without editing the home page', () => {

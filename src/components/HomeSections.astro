@@ -1,19 +1,27 @@
 ---
 import { render } from 'astro:content';
 import { homeOf, type Piece } from '../lib/home';
-import { dateOf, NOW } from '../lib/now';
+import type { Language } from '../lib/translations';
+import { uiOf } from '../lib/ui';
 
-const { now, featured, recent, active } = await homeOf();
-const NowBody = now && (await render(now)).Content;
+interface Props {
+  language: Language;
+}
+
+// The home page's sections in its language: only what exists in that language is listed.
+const { language } = Astro.props;
+const ui = uiOf(language);
+const { now, featured, recent, active } = await homeOf(language);
+const NowBody = now && (await render(now.entry)).Content;
 ---
 {now && NowBody && (
   <section id="now" class="home-now">
-    <h2><a href={NOW.path}>Now</a></h2>
-    <p class="home-meta">Updated <time datetime={dateOf(now)}>{dateOf(now)}</time></p>
+    <h2><a href={now.path}>{ui.now.title}</a></h2>
+    <p class="home-meta">{ui.updated} <time datetime={now.date}>{now.date}</time></p>
     <NowBody />
   </section>
 )}
-{[['featured', 'Featured', featured], ['recent', 'Recent', recent]].map(([id, title, pieces]) =>
+{[['featured', ui.featured, featured], ['recent', ui.recent, recent]].map(([id, title, pieces]) =>
   (pieces as Piece[]).length > 0 && (
     <section id={id as string}>
       <h2>{title}</h2>
@@ -31,11 +39,11 @@ const NowBody = now && (await render(now)).Content;
 )}
 {active.length > 0 && (
   <section id="projects">
-    <h2>Active projects</h2>
+    <h2>{ui.activeProjects}</h2>
     <ul class="home-list">
       {active.map((p) => (
         <li>
-          <a href={p.path}>{p.name}</a>{p.version && <span class="home-meta"> · Version {p.version}</span>}
+          <a href={p.path}>{p.name}</a>{p.version && <span class="home-meta"> · {ui.version} {p.version}</span>}
           <p>{p.oneLine}</p>
         </li>
       ))}

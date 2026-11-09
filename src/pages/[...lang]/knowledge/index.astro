@@ -1,0 +1,40 @@
+---
+import Base from '../../../layouts/Base.astro';
+import KnowledgeSearch from '../../../components/KnowledgeSearch.astro';
+import KnowledgeList from '../../../components/KnowledgeList.astro';
+import { byCategory, getKnowledge, knowledgeIndexOf, tagPathOf, tagsOf } from '../../../lib/knowledge';
+import { languageParams, languagesOfSection } from '../../../lib/sections';
+import { generatedTranslations, type Language } from '../../../lib/translations';
+import { uiOf } from '../../../lib/ui';
+
+export const getStaticPaths = () => languageParams('knowledge');
+
+const { language } = Astro.props as { language: Language };
+const ui = uiOf(language);
+const index = knowledgeIndexOf(language);
+const entries = await getKnowledge(language);
+const groups = byCategory(entries);
+const tags = tagsOf(entries);
+const translations = generatedTranslations('/knowledge/', await languagesOfSection('knowledge'));
+---
+<Base title={index.title} description={index.summary} canonical={index.canonical} language={language} twin={index.twin} translations={translations}>
+  <header>
+    <h1>{index.title}</h1>
+    <p>{index.summary}</p>
+  </header>
+  <KnowledgeSearch />
+  {tags.length > 0 && (
+    <nav aria-label={ui.filterByTag}>
+      <h2>{ui.tags}</h2>
+      <ul class="knowledge-tags">
+        {tags.map((tag) => <li><a href={tagPathOf(tag, language)}>{tag}</a></li>)}
+      </ul>
+    </nav>
+  )}
+  {groups.map((group) => (
+    <section aria-labelledby={group.id}>
+      <h2 id={group.id}>{group.category}</h2>
+      <KnowledgeList entries={group.entries} />
+    </section>
+  ))}
+</Base>
