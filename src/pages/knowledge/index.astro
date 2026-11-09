@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import KnowledgeSearch from '../../components/KnowledgeSearch.astro';
+import KnowledgeList from '../../components/KnowledgeList.astro';
+import { byCategory, getKnowledge, tagPathOf, tagsOf } from '../../lib/knowledge';
+import { SITE_URL } from '../../../site.config.mjs';
+
+const entries = await getKnowledge();
+const groups = byCategory(entries);
+const tags = tagsOf(entries);
+const summary = 'Concepts and Guides on engineering with and for AI agents, by category.';
+---
+<Base title="Knowledge" description={summary} canonical={new URL('/knowledge/', SITE_URL).href} language="en" twin="/knowledge.md">
+  <header>
+    <h1>Knowledge</h1>
+    <p>{summary}</p>
+  </header>
+  <KnowledgeSearch />
+  {tags.length > 0 && (
+    <nav aria-label="Filter by tag">
+      <h2>Tags</h2>
+      <ul class="knowledge-tags">
+        {tags.map((tag) => <li><a href={tagPathOf(tag)}>{tag}</a></li>)}
+      </ul>
+    </nav>
+  )}
+  {groups.map((group) => (
+    <section aria-labelledby={group.id}>
+      <h2 id={group.id}>{group.category}</h2>
+      <KnowledgeList entries={group.entries} />
+    </section>
+  ))}
+</Base>
