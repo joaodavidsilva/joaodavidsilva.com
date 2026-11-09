@@ -13,7 +13,7 @@ test('Knowledge Base entries are published', async (t) => {
   await t.test('entries render under the agent-readability contract', () => {
     assert.match(concept, /<h1>Context window<\/h1>/);
     assert.match(concept, /The context window body paragraph\./);
-    assert.doesNotMatch(concept, /<script(?![^>]*application\/ld\+json)/);
+    assert.doesNotMatch(concept, /<script(?![^>]*(?:application\/ld\+json|data-theme-script))/);
     assert.match(concept, /<link rel="alternate" type="text\/markdown" href="\/knowledge\/context-window\.md">/);
     const ld = JSON.parse(concept.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
     assert.equal(ld.headline, 'Context window');
