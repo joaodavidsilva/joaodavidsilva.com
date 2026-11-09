@@ -3,6 +3,7 @@ title: "Facts Memorizer: Terms and Conditions"
 summary: The terms for using Facts Memorizer, a free times-tables practice app for children with no accounts, no ads and no data collection.
 published: 2026-11-09
 language: en
+legal: true
 ---
 
 Effective date: 9 November 2026

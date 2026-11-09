@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { SITE_URL } from '../../site.config.mjs';
 import { getProjects, metadataOf, pathOf, PROJECTS_PATH, PROJECTS_SUMMARY, PROJECTS_TITLE } from '../lib/projects';
+import { ORIGINAL_LANGUAGE } from '../lib/translations';
 
 const yamlString = (value: string) => JSON.stringify(value);
 
@@ -12,7 +13,7 @@ export const GET: APIRoute = async () => {
     `title: ${yamlString(PROJECTS_TITLE)}`,
     `summary: ${yamlString(PROJECTS_SUMMARY)}`,
     ...(updated ? [`updated: ${updated}`] : []),
-    'language: en',
+    `language: ${ORIGINAL_LANGUAGE}`,
     `canonical: ${new URL(PROJECTS_PATH, SITE_URL).href}`,
     '---',
   ].join('\n');
