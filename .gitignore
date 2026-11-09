@@ -3,3 +3,6 @@ dist/
 .astro/
 test/.out/
 .skills/
+.wrangler/
+.dev.vars*
+.env*

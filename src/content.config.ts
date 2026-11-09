@@ -2,7 +2,7 @@ import { defineCollection, reference } from 'astro:content';
 import { existsSync } from 'node:fs';
 import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
-import { KNOWLEDGE_CATEGORIES, LANGUAGES } from '../site.config.mjs';
+import { KNOWLEDGE_CATEGORIES, LANGUAGES, WAITLISTS } from '../site.config.mjs';
 import { recordSchema } from './lib/record-schema';
 
 type Language = keyof typeof LANGUAGES;
@@ -62,6 +62,8 @@ const projects = defineCollection({
         .default([]),
       // Legal documents are pages, so they keep their own URLs.
       legal: z.array(reference('pages')).default([]),
+      // The Waitlist the Project page offers, by the `source` the Waitlist Worker stores (ADR-0004).
+      waitlist: z.enum(Object.keys(WAITLISTS) as [string, ...string[]]).optional(),
     }),
 });
 

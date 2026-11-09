@@ -16,12 +16,28 @@ test('the Worker serves the built site as static assets on the apex domain', () 
   const config = wranglerConfig();
   assert.equal(config.name, 'joaodavidsilva');
   assert.match(config.compatibility_date, /^\d{4}-\d{2}-\d{2}$/);
-  assert.equal(config.main, undefined, 'static assets only; no Worker script yet');
   assert.equal(config.assets.directory, './dist');
   assert.equal(config.assets.html_handling, 'force-trailing-slash');
   assert.equal(config.assets.not_found_handling, '404-page');
   assert.deepEqual(config.routes, [{ pattern: 'joaodavidsilva.com', custom_domain: true }]);
   assert.equal(config.preview_urls, true);
+});
+
+test('only /api/ reaches the Waitlist Worker; everything else is a static asset', () => {
+  const config = wranglerConfig();
+  assert.equal(config.main, './worker/index.js');
+  assert.deepEqual(config.assets.run_worker_first, ['/api/*']);
+  assert.equal(config.assets.binding, undefined, 'the Worker never serves the site itself');
+});
+
+test('no secrets are committed', () => {
+  const config = wranglerConfig();
+  assert.deepEqual(config.secrets.required, ['TURNSTILE_SECRET_KEY']);
+  assert.ok(!('TURNSTILE_SECRET_KEY' in (config.vars ?? {})), 'the Turnstile secret is a Wrangler secret');
+  const ignored = readFileSync(new URL('.gitignore', root), 'utf8').split('\n');
+  for (const file of ['.dev.vars*', '.env*', '.wrangler/']) assert.ok(ignored.includes(file), `${file} is not ignored`);
+  const tracked = spawnSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' }).stdout.split('\n');
+  assert.deepEqual(tracked.filter((f) => /(^|\/)(\.dev\.vars|\.env)/.test(f)), []);
 });
 
 test('the Workers Builds build command runs every check before building', () => {
