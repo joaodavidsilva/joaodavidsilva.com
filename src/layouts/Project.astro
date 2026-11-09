@@ -1,0 +1,92 @@
+---
+import { render } from 'astro:content';
+import Base from './Base.astro';
+import SuggestCorrection from '../components/SuggestCorrection.astro';
+import { SITE_URL } from '../../site.config.mjs';
+import {
+  figuresOf,
+  legalOf,
+  linksOf,
+  metadataOf,
+  statusLabel,
+  twinPathOf,
+  type Project,
+} from '../lib/projects';
+import '../styles/projects.css';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const meta = metadataOf(project);
+const links = linksOf(project);
+const legal = await legalOf(project);
+const figures = await figuresOf(project);
+const { software } = project.data;
+const { Content } = await render(project);
+
+const page = {
+  '@context': 'https://schema.org',
+  name: meta.title,
+  headline: meta.title,
+  description: meta.summary,
+  datePublished: meta.published,
+  dateModified: meta.updated,
+  inLanguage: meta.language,
+  keywords: meta.tags,
+  url: meta.canonical,
+};
+// An application is described as one; any other Project as the page about it.
+const jsonLd = software
+  ? {
+      ...page,
+      '@type': 'SoftwareApplication',
+      applicationCategory: software.category,
+      operatingSystem: software.operatingSystems.join(', '),
+      softwareVersion: meta.version,
+      sameAs: links.map((link) => link.url),
+      screenshot: figures.map((figure) => new URL(figure.src, SITE_URL).href),
+    }
+  : { ...page, '@type': 'WebPage' };
+---
+<Base
+  title={meta.title}
+  description={meta.summary}
+  canonical={meta.canonical}
+  language={meta.language}
+  twin={twinPathOf(project)}
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <article class="project">
+    <header>
+      <h1>{meta.title}</h1>
+      <p>{meta.summary}</p>
+      <dl class="project-facts">
+        <div><dt>Status</dt> <dd>{statusLabel(meta.status)}</dd></div>
+        {meta.version && <div><dt>Version</dt> <dd>{meta.version}</dd></div>}
+      </dl>
+      {links.length > 0 && (
+        <ul class="project-links" aria-label="Links">
+          {links.map((link) => <li><a href={link.url}>{link.label}</a></li>)}
+        </ul>
+      )}
+    </header>
+    <Content />
+    {figures.map((figure) => (
+      <figure>
+        <img src={figure.src} {...figure.attributes} alt={figure.alt} />
+        {figure.caption && <figcaption>{figure.caption}</figcaption>}
+      </figure>
+    ))}
+    {legal.length > 0 && (
+      <section aria-labelledby="legal-documents">
+        <h2 id="legal-documents">Legal documents</h2>
+        <ul>
+          {legal.map((doc) => <li><a href={doc.path}>{doc.title}</a></li>)}
+        </ul>
+      </section>
+    )}
+    <SuggestCorrection title={meta.title} canonical={meta.canonical} />
+  </article>
+</Base>
