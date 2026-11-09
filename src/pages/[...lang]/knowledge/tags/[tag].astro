@@ -5,6 +5,7 @@ import { listingJsonLd, tagMetadataOf, tagPathOf, type KnowledgeEntry } from '..
 import { tagRoutes } from '../../../../lib/routes';
 import { pathIn, twinOf, type Language } from '../../../../lib/translations';
 import { uiOf } from '../../../../lib/ui';
+import '../../../../styles/knowledge.css';
 
 export const getStaticPaths = tagRoutes;
 
@@ -19,5 +20,5 @@ const jsonLd = listingJsonLd(meta, entries);
     <h1>{ui.tagged(tag)}</h1>
     <p><a href={pathIn('/knowledge/', language)}>{ui.allEntries}</a></p>
   </header>
-  <KnowledgeList entries={entries} />
+  <KnowledgeList entries={entries} heading="h2" withCategory />
 </Base>

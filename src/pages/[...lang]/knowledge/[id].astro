@@ -1,12 +1,14 @@
 ---
 import { render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
+import Day from '../../../components/Day.astro';
 import SuggestCorrection from '../../../components/SuggestCorrection.astro';
 import { canonicalOf, categoryIdOf, pathOf, tagPathOf, twinPathOf, type KnowledgeEntry } from '../../../lib/knowledge';
 import { jsonLdBase } from '../../../lib/metadata';
 import { knowledgeRoutes } from '../../../lib/routes';
 import { pathIn, translationJsonLd } from '../../../lib/translations';
 import { uiOf } from '../../../lib/ui';
+import '../../../styles/knowledge.css';
 
 export const getStaticPaths = knowledgeRoutes;
 
@@ -25,29 +27,42 @@ const jsonLd = {
 ---
 <Base title={title} description={summary} canonical={canonical} language={language} twin={twinPathOf(entry)} translations={translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <article data-pagefind-body>
-    <header>
-      <p>{kind === 'concept' ? ui.concept : ui.guide} · <a href={`${pathIn('/knowledge/', language)}#${categoryIdOf(category)}`}>{category}</a></p>
+  <article class="long-form" data-pagefind-body>
+    <header class="long-form-header">
+      {/* Kind, category and date stay out of the indexed text so excerpts quote the entry; Pagefind still reads the meta. */}
+      <p class="knowledge-kind" data-pagefind-ignore>
+        <span data-pagefind-meta="kind">{kind === 'concept' ? ui.concept : ui.guide}</span>{' · '}<a
+          href={`${pathIn('/knowledge/', language)}#${categoryIdOf(category)}`} data-pagefind-meta="category">{category}</a>
+      </p>
       <h1>{title}</h1>
-      <p>{summary}</p>
-      <p>{ui.lastUpdated} <time datetime={updated}>{updated}</time></p>
+      <p class="summary">{summary}</p>
+      <p class="byline" data-pagefind-ignore><span>{ui.lastUpdated} <Day date={updated} /></span></p>
     </header>
-    <Content />
+    <div class="long-form-body">
+      <Content />
+    </div>
     {skillUrl && (
       <aside aria-label={ui.skill}>
         <p>{ui.skillPrompt} <a href={skillUrl}>{ui.skillLink.before}<code>{entry.data.skill}</code>{ui.skillLink.after}</a>.</p>
       </aside>
     )}
     {related.length > 0 && (
-      <nav aria-label={ui.relatedLabel}>
-        <h2>{ui.related}</h2>
-        <ul>{related.map((target) => <li><a href={pathOf(target)}>{target.data.title}</a></li>)}</ul>
+      <nav class="knowledge-end" aria-labelledby="knowledge-related" data-pagefind-ignore>
+        <h2 id="knowledge-related">{ui.related}</h2>
+        <ul class="knowledge-related">
+          {related.map((target) => (
+            <li><a href={pathOf(target)}>{target.data.title}</a> <span>{target.data.category}</span></li>
+          ))}
+        </ul>
       </nav>
     )}
     {tags.length > 0 && (
-      <ul class="knowledge-tags" aria-label={ui.tags}>
-        {tags.map((tag) => <li><a href={tagPathOf(tag, language)}>{tag}</a></li>)}
-      </ul>
+      <nav class="knowledge-end" aria-labelledby="knowledge-entry-tags">
+        <h2 id="knowledge-entry-tags">{ui.tags}</h2>
+        <ul class="tags">
+          {tags.map((tag) => <li><a href={tagPathOf(tag, language)}>{tag}</a></li>)}
+        </ul>
+      </nav>
     )}
     <SuggestCorrection title={title} canonical={canonical} />
   </article>
