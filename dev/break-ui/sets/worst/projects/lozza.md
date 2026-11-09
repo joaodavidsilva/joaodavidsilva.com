@@ -29,7 +29,7 @@ legal: [projects/lozza/privacy, projects/lozza/terms, projects/lozza/privacy/202
 waitlist: lozza
 ---
 
-Lozza is in development and not yet available. Join the Waitlist below to be told when it is.
+Lozza is in development and not yet available. Join the Waitlist above to be told when it is.
 
 
 Escaping must hold: `<script>alert(1)</script>`, a literal &amp;amp; entity, and asterisks that are \*\*not bold\*\*. A plain-text address like first.last+billing-notifications@sub.department.region.example.co.uk and a bare URL: https://developers.cloudflare.com/turnstile/get-started/server-side-validation/?utm_source=joaodavidsilva.com&utm_medium=article&utm_campaign=waitlist-implementation-notes#accepted-parameters

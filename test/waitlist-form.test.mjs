@@ -88,3 +88,39 @@ test('a Project cannot offer a Waitlist the Worker does not accept', () => {
   assert.match(site.output, /waitlist/);
   assert.match(site.output, /lozza/);
 });
+
+test('a Project page with a Waitlist', async (t) => {
+  const site = buildFixture('project-waitlist');
+  assert.ok(site.ok, site.output);
+  const page = site.read('projects/sample-app/index.html');
+  const project = page.slice(page.indexOf('<article class="project"'));
+  const formOf = (html) => html.match(/<form\b[^>]*data-waitlist[^>]*>.*?<\/form>/s)?.[0];
+
+  await t.test('the Waitlist comes right after the Project header, figures before the body, legal documents last', () => {
+    const positions = [/<\/header>/, /id="waitlist"/, /<figure>/, /The project body explains/, /id="legal-documents"/]
+      .map((pattern) => {
+        const at = project.search(pattern);
+        assert.ok(at >= 0, `no ${pattern}`);
+        return at;
+      });
+    assert.deepEqual([...positions].sort((a, b) => a - b), positions);
+  });
+
+  await t.test('the form stays locked until the bot check passes, and says so when it cannot load', () => {
+    const form = formOf(page);
+    const widget = attributesOf(form, /<div\b[^>]*class="cf-turnstile"[^>]*>/);
+    assert.match(widget['data-callback'], /^\w+$/);
+    assert.match(widget['data-error-callback'], /^\w+$/);
+    assert.match(form, /data-messages="[^"]*bot check could not load/);
+  });
+
+  await t.test('the form speaks the Project page’s language', () => {
+    const form = formOf(site.read('pt/projects/sample-app/index.html'));
+    assert.ok(form, 'no Waitlist form');
+    assert.match(form, /<label for="waitlist-email">Endereço de email<\/label>/);
+    assert.match(form, /<label for="waitlist-consent">[^<]*Lozza[^<]*<\/label>/);
+    assert.match(form, /<a href="\/privacy\/">aviso de privacidade<\/a>/);
+    assert.match(form, /data-messages="[^"]*verificação/);
+    assert.doesNotMatch(form, /Join the Waitlist|Email address|privacy notice|bot check/);
+  });
+});

@@ -1,5 +1,17 @@
 /* The Projects index and Project pages. */
 
+.project > header .summary {
+  font-size: 1.15em;
+  color: var(--ink-muted);
+}
+
+/* A full-page screenshot stays within a screen: scaled down, never cropped. */
+.project > figure img {
+  max-block-size: min(80vh, 48rem);
+  inline-size: auto;
+  object-fit: contain;
+}
+
 .project-list {
   list-style: none;
   margin: 0;
@@ -14,6 +26,16 @@
 .project-list h2 {
   margin: 0 0 0.25em;
   font-size: 1.25em;
+}
+
+/* Names read like Writing and Research titles: ink, underlined on hover. */
+.project-list h2 a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.project-list h2 a:hover {
+  text-decoration: underline;
 }
 
 .project-list p {
@@ -35,11 +57,14 @@ dl.project-facts {
 dl.project-facts div {
   display: flex;
   gap: 0.4em;
+  min-inline-size: 0;
 }
 
+/* A build-tagged version (0.9.0-beta.12+build.…) has no break opportunity of its own. */
 dl.project-facts dd {
   margin: 0;
   color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 .project-links {

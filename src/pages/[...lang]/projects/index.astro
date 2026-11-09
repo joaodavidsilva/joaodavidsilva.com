@@ -23,17 +23,21 @@ const jsonLd = collectionJsonLd(
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <header>
     <h1>{index.title}</h1>
-    <p>{index.summary}</p>
+    <p class="summary">{index.summary}</p>
   </header>
-  <ul class="project-list">
-    {projects.map((project) => (
-      <li>
-        <h2><a href={pathOf(project)}>{project.data.name}</a></h2>
-        <p class="project-facts">
-          {ui.projectStatus[project.data.status]}{project.data.version && <> · {ui.version} {project.data.version}</>}
-        </p>
-        <p>{project.data.oneLine}</p>
-      </li>
-    ))}
-  </ul>
+  {projects.length > 0 ? (
+    <ul class="project-list">
+      {projects.map((project) => (
+        <li>
+          <h2><a href={pathOf(project)}>{project.data.name}</a></h2>
+          <p class="project-facts">
+            {ui.projectStatus[project.data.status]}{project.data.version && <> · {ui.version} {project.data.version}</>}
+          </p>
+          <p>{project.data.oneLine}</p>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p>{ui.noProjects}</p>
+  )}
 </Base>

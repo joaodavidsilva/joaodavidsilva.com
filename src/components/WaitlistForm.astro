@@ -1,6 +1,7 @@
 ---
 import { TURNSTILE_SITE_KEY, WAITLISTS, WAITLIST_ENDPOINT } from '../../site.config.mjs';
 import script from '../lib/waitlist-form.js?raw';
+import { uiAt } from '../lib/ui';
 import '../styles/waitlist.css';
 
 interface Props {
@@ -10,15 +11,16 @@ interface Props {
 
 const { source } = Astro.props;
 const name = WAITLISTS[source];
+const words = uiAt(Astro.url).waitlist;
 ---
 <section class="waitlist" id="waitlist" aria-labelledby="waitlist-heading">
-  <h2 id="waitlist-heading">Join the Waitlist</h2>
-  <p>Leave your email address to hear when {name} is available.</p>
-  <form class="waitlist-form" method="post" action={WAITLIST_ENDPOINT} data-waitlist>
+  <h2 id="waitlist-heading">{words.heading}</h2>
+  <p>{words.intro(name)}</p>
+  <form class="waitlist-form" method="post" action={WAITLIST_ENDPOINT} data-waitlist data-messages={JSON.stringify(words.messages)}>
     <input type="hidden" name="source" value={source} />
     <fieldset disabled>
       <div class="waitlist-field">
-        <label for="waitlist-email">Email address</label>
+        <label for="waitlist-email">{words.email}</label>
         <input
           id="waitlist-email"
           type="email"
@@ -31,16 +33,21 @@ const name = WAITLISTS[source];
       </div>
       <div class="waitlist-consent">
         <input id="waitlist-consent" type="checkbox" name="consent" value="yes" required />
-        <label for="waitlist-consent">I agree that João David Silva may store my email address to tell me when {name} is available.</label>
+        <label for="waitlist-consent">{words.consent(name)}</label>
       </div>
       <p class="waitlist-note">
-        The <a href="/privacy/">privacy notice</a> explains how sign-ups are stored and how to leave the list.
+        {words.note.before}<a href="/privacy/">{words.note.link}</a>{words.note.after}
       </p>
-      <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY}></div>
-      <button type="submit">Join the Waitlist</button>
+      <div
+        class="cf-turnstile"
+        data-sitekey={TURNSTILE_SITE_KEY}
+        data-callback="waitlistBotCheckPassed"
+        data-error-callback="waitlistBotCheckFailed"
+      ></div>
+      <button type="submit">{words.submit}</button>
     </fieldset>
-    <noscript><p class="waitlist-note">Joining needs JavaScript, which runs the form's bot check.</p></noscript>
-    <p class="waitlist-status" role="status" aria-live="polite"></p>
+    <noscript><p class="waitlist-note">{words.noscript}</p></noscript>
+    <p class="waitlist-status" id="waitlist-status" role="status" aria-live="polite"></p>
   </form>
 </section>
 <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer data-waitlist></script>

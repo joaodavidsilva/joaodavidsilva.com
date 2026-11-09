@@ -77,6 +77,24 @@ const en = {
   corrections: 'Corrections',
   discussOn: (network: string) => `Discuss on ${network}`,
   suggestCorrection: 'Suggest a correction',
+  noProjects: 'No Projects yet.',
+  waitlist: {
+    heading: 'Join the Waitlist',
+    intro: (name: string) => `Leave your email address to hear when ${name} is available.`,
+    email: 'Email address',
+    consent: (name: string) => `I agree that João David Silva may store my email address to tell me when ${name} is available.`,
+    /** Words around the link to the privacy notice. */
+    note: { before: 'The ', link: 'privacy notice', after: ' explains how sign-ups are stored and how to leave the list.' },
+    submit: 'Join the Waitlist',
+    noscript: 'Joining needs JavaScript, which runs the form’s bot check.',
+    /** What the form's script says while it sends a sign-up; the Worker's answers come in its own words. */
+    messages: {
+      checking: 'The bot check is still running. Try again in a moment.',
+      unavailable: 'The bot check could not load, so the form cannot be sent. If a content blocker is on, allow challenges.cloudflare.com and reload the page.',
+      joining: 'Joining…',
+      offline: 'The sign-up could not be sent. Check your connection and try again.',
+    },
+  },
   record: {
     interests: 'Interests',
     approach: 'Approach to engineering',
@@ -169,6 +187,22 @@ const pt: Ui = {
   corrections: 'Correções',
   discussOn: (network: string) => `Discutir no ${network}`,
   suggestCorrection: 'Sugerir uma correção',
+  noProjects: 'Ainda não há Projetos.',
+  waitlist: {
+    heading: 'Entrar na Lista de espera',
+    intro: (name: string) => `Deixe o seu endereço de email para saber quando ${name} estiver disponível.`,
+    email: 'Endereço de email',
+    consent: (name: string) => `Aceito que João David Silva guarde o meu endereço de email para me avisar quando ${name} estiver disponível.`,
+    note: { before: 'O ', link: 'aviso de privacidade', after: ' explica como as inscrições são guardadas e como sair da lista.' },
+    submit: 'Entrar na Lista de espera',
+    noscript: 'A inscrição precisa de JavaScript, que executa a verificação anti-bot do formulário.',
+    messages: {
+      checking: 'A verificação anti-bot ainda está a decorrer. Tente de novo dentro de momentos.',
+      unavailable: 'A verificação anti-bot não carregou, por isso o formulário não pode ser enviado. Se usa um bloqueador de conteúdos, permita challenges.cloudflare.com e recarregue a página.',
+      joining: 'A inscrever…',
+      offline: 'Não foi possível enviar a inscrição. Verifique a ligação e tente de novo.',
+    },
+  },
   record: {
     interests: 'Interesses',
     approach: 'Abordagem à engenharia',

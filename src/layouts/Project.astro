@@ -50,7 +50,7 @@ const jsonLd = {
   <article class="project">
     <header>
       <h1>{meta.title}</h1>
-      <p>{meta.summary}</p>
+      <p class="summary">{meta.summary}</p>
       <dl class="project-facts">
         <div><dt>{ui.status}</dt> <dd>{ui.projectStatus[meta.status]}</dd></div>
         {meta.version && <div><dt>{ui.version}</dt> <dd>{meta.version}</dd></div>}
@@ -61,14 +61,15 @@ const jsonLd = {
         </ul>
       )}
     </header>
-    <Content />
+    {/* Signing up is the purpose of a page with a Waitlist; figures come before the long body, legal documents last. */}
+    {project.data.waitlist && <WaitlistForm source={project.data.waitlist} />}
     {figures.map((figure) => (
       <figure>
         <img src={figure.src} {...figure.attributes} alt={figure.alt} />
         {figure.caption && <figcaption>{figure.caption}</figcaption>}
       </figure>
     ))}
-    {project.data.waitlist && <WaitlistForm source={project.data.waitlist} />}
+    <Content />
     {legal.length > 0 && (
       <section aria-labelledby="legal-documents">
         <h2 id="legal-documents">{ui.legalDocuments}</h2>
