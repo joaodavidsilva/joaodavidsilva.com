@@ -138,6 +138,12 @@ test('a legal document that does not exist fails the build', () => {
   assert.match(site.output, /projects\/orphan\/privacy/);
 });
 
+test('a legal document not marked legal fails the build', () => {
+  const site = buildFixture('project-unmarked-legal');
+  assert.equal(site.ok, false);
+  assert.match(site.output, /loose\/privacy\.md: a Project's legal document must set legal: true/);
+});
+
 test('a page claiming a Project page path fails the build', () => {
   const site = buildFixture('project-path-collision');
   assert.equal(site.ok, false);
@@ -191,4 +197,18 @@ test('Markdown Exporter: Project page links its repository and extension listing
   assert.equal(jsonLdOf(html)['@type'], 'SoftwareApplication');
   assert.ok(site.has('projects/markdown-exporter.md'));
   assert.match(site.read('projects/index.html'), /<a href="\/projects\/markdown-exporter\/">Markdown Exporter<\/a>/);
+});
+
+test('dotore and AI Skills: Project pages link their own homes', () => {
+  const site = buildSite();
+  assert.ok(site.ok, site.output);
+  const dotore = site.read('projects/dotore/index.html');
+  assert.match(dotore, /href="https:\/\/joaodavidsilva\.github\.io\/dotore\/"/);
+  assert.match(dotore, /href="https:\/\/github\.com\/joaodavidsilva\/dotore"/);
+  const skills = site.read('projects/ai-skills/index.html');
+  assert.match(skills, /href="https:\/\/github\.com\/joaodavidsilva\/skills"/);
+  const index = site.read('projects/index.html');
+  for (const [slug, name] of [['dotore', 'dotore'], ['ai-skills', 'AI Skills']]) {
+    assert.match(index, new RegExp(`<a href="/projects/${slug}/">${name}</a>`));
+  }
 });

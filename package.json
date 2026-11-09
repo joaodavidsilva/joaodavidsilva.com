@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "test": "node --test --test-concurrency=1 \"test/*.test.mjs\"",
     "ci:build": "sh scripts/ci-build.sh",
+    "translation:hash": "node scripts/original-hash.mjs",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
