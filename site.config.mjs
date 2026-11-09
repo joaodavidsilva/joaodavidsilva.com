@@ -21,3 +21,19 @@ export const LANGUAGES = {
   de: 'Deutsch',
   it: 'Italiano',
 };
+
+// The fixed Knowledge Base categories, in index order (spec #1, ADR-0002).
+export const KNOWLEDGE_CATEGORIES = [
+  'AI Engineering',
+  'Context Engineering',
+  'Agent Orchestration',
+  'Harness Engineering',
+  'MCP & Tooling',
+  'Software Engineering',
+  'Architecture & Design Patterns',
+  'Development Processes & Methodologies',
+  'Technical References & Guides',
+];
+
+// Where Skills live; a Guide's `skill` links to its SKILL.md here.
+export const SKILLS_REPO_URL = 'https://github.com/joaodavidsilva/skills';

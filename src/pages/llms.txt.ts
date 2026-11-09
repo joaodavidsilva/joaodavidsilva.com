@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { SITE_URL } from '../../site.config.mjs';
 import { getPages, twinPathOf } from '../lib/pages';
+import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
 import { ABOUT_TITLE, getRecord } from '../lib/record';
 import { ORIGINAL_LANGUAGE, translationsOf } from '../lib/translations';
 
@@ -16,6 +17,9 @@ export const GET: APIRoute = async () => {
         : '';
       return `- [${page.data.title}](${new URL(twinPathOf(page), SITE_URL).href}): ${page.data.summary}${pointer}`;
     });
+  const knowledge = (await getKnowledge())
+    .filter(({ entry }) => entry.data.language === 'en')
+    .map(({ entry }) => `- [${entry.data.title}](${new URL(knowledgeTwinPathOf(entry), SITE_URL).href}): ${entry.data.summary}`);
   const record = await getRecord();
   if (record) lines.push(`- [${ABOUT_TITLE}](${new URL('/about.md', SITE_URL).href}): ${record.name}. ${record.headline}`);
   const body = [
@@ -27,6 +31,7 @@ export const GET: APIRoute = async () => {
     '',
     ...lines,
     '',
+    ...(knowledge.length ? ['## Knowledge', '', ...knowledge, ''] : []),
   ].join('\n');
   return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 };
