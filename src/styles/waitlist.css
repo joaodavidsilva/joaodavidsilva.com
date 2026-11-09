@@ -1,0 +1,89 @@
+/* The Waitlist form on a Project page. Thumb-sized controls; 18px+ text so phones do not zoom in. */
+
+.waitlist {
+  margin-block: 2.5rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid var(--rule);
+}
+
+.waitlist-form {
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+}
+
+.waitlist-form fieldset {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.waitlist-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.waitlist-field label {
+  font-weight: 600;
+}
+
+.waitlist-form input[type='email'] {
+  inline-size: 100%;
+  min-block-size: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ink-muted);
+  border-radius: 0.25rem;
+  background-color: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: max(1rem, 1em);
+}
+
+.waitlist-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.waitlist-consent input {
+  flex: none;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--accent);
+}
+
+.waitlist-note {
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.waitlist-form button {
+  justify-self: start;
+  min-block-size: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--ink);
+  border-radius: 0.25rem;
+  background-color: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.waitlist-form fieldset:disabled button {
+  cursor: not-allowed;
+}
+
+.waitlist-status {
+  margin: 1rem 0 0;
+  font-weight: 600;
+}
+
+@media (max-width: 30rem) {
+  .waitlist-form button {
+    justify-self: stretch;
+  }
+}

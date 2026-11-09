@@ -1,14 +1,30 @@
-// Workers static assets for joaodavidsilva.com (ADR-0001), built by Workers Builds.
-// Build command: pnpm ci:build. Deploy command: pnpm exec wrangler deploy.
+// joaodavidsilva.com on Workers (ADR-0001): the built site as static assets, plus the Waitlist
+// Worker (ADR-0004) on /api/*. Build command: pnpm ci:build. Deploy command: pnpm exec wrangler deploy.
+// The Turnstile secret is a Wrangler secret (TURNSTILE_SECRET_KEY), never committed.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "joaodavidsilva",
+  "main": "./worker/index.js",
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "./dist",
     "html_handling": "force-trailing-slash",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "joaodavidsilva-waitlist",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "vars": {
+    // The effective date of the site privacy notice (content/pages/privacy.md) sign-ups consent to.
+    "PRIVACY_NOTICE_VERSION": "2026-11-09"
+  },
+  "secrets": { "required": ["TURNSTILE_SECRET_KEY"] },
+  "observability": { "enabled": true, "traces": { "enabled": true } },
   "routes": [{ "pattern": "joaodavidsilva.com", "custom_domain": true }],
   "workers_dev": false,
   "preview_urls": true
