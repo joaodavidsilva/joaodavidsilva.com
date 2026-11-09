@@ -25,6 +25,10 @@ record:
     - name: Fixture App
       summary: An app that exists only in tests.
       source: { page: /projects/fixture-app/ }
+    - name: Second App
+      summary: An app with its own site.
+      url: https://example.com/second-app
+      source: { url: https://example.com/second-app-launch }
   skills:
     - name: Fixture Testing
       demonstrated:
@@ -35,6 +39,7 @@ record:
       source: { attested: "Award letter, kept by João" }
   publications:
     - title: On fixtures
+      url: https://example.com/on-fixtures-paper
       source: { url: https://example.com/on-fixtures }
   contributions:
     - text: Fixed a bug in a fixture library.

@@ -1,0 +1,14 @@
+/* The About page: Claims with their sources as muted trailing notes. */
+
+.record li + li {
+  margin-block-start: 0.5em;
+}
+
+.record .period {
+  white-space: nowrap;
+}
+
+.record .source-note {
+  color: var(--ink-muted);
+  font-size: 0.875em;
+}
