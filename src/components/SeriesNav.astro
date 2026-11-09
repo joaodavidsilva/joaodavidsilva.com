@@ -1,0 +1,19 @@
+---
+import type { Position } from '../lib/series';
+
+interface Props {
+  position: Position;
+}
+
+// The previous and next parts of a Series, after the body of a part.
+const { position } = Astro.props;
+const { previous, next } = position;
+---
+{(previous || next) && (
+  <nav class="series-nav" aria-label={`Series: ${position.series.title}`}>
+    <ul>
+      {previous && <li class="previous"><a href={previous.path} rel="prev">Previous: {previous.title}</a></li>}
+      {next && <li class="next"><a href={next.path} rel="next">Next: {next.title}</a></li>}
+    </ul>
+  </nav>
+)}
