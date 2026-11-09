@@ -1,0 +1,16 @@
+---
+import { REPO_URL } from '../../site.config.mjs';
+
+interface Props {
+  title: string;
+  canonical: string;
+}
+
+// Opens the `correction` issue form with its `page` field pre-filled.
+const { title, canonical } = Astro.props;
+const params = new URLSearchParams({ template: 'correction.yml', title: `Correction: ${title}`, page: canonical });
+const href = `${REPO_URL}/issues/new?${params}`;
+---
+<footer class="content-footer">
+  <p><a href={href}>Suggest a correction</a></p>
+</footer>

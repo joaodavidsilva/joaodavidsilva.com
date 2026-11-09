@@ -1,18 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildFixture } from './build.mjs';
+import { stylesheetsOf } from './css.mjs';
 import { SITE_URL } from '../site.config.mjs';
-
-/** Every stylesheet a built page applies: inline `<style>` blocks and linked same-origin files. */
-function stylesheetsOf(site, html) {
-  const inline = [...html.matchAll(/<style[^>]*>(.*?)<\/style>/gs)].map((m) => m[1]);
-  const linked = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)].map((m) => {
-    const href = m[0].match(/href="([^"]+)"/)[1];
-    assert.ok(href.startsWith('/') && !href.startsWith('//'), `stylesheet ${href} is not same-origin`);
-    return site.read(href.slice(1));
-  });
-  return [...inline, ...linked].join('\n');
-}
 
 /** The rules of a stylesheet as { selectors, declarations: [property, value][] }. */
 function rulesOf(css) {

@@ -1,0 +1,26 @@
+# Opened by each page's "Suggest a correction" link, which pre-fills `page`
+# (query parameters fill the issue form field with the same id).
+name: Suggest a correction
+description: Report a mistake on a page of joaodavidsilva.com.
+title: "Correction: "
+labels: ["needs-triage"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The address of the page with the mistake.
+      placeholder: https://joaodavidsilva.com/
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: What is wrong, and what should it say?
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: Optional. A link or reference that supports the correction.

@@ -1,0 +1,174 @@
+/*
+ * Site chrome: the header navigation, the mobile menu, the footer and page transitions.
+ * Motion animates only transform and opacity, and only without a reduced-motion preference.
+ */
+
+/* Cross-document page transitions; browsers without View Transitions ignore this and navigate normally. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+}
+
+.site-name {
+  color: var(--ink);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.site-header a:hover {
+  text-decoration: underline;
+}
+
+.site-menu a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.site-menu a[aria-current] {
+  color: var(--accent);
+}
+
+.site-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-button {
+  min-block-size: 2.75rem;
+  padding: 0.5em 0.9em;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background-color: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+/*
+ * Narrow screens: the sections sit in a popover, a sheet across the top of the viewport.
+ * It lives in the top layer, so opening it moves nothing on the page.
+ */
+.site-menu {
+  inset: 0 0 auto;
+  inline-size: 100%;
+  max-inline-size: none;
+  margin: 0;
+  padding: 1rem var(--gutter) 1.5rem;
+  border: 0;
+  border-block-end: 1px solid var(--rule);
+  background-color: var(--paper);
+  color: var(--ink);
+  font-size: 1.125rem;
+}
+
+.site-menu:popover-open {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.site-menu li a {
+  display: block;
+  padding-block: 0.5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-menu {
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.2s ease-out;
+  }
+
+  @starting-style {
+    .site-menu:popover-open {
+      opacity: 0;
+      transform: translateY(-0.75rem);
+    }
+  }
+}
+
+/* Without popover support the sections simply stay in the page. */
+@supports not selector(:popover-open) {
+  .menu-button {
+    display: none;
+  }
+}
+
+/* Wide screens: the name, followed by Writing · Research · Knowledge · Projects · About. */
+@media (min-width: 46rem) {
+  .menu-button {
+    display: none;
+  }
+
+  .site-menu,
+  .site-menu:popover-open {
+    display: block;
+    position: static;
+    inline-size: auto;
+    padding: 0;
+    border: 0;
+    overflow: visible;
+    font-size: inherit;
+  }
+
+  .site-menu ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.5em;
+  }
+
+  .site-menu li + li::before {
+    content: "·" / "";
+    margin-inline-end: 0.5em;
+    color: var(--ink-muted);
+  }
+
+  .site-menu li a {
+    display: inline;
+    padding-block: 0;
+  }
+}
+
+.site-footer {
+  margin-block-start: 2rem;
+  padding-block: 1.5rem 3rem;
+  border-block-start: 1px solid var(--rule);
+  color: var(--ink-muted);
+}
+
+.site-footer ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.site-footer time {
+  font-size: inherit;
+}
+
+/* "Suggest a correction" closes every content page. */
+.content-footer {
+  margin-block-start: 3rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--rule);
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+}

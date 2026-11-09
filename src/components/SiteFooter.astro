@@ -1,0 +1,22 @@
+---
+import { FEED_PATH, REPO_URL } from '../../site.config.mjs';
+
+const built = new Date();
+const builtDate = built.toISOString().slice(0, 10);
+const builtLabel = built.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+---
+<footer class="site-footer">
+  <ul>
+    <li><a href={FEED_PATH}>RSS/Atom</a></li>
+    <li><a href="/llms.txt">llms.txt</a></li>
+    <li><a href="https://github.com/joaodavidsilva" rel="me">GitHub</a></li>
+    <li><a href="https://www.linkedin.com/in/joaodavidsilvaa/" rel="me">LinkedIn</a></li>
+    <li><a href="https://x.com/joaodavidsilvaa" rel="me">X</a></li>
+    <li><a href="mailto:me@joaodavidsilva.com">me@joaodavidsilva.com</a></li>
+  </ul>
+  <p>
+    Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>,
+    code under the <a href={`${REPO_URL}/blob/main/LICENSE`}>MIT licence</a>.
+    Built <time datetime={builtDate}>{builtLabel}</time>.
+  </p>
+</footer>

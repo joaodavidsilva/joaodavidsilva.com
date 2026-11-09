@@ -1,8 +1,8 @@
 ---
-import { Font } from 'astro:assets';
 import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import SuggestCorrection from '../components/SuggestCorrection.astro';
 import { getPages, metadataOf, slugOf, twinPathOf, type Page } from '../lib/pages';
-import '../styles/global.css';
 
 export async function getStaticPaths() {
   const pages = await getPages();
@@ -25,31 +25,21 @@ const jsonLd = {
   url: meta.canonical,
 };
 ---
-<!doctype html>
-<html lang={meta.language}>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{meta.title} · João David Silva</title>
-    <meta name="description" content={meta.summary} />
-    <link rel="canonical" href={meta.canonical} />
-    <link rel="alternate" type="text/markdown" href={twinPathOf(page)} />
-    <Font cssVariable="--font-serif" preload={[{ subset: 'latin', style: 'normal' }]} />
-    <Font cssVariable="--font-sans" preload={[{ subset: 'latin' }]} />
-    <Font cssVariable="--font-mono" />
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  </head>
-  <body>
-    <header><a href="/">João David Silva</a></header>
-    <main>
-      <article>
-        <header>
-          <h1>{meta.title}</h1>
-          <p>{meta.summary}</p>
-          <p>Published <time datetime={meta.published}>{meta.published}</time></p>
-        </header>
-        <Content />
-      </article>
-    </main>
-  </body>
-</html>
+<Base
+  title={meta.title}
+  description={meta.summary}
+  canonical={meta.canonical}
+  language={meta.language}
+  twin={twinPathOf(page)}
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <article>
+    <header>
+      <h1>{meta.title}</h1>
+      <p>{meta.summary}</p>
+      <p>Published <time datetime={meta.published}>{meta.published}</time></p>
+    </header>
+    <Content />
+    <SuggestCorrection title={meta.title} canonical={meta.canonical} />
+  </article>
+</Base>

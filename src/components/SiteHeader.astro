@@ -1,0 +1,29 @@
+---
+// One list of sections serves both widths: inline on wide screens, and a native
+// `popover` on narrow ones, which closes on Escape, an outside tap or a link tap
+// and returns focus to its button without any JavaScript.
+const SECTIONS = [
+  ['Writing', '/writing/'],
+  ['Research', '/research/'],
+  ['Knowledge', '/knowledge/'],
+  ['Projects', '/projects/'],
+  ['About', '/about/'],
+];
+
+const path = Astro.url.pathname;
+const currentOf = (href: string) => (path === href ? 'page' : path.startsWith(href) ? 'true' : undefined);
+---
+<header class="site-header">
+  <a class="site-name" href="/" aria-current={path === '/' ? 'page' : undefined}>João David Silva</a>
+  <nav class="site-nav" aria-label="Sections">
+    <button class="menu-button" type="button" popovertarget="site-menu">Menu</button>
+    <div class="site-menu" id="site-menu" popover>
+      <ul>
+        {SECTIONS.map(([label, href]) => (
+          <li><a href={href} aria-current={currentOf(href)}>{label}</a></li>
+        ))}
+      </ul>
+      <button class="menu-button" type="button" popovertarget="site-menu" popovertargetaction="hide">Close</button>
+    </div>
+  </nav>
+</header>
