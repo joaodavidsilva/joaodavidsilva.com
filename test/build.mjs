@@ -26,11 +26,14 @@ function build(name, contentDir) {
       ...process.env,
       JDS_CONTENT_DIR: contentDir,
       JDS_OUT_DIR: outDir,
+      // The skills repo is substituted by a local fixture: no network in tests.
+      JDS_SKILLS_DIR: join(root, 'test', 'fixtures', 'skills-repo'),
       ASTRO_TELEMETRY_DISABLED: '1',
     },
   });
   return {
     ok: result.status === 0,
+    dir: outDir,
     output: `${result.stdout}\n${result.stderr}`,
     has: (path) => existsSync(join(outDir, path)),
     read: (path) => readFileSync(join(outDir, path), 'utf8'),
