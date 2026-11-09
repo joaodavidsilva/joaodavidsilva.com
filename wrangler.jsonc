@@ -1,0 +1,15 @@
+// Workers static assets for joaodavidsilva.com (ADR-0001), built by Workers Builds.
+// Build command: pnpm ci:build. Deploy command: pnpm exec wrangler deploy.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "joaodavidsilva",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "force-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "routes": [{ "pattern": "joaodavidsilva.com", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": true
+}
