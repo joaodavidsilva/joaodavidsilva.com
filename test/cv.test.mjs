@@ -54,6 +54,8 @@ test('the build emits the CV in PDF and DOCX from the Professional record', asyn
         'fixture@example.com',
         'https://joaodavidsilva.com/',
         'https://github.com/fixture',
+        'Interests Fixture interest paragraph one. Fixture interest paragraph two.',
+        'Approach to engineering Fixture approach paragraph.',
         'Staff Fixture Engineer, Fixture Corp, 2024-01 – present',
         'Junior Fixture Engineer, Old Corp, 2020-03 – 2023-12 Source: https://example.com/old-corp-team',
         'Fixture App: An app that exists only in tests. Source: https://joaodavidsilva.com/hello/',

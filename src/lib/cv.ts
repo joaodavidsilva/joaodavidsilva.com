@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import PDFDocument from 'pdfkit';
 import { Document, ExternalHyperlink, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
-import { ABOUT_PATH, absoluteUrl, hrefOf, periodOf, type Record, type Source } from './record';
+import { ABOUT_PATH, absoluteUrl, hrefOf, paragraphsOf, periodOf, type Record, type Source } from './record';
 
 // The CV: one document from the full Professional record, never tailored. The PDF and the
-// DOCX render the same model, so they carry the same Claims as the About page.
+// DOCX render the same model, so they carry the same prose and Claims as the About page.
 
 /** A piece of text, linked when it is a URL. */
 interface Span {
@@ -19,12 +19,19 @@ interface Entry {
   evidence: Span[];
 }
 
+/** A section is João's own prose (opinions, not Claims) or a list of Claims. */
+interface Section {
+  title: string;
+  paragraphs: string[];
+  entries: Entry[];
+}
+
 interface Cv {
   name: string;
   headline: string;
   /** Contact lines: email and site, then profiles elsewhere. */
   contact: Span[][];
-  sections: { title: string; entries: Entry[] }[];
+  sections: Section[];
   colophon: string;
 }
 
@@ -37,21 +44,25 @@ const sourced = (text: string, source: Source): Entry =>
     : { text, label: 'Source', evidence: [link(hrefOf(source))] };
 
 function cvOf(record: Record): Cv {
-  const sections = [
-    { title: 'Roles', entries: record.roles.map((r) => sourced(`${r.title}, ${r.organisation}, ${periodOf(r)}`, r.source)) },
-    { title: 'Projects', entries: record.projects.map((p) => sourced(`${p.name}: ${p.summary}`, p.source)) },
-    {
-      title: 'Skills',
-      entries: record.skills.map((s): Entry => ({
+  const prose = (title: string, text: string | undefined) => ({ title, paragraphs: paragraphsOf(text), entries: [] });
+  const claims = (title: string, entries: Entry[]) => ({ title, paragraphs: [], entries });
+  const sections: Section[] = [
+    prose('Interests', record.interests),
+    prose('Approach to engineering', record.approach),
+    claims('Roles', record.roles.map((r) => sourced(`${r.title}, ${r.organisation}, ${periodOf(r)}`, r.source))),
+    claims('Projects', record.projects.map((p) => sourced(`${p.name}: ${p.summary}`, p.source))),
+    claims(
+      'Skills',
+      record.skills.map((s): Entry => ({
         text: s.name,
         label: 'Demonstrated in',
         evidence: s.demonstrated.map((d) => link(hrefOf(d))),
       })),
-    },
-    { title: 'Achievements', entries: record.achievements.map((a) => sourced(a.text, a.source)) },
-    { title: 'Publications', entries: record.publications.map((p) => sourced(p.title, p.source)) },
-    { title: 'Open-source contributions', entries: record.contributions.map((c) => sourced(c.text, c.source)) },
-  ].filter((section) => section.entries.length);
+    ),
+    claims('Achievements', record.achievements.map((a) => sourced(a.text, a.source))),
+    claims('Publications', record.publications.map((p) => sourced(p.title, p.source))),
+    claims('Open-source contributions', record.contributions.map((c) => sourced(c.text, c.source))),
+  ].filter((section) => section.paragraphs.length || section.entries.length);
   return {
     name: record.name,
     headline: record.headline,
@@ -122,6 +133,10 @@ export function cvPdf(record: Record): Promise<Uint8Array> {
     const y = doc.y + 2;
     doc.moveTo(doc.page.margins.left, y).lineTo(doc.page.width - doc.page.margins.right, y).lineWidth(0.5).strokeColor(MUTED).stroke();
     doc.moveDown(0.5);
+    for (const paragraph of section.paragraphs) {
+      doc.font('regular').fontSize(10.5).fillColor(INK).text(paragraph);
+      doc.moveDown(0.5);
+    }
     for (const entry of section.entries) {
       doc.font('regular').fontSize(10.5).fillColor(INK).text(entry.text);
       runs([{ text: `${entry.label}: `, font: 'italic' }, ...joined(entry.evidence, ', ')], 9, MUTED);
@@ -162,6 +177,9 @@ export async function cvDocx(record: Record): Promise<Uint8Array> {
     ),
     ...cv.sections.flatMap((section) => [
       new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun(section.title)] }),
+      ...section.paragraphs.map(
+        (paragraph) => new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: paragraph, size: 21 })] }),
+      ),
       // The Claim and its evidence as two paragraphs kept together, so text extractors keep them apart.
       ...section.entries.flatMap((entry) => [
         new Paragraph({ keepNext: true, children: [new TextRun({ text: entry.text, size: 21 })] }),
