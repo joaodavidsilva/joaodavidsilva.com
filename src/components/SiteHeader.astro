@@ -1,4 +1,5 @@
 ---
+import { getRecord } from '../lib/record';
 import { sectionPathIn } from '../lib/sections';
 import type { Language } from '../lib/translations';
 import { uiOf } from '../lib/ui';
@@ -7,40 +8,38 @@ interface Props {
   language: Language;
 }
 
-// One list of sections serves both widths: inline on wide screens, and a native
-// `popover` on narrow ones, which closes on Escape, an outside tap or a link tap
-// and returns focus to its button without any JavaScript. Sections link the page's
-// language where they exist in it, and English otherwise.
+// One list of sections serves both widths: inline beside the name on wide screens, and a native
+// `popover` sheet on narrow ones, which closes on Escape, an outside tap or a link tap and returns
+// focus to its button without any JavaScript. The sheet's first row repeats the name (Home) beside
+// Close, so opening it never hides where you are. Sections link the page's language where they
+// exist in it, and English otherwise; About exists only when the content set has a record.
 const { language } = Astro.props;
 const ui = uiOf(language);
+const sections: (keyof typeof ui.sections)[] = ['writing', 'research', 'knowledge', 'projects'];
+if (await getRecord()) sections.push('about');
 const SECTIONS = await Promise.all(
-  (['writing', 'research', 'knowledge', 'projects', 'about'] as const).map(async (section) => [
-    ui.sections[section],
-    await sectionPathIn(section, `/${section}/`, language),
-  ]),
+  sections.map(async (section) => [ui.sections[section], await sectionPathIn(section, `/${section}/`, language)]),
 );
 const home = await sectionPathIn('home', '/', language);
 
 const path = Astro.url.pathname;
 const currentOf = (href: string) => (path === href ? 'page' : path.startsWith(href) ? 'true' : undefined);
+const homeCurrent = path === home ? 'page' : undefined;
 ---
 <header class="site-header">
-  <a class="site-name" href={home} aria-current={path === home ? 'page' : undefined}>João David Silva</a>
+  <a class="site-name" href={home} aria-current={homeCurrent}>João David Silva</a>
   <nav class="site-nav" aria-label={ui.sectionsLabel}>
     <button class="menu-button" type="button" popovertarget="site-menu">{ui.menu}</button>
     <div class="site-menu" id="site-menu" popover>
+      <div class="site-menu-bar">
+        <a class="site-name" href={home} aria-current={homeCurrent}>João David Silva</a>
+        <button class="menu-button" type="button" popovertarget="site-menu" popovertargetaction="hide">{ui.close}</button>
+      </div>
       <ul>
         {SECTIONS.map(([label, href]) => (
           <li><a href={href} aria-current={currentOf(href)}>{label}</a></li>
         ))}
       </ul>
-      <fieldset class="theme-toggle">
-        <legend>{ui.theme}</legend>
-        {(['system', 'light', 'dark'] as const).map((value) => (
-          <label><input type="radio" name="theme" value={value} checked={value === 'system'} /> {ui.themes[value]}</label>
-        ))}
-      </fieldset>
-      <button class="menu-button" type="button" popovertarget="site-menu" popovertargetaction="hide">{ui.close}</button>
     </div>
   </nav>
 </header>

@@ -25,8 +25,14 @@ const builtLabel = built.toLocaleDateString(ui.locale, { day: 'numeric', month: 
     <li><a href="mailto:me@joaodavidsilva.com">me@joaodavidsilva.com</a></li>
   </ul>
   <p>
-    {ui.licence.content} <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>,
-    {ui.licence.code} <a href={`${REPO_URL}/blob/main/LICENSE`}>{ui.licence.mit}</a>.
+    {ui.licence.content} <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>,{' '}
+    {ui.licence.code} <a href={`${REPO_URL}/blob/main/LICENSE`}>{ui.licence.mit}</a>.{' '}
     {ui.licence.built} <time datetime={builtDate}>{builtLabel}</time>.
   </p>
+  <fieldset class="theme-toggle">
+    <legend>{ui.theme}</legend>
+    {(['system', 'light', 'dark'] as const).map((value) => (
+      <label><input type="radio" name="theme" value={value} checked={value === 'system'} /> {ui.themes[value]}</label>
+    ))}
+  </fieldset>
 </footer>

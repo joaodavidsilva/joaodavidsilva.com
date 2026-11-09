@@ -163,8 +163,8 @@ test('every page type has a Portuguese Translation', async (t) => {
     assert.match(header, /<a href="\/pt\/projects\/"[^>]*>Projetos<\/a>/);
     assert.match(header, /<a href="\/pt\/about\/"[^>]*>Sobre<\/a>/);
     assert.match(header, /class="site-name" href="\/pt\/"/);
-    assert.match(header, /<legend>Tema<\/legend>/);
     const footer = html.match(/<footer class="site-footer">(.*?)<\/footer>/s)[1];
+    assert.match(footer, /<legend>Tema<\/legend>/);
     assert.match(footer, /Conteúdo licenciado/);
     assert.match(footer, /href="\/pt\/feed\.xml"/);
     assert.match(site.read('writing/a1/index.html'), /<a href="\/writing\/"[^>]*>Writing<\/a>/);

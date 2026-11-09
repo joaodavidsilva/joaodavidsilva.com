@@ -1,5 +1,5 @@
 /*
- * Site chrome: the header navigation, the mobile menu, the footer and page transitions.
+ * Site chrome: the header navigation, the mobile menu, the footer (with the theme control) and page transitions.
  * Motion animates only transform and opacity, and only without a reduced-motion preference.
  */
 
@@ -28,12 +28,12 @@
   text-decoration: underline;
 }
 
-.site-menu a {
+.site-menu li a {
   color: var(--ink);
   text-decoration: none;
 }
 
-.site-menu a[aria-current] {
+.site-menu li a[aria-current] {
   color: var(--accent);
 }
 
@@ -56,14 +56,16 @@
 
 /*
  * Narrow screens: the sections sit in a popover, a sheet across the top of the viewport.
- * It lives in the top layer, so opening it moves nothing on the page.
+ * It lives in the top layer, so opening it moves nothing on the page. Its first row repeats
+ * the header row (the name, linking Home, and Close where Menu was), so you never lose
+ * where you are; a scrim separates it from the page underneath.
  */
 .site-menu {
   inset: 0 0 auto;
   inline-size: 100%;
   max-inline-size: none;
   margin: 0;
-  padding: 1rem var(--gutter) 1.5rem;
+  padding: 1.5rem var(--gutter) 1.5rem;
   border: 0;
   border-block-end: 1px solid var(--rule);
   background-color: var(--paper);
@@ -71,12 +73,22 @@
   font-size: 1.125rem;
 }
 
+.site-menu::backdrop {
+  background-color: rgb(0 0 0 / 0.3);
+}
+
 .site-menu:popover-open {
+  display: block;
+}
+
+/* Same size as the header row it covers, so nothing jumps when the sheet opens. */
+.site-menu-bar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  margin-block-end: 0.5rem;
+  font-size: 0.875em;
 }
 
 .site-menu li a {
@@ -85,7 +97,8 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .site-menu {
+  .site-menu,
+  .site-menu::backdrop {
     transition:
       opacity 0.2s ease-out,
       transform 0.2s ease-out;
@@ -96,82 +109,25 @@
       opacity: 0;
       transform: translateY(-0.75rem);
     }
+
+    .site-menu:popover-open::backdrop {
+      opacity: 0;
+    }
   }
-}
-
-/*
- * Theme toggle: System / Light / Dark. Hidden until the head script marks the
- * page with data-js; without JavaScript the site follows the system setting.
- */
-:root[data-theme="light"] {
-  color-scheme: light;
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-}
-
-.theme-toggle {
-  display: none;
-}
-
-[data-js] .theme-toggle {
-  display: flex;
-  flex-basis: 100%;
-  order: 1;
-  gap: 0.25rem;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-}
-
-.theme-toggle legend {
-  float: left;
-  align-self: center;
-  margin-inline-end: 0.5rem;
-  padding: 0;
-  color: var(--ink-muted);
-}
-
-.theme-toggle label {
-  display: inline-flex;
-  align-items: center;
-  min-block-size: 2.75rem;
-  padding: 0 0.75em;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.theme-toggle label:has(:checked) {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.theme-toggle label:has(:focus-visible) {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.theme-toggle input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
 }
 
 /* Without popover support the sections simply stay in the page. */
 @supports not selector(:popover-open) {
-  .menu-button {
+  .menu-button,
+  .site-menu-bar {
     display: none;
   }
 }
 
-/* Wide screens: the name, followed by Writing · Research · Knowledge · Projects · About. */
+/* Wide screens: one row, the name on the left, Writing · Research · Knowledge · Projects · About on the right. */
 @media (min-width: 46rem) {
-  .menu-button {
+  .menu-button,
+  .site-menu-bar {
     display: none;
   }
 
@@ -182,6 +138,7 @@
     inline-size: auto;
     padding: 0;
     border: 0;
+    background-color: transparent;
     overflow: visible;
     font-size: inherit;
   }
@@ -202,22 +159,74 @@
     display: inline;
     padding-block: 0;
   }
+}
 
-  .site-menu,
-  .site-menu:popover-open {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 1.5rem;
-  }
+/*
+ * Theme: System · Light · Dark, small text radios in the footer. Hidden until the head
+ * script marks the page with data-js; without JavaScript the site follows the system setting.
+ */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
 
-  [data-js] .theme-toggle {
-    flex-basis: auto;
-  }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
 
-  .theme-toggle label {
-    min-block-size: 2rem;
-  }
+.theme-toggle {
+  display: none;
+}
+
+[data-js] .theme-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.5em;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.theme-toggle legend {
+  float: left;
+  margin: 0;
+  padding: 0;
+}
+
+.theme-toggle legend::after {
+  content: ":" / "";
+}
+
+.theme-toggle label {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.theme-toggle label + label::before {
+  content: "·" / "";
+  margin-inline-end: 0.5em;
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.theme-toggle label:has(:checked) {
+  color: var(--ink);
+  font-weight: 650;
+  cursor: default;
+}
+
+.theme-toggle label:has(:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.theme-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .site-footer {
@@ -236,12 +245,18 @@
   padding: 0;
 }
 
+/* The email address is one unbreakable word; let it wrap rather than widen narrow, zoomed pages. */
+.site-footer li {
+  overflow-wrap: anywhere;
+}
+
 .site-footer p {
   margin: 0;
 }
 
 .site-footer time {
   font-size: inherit;
+  white-space: nowrap;
 }
 
 /* "Suggest a correction" closes every content page. */

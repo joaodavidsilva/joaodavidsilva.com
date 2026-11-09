@@ -61,12 +61,12 @@ test('theme toggle', async (t) => {
   const declared = (match, property) =>
     rules.filter((r) => match(r) && r.declarations.some(([p]) => p === property)).map((r) => [r, Object.fromEntries(r.declarations)[property]]);
 
-  await t.test('the menu offers System, Light and Dark, in the header on wide screens and the mobile menu', () => {
+  await t.test('the footer offers System, Light and Dark as text radios', () => {
     for (const { file, html } of pages) {
-      const menu = html.match(/<div class="site-menu" id="site-menu" popover>(.*?)<\/div>\s*<\/nav>/s)?.[1];
-      assert.ok(menu, `${file}: no site menu`);
-      const toggle = menu.match(/<fieldset class="theme-toggle"[^>]*>(.*?)<\/fieldset>/s)?.[1];
-      assert.ok(toggle, `${file}: no theme toggle in the menu`);
+      const footer = html.match(/<footer class="site-footer">(.*?)<\/footer>/s)?.[1];
+      assert.ok(footer, `${file}: no site footer`);
+      const toggle = footer.match(/<fieldset class="theme-toggle"[^>]*>(.*?)<\/fieldset>/s)?.[1];
+      assert.ok(toggle, `${file}: no theme toggle in the footer`);
       assert.match(toggle, /<legend[^>]*>Theme<\/legend>/);
       const options = [...toggle.matchAll(/<label[^>]*>\s*<input([^>]*)>\s*([^<]+?)\s*<\/label>/g)].map(([, attrs, text]) => [
         attrs.match(/name="([^"]+)"/)?.[1],

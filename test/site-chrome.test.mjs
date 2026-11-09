@@ -8,13 +8,14 @@ import { stylesheetsOf, nestedRulesOf } from './css.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+// The `chrome` fixture has no Professional record, so there is no About page to link.
 const SECTIONS = [
   ['Writing', '/writing/'],
   ['Research', '/research/'],
   ['Knowledge', '/knowledge/'],
   ['Projects', '/projects/'],
-  ['About', '/about/'],
 ];
+const HOME = ['João David Silva', '/'];
 
 // Built file → [canonical URL, title] for every page of the `chrome` fixture.
 const PAGES = {
@@ -88,12 +89,18 @@ test('site chrome', async (t) => {
 
   await t.test('on wide screens the name links Home, followed by every section, on every page', () => {
     for (const { file, html } of pages) {
-      const links = linksIn(siteHeaderOf(html));
-      assert.deepEqual(
-        links.map(({ text, href }) => [text, href]),
-        [['João David Silva', '/'], ...SECTIONS],
-        file,
-      );
+      const header = siteHeaderOf(html);
+      const menu = elementAt(header, /<div\b[^>]*\bid="site-menu"[^>]*>/);
+      assert.deepEqual(linksIn(header.replace(menu, '')).map(({ text, href }) => [text, href]), [HOME], file);
+      assert.deepEqual(linksIn(menu).map(({ text, href }) => [text, href]).slice(1), SECTIONS, file);
+    }
+  });
+
+  await t.test('the header links only sections the build produced (no About without a record)', () => {
+    for (const { file, html } of pages) {
+      for (const { href } of linksIn(siteHeaderOf(html))) {
+        assert.ok(site.has(`${href.slice(1)}index.html`), `${file}: header links missing page ${href}`);
+      }
     }
   });
 
@@ -107,15 +114,17 @@ test('site chrome', async (t) => {
       const menu = elementAt(header, new RegExp(`<\\w+\\b[^>]*\\bid="${target}"[^>]*>`));
       // `auto` popovers close on Escape and on a tap outside them, and return focus to the button.
       assert.match(attributesOf(menu.match(/^<[^>]+>/)[0]).popover ?? 'missing', /^(|auto)$/, `${file}: menu is not an auto popover`);
+      // The sheet's first row carries the site name (Home) and Close, so opening it never hides where you are.
       assert.deepEqual(
         linksIn(menu).map(({ text, href }) => [text, href]),
-        SECTIONS,
-        `${file}: the menu does not offer every section`,
+        [HOME, ...SECTIONS],
+        `${file}: the menu does not offer Home and every section`,
       );
       const close = menu.match(/<button\b[^>]*>/)?.[0];
       assert.ok(close, `${file}: the menu has no close button`);
       assert.equal(attributesOf(close).popovertarget, target);
       assert.equal(attributesOf(close).popovertargetaction, 'hide');
+      assert.ok(menu.indexOf(close) < menu.indexOf('<ul'), `${file}: Close is not in the sheet's first row`);
     }
   });
 
@@ -127,12 +136,13 @@ test('site chrome', async (t) => {
   });
 
   await t.test('the section of the current page is marked', () => {
-    const current = (html) => linksIn(siteHeaderOf(html)).filter((l) => 'aria-current' in l.attrs);
+    const current = (html) => [
+      ...new Set(linksIn(siteHeaderOf(html)).filter((l) => 'aria-current' in l.attrs).map((l) => `${l.text},${l.attrs['aria-current']}`)),
+    ];
     const home = pages.find((p) => p.file === 'index.html').html;
-    assert.deepEqual(current(home).map((l) => [l.text, l.attrs['aria-current']]), [['João David Silva', 'page']]);
+    assert.deepEqual(current(home), ['João David Silva,page']);
     const sample = pages.find((p) => p.file === 'writing/sample/index.html').html;
-    const marked = current(sample).map((l) => [l.text, l.attrs['aria-current']]);
-    assert.deepEqual([...new Set(marked.map(String))], ['Writing,true']);
+    assert.deepEqual(current(sample), ['Writing,true']);
   });
 
   const rules = nestedRulesOf(stylesheetsOf(site, pages[0].html));
@@ -189,6 +199,20 @@ test('site chrome', async (t) => {
       assert.match(readFileSync(join(root, 'LICENSE'), 'utf8'), /^MIT License/);
       const built = footer.match(/Built\s*<time datetime="(\d{4}-\d{2}-\d{2})"/)?.[1];
       assert.ok([startDate, endDate].includes(built), `${file}: build date ${built} is not the build day`);
+    }
+  });
+
+  await t.test('the footer build date never breaks across lines', () => {
+    const nowrap = rules.filter(
+      (r) => r.prelude === '.site-footer time' && r.declarations.some(([p, v]) => p === 'white-space' && v === 'nowrap'),
+    );
+    assert.ok(nowrap.length, '.site-footer time may wrap');
+  });
+
+  await t.test('the theme control lives in the footer, not the header', () => {
+    for (const { file, html } of pages) {
+      assert.doesNotMatch(siteHeaderOf(html), /theme-toggle/, `${file}: theme control in the header`);
+      assert.match(siteFooterOf(html), /<fieldset class="theme-toggle"/, `${file}: no theme control in the footer`);
     }
   });
 
