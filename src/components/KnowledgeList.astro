@@ -1,0 +1,14 @@
+---
+import { pathOf, type KnowledgeEntry } from '../lib/knowledge';
+
+const { entries } = Astro.props as { entries: KnowledgeEntry[] };
+---
+<ul class="knowledge-list">
+  {entries.map(({ entry }) => (
+    <li>
+      <a href={pathOf(entry)}>{entry.data.title}</a>
+      <span class="knowledge-kind">{entry.data.kind === 'concept' ? 'Concept' : 'Guide'}</span>
+      <p>{entry.data.summary}</p>
+    </li>
+  ))}
+</ul>
