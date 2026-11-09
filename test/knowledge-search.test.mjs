@@ -35,6 +35,10 @@ test('the Knowledge Base is searchable', async (t) => {
       const { results } = await pagefind.search('budget');
       const urls = await Promise.all(results.map(async (r) => (await r.data()).url.replace(origin, '')));
       assert.ok(urls.includes('/knowledge/token-budget/'), urls.join(', '));
+      const budget = await results[urls.indexOf('/knowledge/token-budget/')].data();
+      assert.equal(budget.meta.title, 'Token budget');
+      assert.equal(budget.meta.kind, 'Concept', 'results carry the kind');
+      assert.equal(budget.meta.category, 'Context Engineering', 'results carry the category');
       assert.ok(!urls.some((u) => !u.startsWith('/knowledge/') || u.startsWith('/knowledge/tags/') || u === '/knowledge/'),
         `only entries are indexed: ${urls.join(', ')}`);
     } finally {

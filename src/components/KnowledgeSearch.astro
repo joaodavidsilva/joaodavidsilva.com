@@ -1,45 +1,124 @@
 ---
-// Progressive enhancement: the form stays hidden until the script runs, so
-// without JavaScript readers browse the index below. Pagefind's client loads
-// only here, and only once the reader starts typing. Pagefind keeps one index per page
-// language (`<html lang>`), so a reader searches the entries in the page's language.
+// Progressive enhancement: the form stays hidden until the script runs, so without
+// JavaScript readers browse the index below. Pagefind's client loads only here, as soon as
+// the reader focuses the field. Pagefind keeps one index per page language (`<html lang>`),
+// so a reader searches the entries in the page's language. While a query is present the
+// results replace the index (`[data-knowledge-index]`); clearing the field brings it back.
 import { uiAt } from '../lib/ui';
+import '../styles/knowledge.css';
 
 const ui = uiAt(Astro.url);
+const words = {
+  locale: ui.locale,
+  one: ui.results.one,
+  many: ui.results.many,
+  searching: ui.searching,
+  noResults: ui.noResults,
+  showingOf: ui.showingOf('{shown}', '{total}'),
+  failed: ui.searchFailed,
+};
 ---
-<form role="search" class="knowledge-search" data-knowledge-search-form data-one={ui.results.one} data-many={ui.results.many} hidden>
+<form role="search" class="knowledge-search" data-knowledge-search-form data-words={JSON.stringify(words)} hidden>
   <label for="knowledge-search-input">{ui.search}</label>
-  <input id="knowledge-search-input" type="search" name="q" autocomplete="off" />
-  <p aria-live="polite" data-knowledge-search-status></p>
-  <ul data-knowledge-search-results></ul>
+  <input id="knowledge-search-input" type="search" name="q" autocomplete="off" enterkeyhint="search" />
+  <p class="knowledge-search-status" aria-live="polite" data-knowledge-search-status></p>
 </form>
+<ul class="piece-list knowledge-list" aria-label={ui.searchResults} data-knowledge-search-results hidden></ul>
+<button type="button" class="knowledge-search-more" data-knowledge-search-more hidden>{ui.showMore}</button>
 <script is:inline type="module" data-knowledge-search>
+  const STEP = 10;
   const form = document.querySelector('[data-knowledge-search-form]');
   const input = form.querySelector('input');
   const status = form.querySelector('[data-knowledge-search-status]');
-  const list = form.querySelector('[data-knowledge-search-results]');
+  const list = document.querySelector('[data-knowledge-search-results]');
+  const more = document.querySelector('[data-knowledge-search-more]');
+  const index = document.querySelector('[data-knowledge-index]');
+  const words = JSON.parse(form.dataset.words);
+  const number = new Intl.NumberFormat(words.locale);
   let pagefind;
+  let results = [];
+  let shown = 0;
   let latest = 0;
+
+  // One load per page; a failed one is forgotten so the next keystroke retries.
+  const load = () => (pagefind ??= import('/pagefind/pagefind.js')
+    .then(async (client) => { await client.init(); return client; })
+    .catch((error) => { pagefind = undefined; throw error; }));
+
+  // Pagefind's excerpt is escaped text with <mark> around matches; keep only those two.
+  const excerptOf = (html) => {
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    return [...template.content.childNodes].map((node) => node.nodeName === 'MARK'
+      ? Object.assign(document.createElement('mark'), { textContent: node.textContent })
+      : document.createTextNode(node.textContent));
+  };
+
+  const itemOf = (page) => {
+    const item = document.createElement('li');
+    const heading = document.createElement('h2');
+    const link = Object.assign(document.createElement('a'), { href: page.url, textContent: page.meta.title });
+    heading.append(link);
+    const meta = Object.assign(document.createElement('p'), {
+      className: 'piece-meta',
+      textContent: [page.meta.kind, page.meta.category].filter(Boolean).join(' · '),
+    });
+    const excerpt = document.createElement('p');
+    excerpt.append(...excerptOf(page.excerpt));
+    item.append(heading, meta, excerpt);
+    return item;
+  };
+
+  const countOf = (total) => (total === 1 ? words.one : words.many.replace('{n}', number.format(total)));
+
+  const showIndex = (message = '') => {
+    results = [];
+    shown = 0;
+    list.replaceChildren();
+    list.hidden = true;
+    more.hidden = true;
+    index.hidden = false;
+    status.textContent = message;
+  };
+
+  // Appends the next step of results; returns the new items, or nothing if a newer query took over.
+  const showNext = async (run) => {
+    const pages = await Promise.all(results.slice(shown, shown + STEP).map((result) => result.data()));
+    if (run !== latest) return;
+    const items = pages.map(itemOf);
+    list.append(...items);
+    shown += items.length;
+    list.hidden = shown === 0;
+    more.hidden = shown >= results.length;
+    status.textContent = results.length === 0 ? words.noResults
+      : shown < results.length
+        ? words.showingOf.replace('{shown}', number.format(shown)).replace('{total}', number.format(results.length))
+        : countOf(results.length);
+    return items;
+  };
+
   form.hidden = false;
   form.addEventListener('submit', (event) => event.preventDefault());
+  input.addEventListener('focus', () => load().catch(() => {}), { once: true });
   input.addEventListener('input', async () => {
     const query = input.value.trim();
     const run = ++latest;
-    if (!query) { list.replaceChildren(); status.textContent = ''; return; }
-    pagefind ??= await import('/pagefind/pagefind.js');
-    const search = await pagefind.debouncedSearch(query);
-    if (search === null || run !== latest) return;
-    const pages = await Promise.all(search.results.slice(0, 10).map((r) => r.data()));
-    if (run !== latest) return;
-    list.replaceChildren(...pages.map((page) => {
-      const item = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = page.url;
-      link.textContent = page.meta.title;
-      item.append(link);
-      return item;
-    }));
-    const count = search.results.length;
-    status.textContent = count === 1 ? form.dataset.one : form.dataset.many.replace('{n}', count);
+    if (!query) { showIndex(); return; }
+    index.hidden = true;
+    status.textContent = words.searching;
+    try {
+      const search = await (await load()).debouncedSearch(query);
+      if (search === null || run !== latest) return;
+      results = search.results;
+      shown = 0;
+      list.replaceChildren();
+      await showNext(run);
+    } catch {
+      if (run === latest) showIndex(words.failed);
+    }
+  });
+  more.addEventListener('click', async () => {
+    const items = await showNext(latest).catch(() => undefined);
+    items?.[0]?.querySelector('a').focus();
   });
 </script>
