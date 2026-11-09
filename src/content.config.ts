@@ -94,10 +94,23 @@ const postOn = (network: string, hosts: string[]) =>
     error: `must be an https URL on ${network} (${hosts.join(', ')})`,
   });
 
+// A Series: `series/<slug>.md`, published at `/writing/series/<slug>/`. Its body is the
+// introduction; its parts are the Articles that name it in `series`, ordered by `part`.
+const series = defineCollection({
+  loader: glob({ pattern: '*.md', base: `${contentDir}/series` }),
+  schema: z.strictObject({
+    title: z.string().min(1),
+    summary: z.string().min(1),
+    published: z.coerce.date(),
+    language: z.literal('en').default('en'),
+    status: z.enum(['ongoing', 'complete']),
+  }),
+});
+
 // One Markdown file per Article: `articles/<slug>.md`, published at `/writing/<slug>/`.
 // Its own folder, `articles/<slug>/`, holds its images and attachments and is
 // published beside it at `/writing/<slug>/`. Strict, so a misspelt field fails the build.
-// Articles are English Originals.
+// Articles are English Originals. A part of a Series names it in `series` with its `part` number.
 const articles = defineCollection({
   loader: glob({ pattern: '*.md', base: `${contentDir}/articles` }),
   schema: z.strictObject({
@@ -123,6 +136,11 @@ const articles = defineCollection({
       })
       .default({}),
     corrections: z.array(z.strictObject({ date: z.coerce.date(), note: z.string().min(1) })).default([]),
+    series: reference('series').optional(),
+    part: z.number().int().positive().optional(),
+  }).refine((article) => (article.series === undefined) === (article.part === undefined), {
+    error: 'a part of a Series sets both `series` and `part`',
+    path: ['part'],
   }),
 });
 
@@ -166,4 +184,4 @@ const record = defineCollection({
   schema: recordSchema,
 });
 
-export const collections = { pages, projects, knowledge, articles, studies, record };
+export const collections = { pages, projects, knowledge, articles, series, studies, record };

@@ -1,0 +1,11 @@
+---
+import type { Position } from '../lib/series';
+
+interface Props {
+  position: Position;
+}
+
+// "Part N of M · <Series>", above the title of a part of a Series.
+const { position } = Astro.props;
+---
+<p class="series-position">Part {position.part} of {position.of} · <a href={position.series.path}>{position.series.title}</a></p>
