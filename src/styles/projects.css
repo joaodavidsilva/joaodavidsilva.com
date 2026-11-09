@@ -1,0 +1,53 @@
+/* The Projects index and Project pages. */
+
+.project-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-list li {
+  padding-block: 1.25rem;
+  border-block-start: 1px solid var(--rule);
+}
+
+.project-list h2 {
+  margin: 0 0 0.25em;
+  font-size: 1.25em;
+}
+
+.project-list p {
+  margin: 0;
+}
+
+.project-facts {
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+}
+
+dl.project-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em 1.5em;
+}
+
+dl.project-facts div {
+  display: flex;
+  gap: 0.4em;
+}
+
+dl.project-facts dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em 1.25em;
+  list-style: none;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+}
