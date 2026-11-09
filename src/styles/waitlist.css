@@ -41,6 +41,10 @@
   font-size: max(1rem, 1em);
 }
 
+.waitlist-form input[aria-invalid='true'] {
+  border-color: var(--accent);
+}
+
 .waitlist-consent {
   display: flex;
   align-items: flex-start;
@@ -80,6 +84,18 @@
 .waitlist-status {
   margin: 1rem 0 0;
   font-weight: 600;
+}
+
+.waitlist-form[data-result='pending'] .waitlist-status {
+  color: var(--ink-muted);
+  font-weight: normal;
+}
+
+/* A refusal or a form that cannot be sent is marked like an outdated Translation's notice. */
+.waitlist-form[data-result='rejected'] .waitlist-status,
+.waitlist-form[data-result='unavailable'] .waitlist-status {
+  padding-inline-start: 0.75em;
+  border-inline-start: 3px solid var(--accent);
 }
 
 @media (max-width: 30rem) {

@@ -1,6 +1,6 @@
 ---
 name: dotore
-oneLine: A pure-Rust static analyzer, deterministic auto-fixer and remediation engine for JavaScript/TypeScript, React, Angular, Python and Rust.
+oneLine: A pure-Rust static analyzer, deterministic auto-fixer and remediation engine for JS/TS, React, Angular, Python and Rust.
 status: in development
 published: 2026-11-09
 tags: [developer-tools, rust, static-analysis]

@@ -1,7 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import Day from '../../../components/Day.astro';
-import { jsonLdBase } from '../../../lib/metadata';
+import { byYear, jsonLdBase } from '../../../lib/metadata';
 import { languageParams, languagesOfSection } from '../../../lib/sections';
 import { getStudies, metadataOf, pathOf, researchIndexOf } from '../../../lib/studies';
 import { generatedTranslations, type Language } from '../../../lib/translations';
@@ -34,21 +34,26 @@ const jsonLd = {
     <p class="summary">{index.summary}</p>
   </header>
   {studies.length > 0 ? (
-    <ol class="piece-list" reversed>
-      {studies.map(({ path, title, summary, published, status, featured }) => (
-        <li>
-          <article>
-            <h2><a href={path}>{title}</a></h2>
-            <p class="piece-meta">
-              <Day date={published} />
-              <span class="status" data-status={status}>{ui.studyStatus[status]}</span>
-              {featured && <span>{ui.featured}</span>}
-            </p>
-            <p>{summary}</p>
-          </article>
-        </li>
-      ))}
-    </ol>
+    byYear(studies).map(([year, inYear]) => (
+      <section class="year" aria-labelledby={`year-${year}`}>
+        <h2 id={`year-${year}`}>{year}</h2>
+        <ol class="piece-list" reversed>
+          {inYear.map(({ path, title, summary, published, status, featured }) => (
+            <li>
+              <article>
+                <h3><a href={path}>{title}</a></h3>
+                <p class="piece-meta">
+                  <Day date={published} />
+                  <span class="status" data-status={status}>{ui.studyStatus[status]}</span>
+                  {featured && <span>{ui.featured}</span>}
+                </p>
+                <p>{summary}</p>
+              </article>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
   ) : (
     <p>{ui.noStudies}</p>
   )}

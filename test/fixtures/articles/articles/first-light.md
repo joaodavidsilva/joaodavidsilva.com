@@ -34,4 +34,9 @@ The frame took longer than planned.[^time]
 
 See [the follow-up](/writing/second-thoughts/#what-changed), [the section above](#measuring-twice) and the [materials list](/writing/first-light/materials.csv).
 
+
+| Part | Length | Notes |
+| --- | --- | --- |
+| Rail | 42 cm | Cut twice |
+
 [^time]: About twice as long.

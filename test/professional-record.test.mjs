@@ -60,7 +60,24 @@ test('the About page and Person JSON-LD are generated from the Professional reco
   });
 
   await t.test('a Claim can be sourced to a Project page', () => {
-    assert.match(html, /Fixture App[^<]*<a href="\/projects\/fixture-app\/"/);
+    assert.match(html, /Fixture App[^<]*<span class="source-note">\(<a href="\/projects\/fixture-app\/"/);
+  });
+
+  await t.test('a Project and a Publication link to their own URL when the record gives one', () => {
+    assert.match(html, /<a href="https:\/\/example\.com\/second-app">Second App<\/a>/);
+    assert.match(html, /<a href="https:\/\/example\.com\/on-fixtures-paper">On fixtures<\/a>/);
+  });
+
+  await t.test('demonstrations and profiles read as page titles or host and path, never raw URLs', () => {
+    assert.match(html, /<a href="\/hello\/">Hello fixture<\/a>/);
+    assert.match(html, /<a href="https:\/\/github\.com\/fixture\/tests">github\.com\/fixture\/tests<\/a>/);
+    assert.match(html, /<a href="https:\/\/www\.linkedin\.com\/in\/fixture\/" rel="me">linkedin\.com\/in\/fixture<\/a>/);
+  });
+
+  await t.test('a role reads title · organisation · period, with months in words that do not break', () => {
+    assert.match(html, /Staff Fixture Engineer · Fixture Corp · <span class="period">Jan 2024 – present<\/span>/);
+    assert.match(html, /<span class="period">Mar 2020 – Dec 2023<\/span>/);
+    assert.doesNotMatch(html, /2024-01|2020-03/);
   });
 
   await t.test('the twin carries the shared front-matter', () => {

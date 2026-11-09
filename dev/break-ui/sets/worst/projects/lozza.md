@@ -1,6 +1,6 @@
 ---
 name: Lozza
-oneLine: "A product in development for people who keep losing track of what they lent to whom, with a Waitlist for anyone who wants to hear the day it becomes available on iPhone, iPad, Mac and Android, in English and Portuguese, with no account, no tracking and nothing stored off the device."
+oneLine: "A product in development for people who lose track of what they lent to whom, with a Waitlist for the day it ships."
 status: in development
 version: 0.9.0-beta.12+build.20261109.9f8e7d6c5b4a
 published: 2026-11-09
@@ -29,7 +29,7 @@ legal: [projects/lozza/privacy, projects/lozza/terms, projects/lozza/privacy/202
 waitlist: lozza
 ---
 
-Lozza is in development and not yet available. Join the Waitlist below to be told when it is.
+Lozza is in development and not yet available. Join the Waitlist above to be told when it is.
 
 
 Escaping must hold: `<script>alert(1)</script>`, a literal &amp;amp; entity, and asterisks that are \*\*not bold\*\*. A plain-text address like first.last+billing-notifications@sub.department.region.example.co.uk and a bare URL: https://developers.cloudflare.com/turnstile/get-started/server-side-validation/?utm_source=joaodavidsilva.com&utm_medium=article&utm_campaign=waitlist-implementation-notes#accepted-parameters

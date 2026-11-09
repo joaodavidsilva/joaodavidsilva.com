@@ -26,12 +26,27 @@ test('Featured shows only featured items, newest first, at most 3', () => {
   assert.deepEqual(hrefsIn(featured), ['/writing/a6/', '/writing/a4/', '/writing/a2/']);
 });
 
-test('Recent shows Articles and Studies together, newest first, at most 5, with type, date and summary', () => {
+test('Recent shows the newest Articles and Studies not shown in Featured, at most 5, with type, written-out date and summary', () => {
   const recent = sectionOf(site.read('index.html'), 'recent');
-  assert.deepEqual(hrefsIn(recent), ['/writing/a6/', '/writing/a5/', '/research/s1/', '/writing/a4/', '/writing/a3/']);
+  // a6, a4 and a2 are in Featured; a1 and s2 are featured too but did not fit there.
+  assert.deepEqual(hrefsIn(recent), ['/writing/a5/', '/research/s1/', '/writing/a3/', '/research/s2/', '/writing/a1/']);
   const text = textOf(recent);
-  assert.match(text, /Study .*2026-04-20.*Summary of s1\./);
-  assert.match(text, /Article .*2026-06-05.*Summary of a6\./);
+  assert.match(text, /Study.*20 April 2026.*Summary of s1\./);
+  assert.match(recent, /<time datetime="2026-04-20">20 April 2026<\/time>/);
+  assert.match(text, /Article.*5 May 2026.*Summary of a5\./);
+});
+
+test('Featured and Recent titles are headings, the meta line below them', () => {
+  const featured = sectionOf(site.read('index.html'), 'featured');
+  assert.match(featured, /<h3><a href="\/writing\/a6\/">Article a6<\/a><\/h3>\s*<p class="piece-meta">/);
+});
+
+test('the home page is not a dated document: no Published line, no correction link, no repeated name as a visible title', () => {
+  const main = site.read('index.html').match(/<main\b[^>]*>(.*)<\/main>/s)[1];
+  const header = main.match(/<header\b[^>]*>(.*?)<\/header>/s)[1];
+  assert.doesNotMatch(textOf(header), /Published/);
+  assert.doesNotMatch(main, /Suggest a correction/);
+  assert.match(header, /<h1 class="sr-only">/);
 });
 
 test('Active projects shows only active Projects with their latest version', () => {

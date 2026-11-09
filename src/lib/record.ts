@@ -38,37 +38,42 @@ export function cvFileName(record: ProfessionalRecord, format: CvFormat): string
 async function getEntries(): Promise<(Translatable & { data: ProfessionalRecord })[]> {
   const entries = (await getCollection('record')) as (Translatable & { data: ProfessionalRecord })[];
   assertTranslations(entries, { pathOf: aboutPathOf });
-  const paths = await publishedPaths(entries);
-  for (const { data } of entries) assertSources(data, paths);
+  const pages = await publishedPages(entries);
+  for (const { data } of entries) assertSources(data, pages);
   return entries;
 }
 
-/** Every page path the site publishes, in every language: what a Claim's `page` source may point at. */
-async function publishedPaths(records: Translatable[]): Promise<Set<string>> {
+/** Every page the site publishes, in every language, by path with its title: what a Claim's `page` source may point at. */
+async function publishedPages(records: Translatable[]): Promise<Map<string, string>> {
   const [pages, allArticles, allSeries, allStudies, allProjects, knowledge, now] = await Promise.all([
     getPages(), articles.getAllArticles(), getAllSeries(), studies.getAllStudies(), projects.getAllProjects(),
     getAllKnowledge(), getAllNow(),
   ]);
   const entries = knowledge.map(({ entry }) => entry);
-  const at = (path: string, among: Translatable[]) => languagesOf(among).map((language) => pathIn(path, language));
-  return new Set([
-    ...pages.map(pagePathOf),
-    ...allArticles.map(articles.pathOf),
-    ...allSeries.map(seriesPathOf),
-    ...allStudies.map(studies.pathOf),
-    ...allProjects.map(projects.pathOf),
-    ...knowledge.map(({ entry }) => knowledgePathOf(entry)),
+  const at = (path: string, among: Translatable[], title: (ui: Ui) => string) =>
+    languagesOf(among).map((language) => [pathIn(path, language), title(uiOf(language))] as const);
+  return new Map([
+    ...pages.map((page) => [pagePathOf(page), page.data.title] as const),
+    ...allArticles.map((article) => [articles.pathOf(article), article.data.title] as const),
+    ...allSeries.map((series) => [seriesPathOf(series), series.entry.data.title] as const),
+    ...allStudies.map((study) => [studies.pathOf(study), study.data.title] as const),
+    ...allProjects.map((project) => [projects.pathOf(project), project.data.name] as const),
+    ...entries.map((entry) => [knowledgePathOf(entry), entry.data.title] as const),
     ...languagesOf(entries).flatMap((language) =>
-      tagsOf(knowledge.filter(({ entry }) => entry.data.language === language)).map((tag) => tagPathOf(tag, language)),
+      tagsOf(knowledge.filter(({ entry }) => entry.data.language === language))
+        .map((tag) => [tagPathOf(tag, language), uiOf(language).tagged(tag)] as const),
     ),
-    ...at('/writing/', [...allArticles, ...allSeries.map(({ entry }) => entry)]),
-    ...at('/research/', allStudies),
-    ...at(projects.PROJECTS_PATH, allProjects),
-    ...at('/knowledge/', entries),
-    ...at(NOW_PATH, now),
-    ...at(ABOUT_PATH, records),
+    ...at('/writing/', [...allArticles, ...allSeries.map(({ entry }) => entry)], (ui) => ui.writing.title),
+    ...at('/research/', allStudies, (ui) => ui.research.title),
+    ...at(projects.PROJECTS_PATH, allProjects, (ui) => ui.projects.title),
+    ...at('/knowledge/', entries, (ui) => ui.knowledge.title),
+    ...at(NOW_PATH, now, (ui) => ui.now.title),
+    ...at(ABOUT_PATH, records, (ui) => ui.about),
   ]);
 }
+
+/** The title of every page a Claim's `page` source may point at, by path, to name links to it. */
+export const pageTitles = async () => publishedPages(await getCollection('record'));
 
 /** The Professional record in `language`, or undefined when the content set has none. */
 export async function getRecord(language: Language = ORIGINAL_LANGUAGE): Promise<ProfessionalRecord | undefined> {
@@ -86,13 +91,13 @@ export async function getAllRecords() {
   }));
 }
 
-function assertSources(record: ProfessionalRecord, paths: Set<string>) {
+function assertSources(record: ProfessionalRecord, pages: Map<string, string>) {
   const refs: { page?: string }[] = [
     ...record.roles, ...record.projects, ...record.achievements, ...record.publications, ...record.contributions,
   ].map((claim) => claim.source);
   refs.push(...record.skills.flatMap((skill) => skill.demonstrated));
   for (const ref of refs) {
-    if (ref.page && !paths.has(ref.page)) {
+    if (ref.page && !pages.has(ref.page)) {
       throw new Error(`record.yaml: source page "${ref.page}" does not exist on the site`);
     }
   }
@@ -130,8 +135,15 @@ export function hrefOf(source: { page: string } | { url: string }): string {
 
 export const absoluteUrl = (href: string) => new URL(href, SITE_URL).href;
 
-export const periodOf = (role: ProfessionalRecord['roles'][number], ui: Ui = uiOf(ORIGINAL_LANGUAGE)) =>
-  `${role.start} – ${role.end ?? ui.record.present}`;
+/** A role's period in `ui`'s language with months in words, such as "Apr 2023 – present". */
+export function periodOf(role: ProfessionalRecord['roles'][number], ui: Ui = uiOf(ORIGINAL_LANGUAGE)): string {
+  const format = new Intl.DateTimeFormat(ui.locale, { month: 'short', year: 'numeric', timeZone: 'UTC' });
+  const month = (value: string) => {
+    const [year, number] = value.split('-').map(Number);
+    return format.format(Date.UTC(year, number - 1));
+  };
+  return `${month(role.start)} – ${role.end ? month(role.end) : ui.record.present}`;
+}
 
 /** The About page as Markdown, from the same record as the HTML. */
 export function aboutMarkdown(record: ProfessionalRecord): string {

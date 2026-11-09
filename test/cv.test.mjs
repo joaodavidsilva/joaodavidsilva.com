@@ -56,8 +56,8 @@ test('the build emits the CV in PDF and DOCX from the Professional record', asyn
         'https://www.linkedin.com/in/fixture/',
         'Interests Fixture interest paragraph one. Fixture interest paragraph two.',
         'Approach to engineering Fixture approach paragraph.',
-        'Staff Fixture Engineer, Fixture Corp, 2024-01 – present',
-        'Junior Fixture Engineer, Old Corp, 2020-03 – 2023-12 Source: https://example.com/old-corp-team',
+        'Staff Fixture Engineer, Fixture Corp, Jan 2024 – present',
+        'Junior Fixture Engineer, Old Corp, Mar 2020 – Dec 2023 Source: https://example.com/old-corp-team',
         'Fixture App: An app that exists only in tests. Source: https://joaodavidsilva.com/projects/fixture-app/',
         'Fixture Testing Demonstrated in: https://joaodavidsilva.com/hello/, https://github.com/fixture/tests',
         'On fixtures Source: https://example.com/on-fixtures',
@@ -73,7 +73,7 @@ test('the build emits the CV in PDF and DOCX from the Professional record', asyn
 
     await t.test(`the ${format.toUpperCase()} labels attested Claims`, () => {
       assert.ok(text.includes('Won the fixture prize. Attested: Award letter, kept by João'), text);
-      assert.ok(text.includes('2024-01 – present Attested: Employment contract, kept by João'), text);
+      assert.ok(text.includes('Jan 2024 – present Attested: Employment contract, kept by João'), text);
       assert.equal(text.match(/Attested:/g).length, 2, 'only attested Claims carry the label');
     });
   }

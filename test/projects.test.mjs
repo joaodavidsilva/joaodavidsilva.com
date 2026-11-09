@@ -22,6 +22,7 @@ test('Projects: index and Project page', async (t) => {
     assert.match(index, /<a href="\/projects\/sample-app\/">Sample App<\/a>/);
     assert.match(index, /<a href="\/projects\/sample-library\/">Sample Library<\/a>/);
     assert.ok(index.indexOf('Sample App') < index.indexOf('Sample Library'), 'active Projects come first');
+    assert.match(index, /<p class="summary">What João David Silva maintains/, 'the index summary is muted like Writing and Research');
   });
 
   await t.test('the Projects index is agent-readable', () => {
@@ -235,4 +236,12 @@ test('an unknown Project front-matter field fails the build', () => {
   assert.equal(site.ok, false);
   assert.match(site.output, /sample\.md/);
   assert.match(site.output, /website/);
+});
+
+test('a Projects index with nothing to list says so', () => {
+  const site = buildFixture('basic');
+  assert.ok(site.ok, site.output);
+  const index = site.read('projects/index.html');
+  assert.match(index, /<p>No Projects yet\.<\/p>/);
+  assert.doesNotMatch(index, /class="project-list"/);
 });
