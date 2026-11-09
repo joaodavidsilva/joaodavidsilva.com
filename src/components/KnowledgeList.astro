@@ -1,15 +1,28 @@
 ---
 import { pathOf, type KnowledgeEntry } from '../lib/knowledge';
 import { uiAt } from '../lib/ui';
+import '../styles/knowledge.css';
 
-const { entries } = Astro.props as { entries: KnowledgeEntry[] };
+interface Props {
+  entries: KnowledgeEntry[];
+  /** The entries' heading level: one below the heading the list sits under. */
+  heading: 'h2' | 'h3';
+  /** Names each entry's category beside its kind, for lists that mix categories. */
+  withCategory?: boolean;
+}
+
+const { entries, heading: Heading, withCategory = false } = Astro.props;
 const ui = uiAt(Astro.url);
+const metaOf = ({ kind, category }: KnowledgeEntry['entry']['data']) => {
+  const label = kind === 'concept' ? ui.concept : ui.guide;
+  return withCategory ? `${label} · ${category}` : label;
+};
 ---
-<ul class="knowledge-list">
+<ul class="piece-list knowledge-list">
   {entries.map(({ entry }) => (
     <li>
-      <a href={pathOf(entry)}>{entry.data.title}</a>
-      <span class="knowledge-kind">{entry.data.kind === 'concept' ? ui.concept : ui.guide}</span>
+      <Heading><a href={pathOf(entry)}>{entry.data.title}</a></Heading>
+      <p class="piece-meta">{metaOf(entry.data)}</p>
       <p>{entry.data.summary}</p>
     </li>
   ))}

@@ -78,6 +78,7 @@ export async function getKnowledge(language: Language = ORIGINAL_LANGUAGE): Prom
 async function load(): Promise<KnowledgeEntry[]> {
   const entries = await getCollection('knowledge');
   assertTranslations(entries, { pathOf: entryPathOf, same: ['kind', 'category', 'related', 'skill'] });
+  assertTagSlugs(entries);
   const byId = new Map(entries.filter((entry) => !isTranslation(entry)).map((entry) => [entry.id, entry]));
   const skills = entries.some((entry) => entry.data.skill) ? skillIndex() : new Map<string, string>();
   return entries
@@ -110,6 +111,31 @@ async function load(): Promise<KnowledgeEntry[]> {
     .sort((a, b) => a.entry.data.title.localeCompare(b.entry.data.title));
 }
 
+/**
+ * Each tag gets a page at its slug, so a tag with no slug, or two tags of one language
+ * sharing a slug ("C++" and "C", "AI" and "ai"), would leave a tag without its page.
+ */
+function assertTagSlugs(entries: Entry[]) {
+  const bySlug = new Map<string, { tag: string; file: string }>();
+  for (const entry of entries) {
+    for (const tag of entry.data.tags) {
+      const slug = slugify(tag);
+      if (!slug) {
+        throw new Error(`${entry.filePath}: tag "${tag}" has no URL slug; a tag needs a Latin letter or a digit`);
+      }
+      const key = `${entry.data.language}/${slug}`;
+      const first = bySlug.get(key);
+      if (!first) bySlug.set(key, { tag, file: entry.filePath! });
+      else if (first.tag !== tag) {
+        throw new Error(
+          `tags "${first.tag}" (${first.file}) and "${tag}" (${entry.filePath}) share the page ` +
+            `${tagPathOf(tag, entry.data.language)}; spell them the same way or rename one`,
+        );
+      }
+    }
+  }
+}
+
 /** Entries grouped by category, in the fixed category order, omitting empty categories. */
 export function byCategory(entries: KnowledgeEntry[]) {
   return KNOWLEDGE_CATEGORIES.map((category) => ({
@@ -119,9 +145,9 @@ export function byCategory(entries: KnowledgeEntry[]) {
   })).filter((group) => group.entries.length > 0);
 }
 
-/** Every tag in use, sorted. */
-export function tagsOf(entries: KnowledgeEntry[]): string[] {
-  return [...new Set(entries.flatMap(({ entry }) => entry.data.tags))].sort();
+/** Every tag in use, in alphabetical order for `language` regardless of case. */
+export function tagsOf(entries: KnowledgeEntry[], language: Language = entries[0]?.entry.data.language ?? ORIGINAL_LANGUAGE): string[] {
+  return [...new Set(entries.flatMap(({ entry }) => entry.data.tags))].sort((a, b) => a.localeCompare(b, language));
 }
 
 /** Markdown list of entries linking their twins, used by the index and tag twins. */

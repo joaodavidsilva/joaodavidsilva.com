@@ -41,8 +41,10 @@ test('Knowledge Base entries are published', async (t) => {
     assert.match(concept, /Last updated <time datetime="\d{4}-\d{2}-\d{2}">/);
   });
 
-  await t.test('Concept cross-references resolve to the related Concept', () => {
+  await t.test('Concept cross-references resolve to the related Concept, beside its category', () => {
     assert.match(concept, /<a href="\/knowledge\/token-budget\/">Token budget<\/a>/);
+    const related = concept.slice(concept.indexOf('<a href="/knowledge/token-budget/">'));
+    assert.match(related.slice(0, 300), /Context Engineering/, 'related entries name their category');
   });
 
   await t.test('a Guide with a valid Skill links to its SKILL.md', () => {
@@ -72,6 +74,21 @@ test('Knowledge Base entries are published', async (t) => {
     assert.ok(site.has('knowledge/tags/tokens.md'));
   });
 
+  await t.test('the index lists its tags alphabetically, after the categories', () => {
+    const index = site.read('knowledge/index.html');
+    const order = [...index.matchAll(/href="\/knowledge\/tags\/([^/]+)\/"/g)].map((m) => m[1]);
+    assert.deepEqual(order, ['context', 'tdd', 'testing', 'tokens']);
+    assert.ok(index.indexOf('href="/knowledge/tags/') > index.indexOf('href="/knowledge/writing-tests-first/"'),
+      'tags follow the categories');
+  });
+
+  await t.test('a tag page names each entry with its kind and category', () => {
+    const tokens = site.read('knowledge/tags/tokens/index.html');
+    for (const title of ['Context window', 'Token budget']) {
+      assert.match(tokens, new RegExp(`${title}</a>[^]{0,200}Concept · Context Engineering`), title);
+    }
+  });
+
   await t.test('the index and tag pages are agent-readable', () => {
     for (const [html, path, twin] of [
       ['knowledge/index.html', '/knowledge/', 'knowledge.md'],
@@ -91,6 +108,31 @@ test('Knowledge Base entries are published', async (t) => {
     assert.ok(llms.includes('(https://joaodavidsilva.com/knowledge.md)'), llms);
     assert.ok(llms.includes('(https://joaodavidsilva.com/knowledge/tags/tokens.md)'), llms);
   });
+});
+
+test('an empty Knowledge Base says so and offers no search', () => {
+  const site = buildFixture('basic');
+  assert.ok(site.ok, site.output);
+  const index = site.read('knowledge/index.html');
+  assert.match(index, /No Knowledge entries yet\./);
+  assert.doesNotMatch(index, /role="search"/);
+  assert.doesNotMatch(index, /data-knowledge-search/);
+});
+
+test('two Knowledge tags sharing one URL fail the build, naming both', () => {
+  const site = buildFixture('knowledge-tag-collision');
+  assert.equal(site.ok, false);
+  assert.match(site.output, /"C\+\+"/);
+  assert.match(site.output, /"C"/);
+  assert.match(site.output, /cpp\.md/);
+  assert.match(site.output, /c\.md/);
+  assert.match(site.output, /\/knowledge\/tags\/c\//);
+});
+
+test('a Knowledge tag with no URL slug fails the build', () => {
+  const site = buildFixture('knowledge-tag-unsluggable');
+  assert.equal(site.ok, false);
+  assert.match(site.output, /kana\.md: tag "日本語" has no URL/);
 });
 
 test('an unknown Knowledge front-matter field fails the build', () => {
