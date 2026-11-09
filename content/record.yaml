@@ -1,15 +1,108 @@
 # João's Professional record: the only source for the About page, the CV and the Person JSON-LD.
 # Every Claim needs a source: { page: /path/ }, { url: https://… } or { attested: where the private evidence is kept }.
-# Skills list where they were demonstrated (page or url). No phone numbers or postal addresses, ever.
+# Skills list where they were demonstrated (page or url). No phone numbers or postal addresses, ever; location is city and country only.
+# Each role's highlights rest on the role's source, so keep them to what that source shows.
 # interests and approach are your own prose (opinions, not Claims): add them under `record:` as YAML block text; blank lines separate paragraphs.
 record:
   name: João David Silva
   headline: Engineering beyond implementation.
   url: https://joaodavidsilva.com/
+  location: Lisbon, Portugal · remote within the EU
+  languages:
+    - Portuguese (native)
+    - English (fluent)
   sameAs:
     - https://github.com/joaodavidsilva
     - https://www.linkedin.com/in/joaodavidsilvaa/
     - https://x.com/joaodavidsilvaa
+  roles:
+    - title: AI Mobile Developer
+      organisation: EDP
+      start: 2025-10
+      highlights:
+        - Sole developer of Mind4EDP Mobile, the native iOS and Android client of EDP's multi-agent AI assistant, built with React Native, Expo and TypeScript, at parity with the web app in Portuguese, English and Spanish.
+        - Streaming chat with cited sources and a document viewer, an Anonymous Mode whose messages are neither saved nor traced, and on-device Whisper voice input that works offline.
+        - Sign-in with Microsoft Entra ID (OAuth2 + PKCE), tokens in Keychain/Keystore, and an encrypted local copy wiped at logout.
+        - Feature-sliced architecture enforced by tests and lint, ADRs for every major decision, a shared domain glossary and CI quality and security gates.
+        - Also built SUE Backoffice, a read-only observability app (FastAPI, Angular) for SU Eletricidade's virtual agents.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: Senior Mobile Developer
+      organisation: ITSector
+      start: 2025-01
+      end: 2025-09
+      highlights:
+        - Mobile banking app in React Native, built from Figma designs on a custom design system, delivered through Azure DevOps.
+        - Multi-level scroll views, carousels and calendar/agenda screens with real-time availability and dynamic filtering.
+        - Faster data-heavy screens through paginated API data, manual profiling and debugging.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: Mobile Developer
+      organisation: Anoto
+      start: 2024-10
+      end: 2024-12
+      highlights:
+        - Built the new LivePen app in React Native, digitising handwritten notes from Anoto smartpens in real time, with AI transcription and note sharing.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: Mobile Developer
+      organisation: Hantverksdata Sverige AB
+      start: 2024-03
+      end: 2024-09
+      highlights:
+        - React Native app for Ordrestyring, field-service software for construction, plumbing and electrical businesses; upgraded React Native on a legacy class-component codebase.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: Senior Frontend Developer
+      organisation: LUDO
+      start: 2023-10
+      end: 2023-11
+      highlights:
+        - React and Next.js interfaces for gaming and blockchain SaaS tools, including a marketplace and in-game rewards.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: Lead Technology Developer
+      organisation: Reflaunt
+      start: 2022-03
+      end: 2023-09
+      highlights:
+        - Led a cross-functional team of developers, designers and Scrum Masters.
+        - Resale e-commerce platforms for luxury brands such as Prada and Balenciaga.
+        - Led cloud infrastructure and CI/CD, cutting deployment times by 40% and onboarding clients without growing the team.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: Frontend Developer
+      organisation: Decskill (client Vortal)
+      start: 2021-04
+      end: 2022-02
+      highlights:
+        - Built the new platform in React, then moved to front-end QA.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: Mobile Developer
+      organisation: Lynxmind
+      start: 2021-03
+      end: 2021-04
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: React Developer
+      organisation: everis
+      start: 2019-09
+      end: 2021-02
+      highlights:
+        - Internal collaborator and mediator portal for AGEAS Seguros in React.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: React Native Developer
+      organisation: agap2IT Portugal
+      start: 2018-08
+      end: 2019-07
+      highlights:
+        - Health-tech app for a Dutch startup; solved list-rendering performance issues and contributed a FlatList solution to the open-source community.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: React Native Developer
+      organisation: Bubble Student
+      start: 2018-04
+      end: 2018-08
+      highlights:
+        - Student-housing app (Redux, map search, group chat, payments) and the "B the Smart AI" housing chatbot.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: Xamarin Developer
+      organisation: HNC.pt
+      start: 2017-09
+      end: 2018-03
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
   projects:
     - name: dotore
       summary: A pure-Rust static analyzer, deterministic auto-fixer and remediation engine for JS/TS, React, Angular, Python and Rust.
@@ -29,3 +122,6 @@ record:
     - name: Facts Memorizer
       summary: A free times-tables practice app for children, with no accounts, no ads and no data collection.
       source: { page: /projects/facts-memorizer/ }
+  achievements:
+    - text: Mind4EDP Mobile is used by about 8,000 active EDP colleagues.
+      source: { attested: "Mind4EDP usage metrics, kept by João" }

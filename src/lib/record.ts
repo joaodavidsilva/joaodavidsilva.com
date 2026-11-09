@@ -158,13 +158,19 @@ export function aboutMarkdown(record: ProfessionalRecord): string {
   const sourceMd = (source: Source) =>
     'attested' in source ? `(${words.attested}: ${source.attested})` : `([${words.source}](${absoluteUrl(hrefOf(source))}))`;
   const cv = `${words.downloadCv} [PDF](${absoluteUrl(CV_PATHS.pdf)}), [DOCX](${absoluteUrl(CV_PATHS.docx)})`;
-  const out = [`${record.name}. ${record.headline}`, '', cv, ''];
+  const out = [`${record.name}. ${record.headline}`, ...(record.location ? ['', record.location] : []), '', cv, ''];
   const section = (title: string, lines: string[]) => {
     if (lines.length) out.push(`## ${title}`, '', ...lines, '');
   };
   section(words.interests, paragraphsOf(record.interests).flatMap((p, i) => (i ? ['', p] : [p])));
   section(words.approach, paragraphsOf(record.approach).flatMap((p, i) => (i ? ['', p] : [p])));
-  section(words.roles, record.roles.map((r) => `- ${r.title}, ${r.organisation}, ${periodOf(r, ui)}. ${sourceMd(r.source)}`));
+  section(
+    words.roles,
+    record.roles.flatMap((r) => [
+      `- ${r.title}, ${r.organisation}, ${periodOf(r, ui)}. ${sourceMd(r.source)}`,
+      ...r.highlights.map((h) => `  - ${h}`),
+    ]),
+  );
   section(words.projects, record.projects.map((p) => `- ${p.name}: ${p.summary} ${sourceMd(p.source)}`));
   section(
     words.skills,
@@ -175,6 +181,7 @@ export function aboutMarkdown(record: ProfessionalRecord): string {
   section(words.achievements, record.achievements.map((a) => `- ${a.text} ${sourceMd(a.source)}`));
   section(words.publications, record.publications.map((p) => `- ${p.title} ${sourceMd(p.source)}`));
   section(words.contributions, record.contributions.map((c) => `- ${c.text} ${sourceMd(c.source)}`));
+  section(words.languages, record.languages.map((l) => `- ${l}`));
   if (record.sameAs.length) section(words.elsewhere, record.sameAs.map((url) => `- <${url}>`));
   return out.join('\n').trimEnd();
 }

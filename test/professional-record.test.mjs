@@ -134,6 +134,11 @@ test('the record refuses phone numbers and postal addresses', async (t) => {
     assert.equal(site.ok, false);
     assert.match(site.output, /phone number/i);
   });
+  await t.test('as a location', () => {
+    const site = buildFixture('record-address-location');
+    assert.equal(site.ok, false);
+    assert.match(site.output, /city and country/);
+  });
 });
 
 test("João's Professional record builds into the About page", () => {

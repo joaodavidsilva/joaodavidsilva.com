@@ -58,7 +58,7 @@ test('the build emits the CV in PDF and DOCX from the Professional record', asyn
         'Engineering beyond implementation.',
         'PROFILE Fixture interest paragraph one. Fixture interest paragraph two. Fixture approach paragraph.',
         /Staff Fixture Engineer ?1 attested Jan 2024 – present Fixture Corp/,
-        /Junior Fixture Engineer ?2 Mar 2020 – Dec 2023 Old Corp/,
+        /Junior Fixture Engineer ?2 Mar 2020 – Dec 2023 Old Corp •\s?Shipped the fixture app to both stores\. •\s?Cut fixture build times in half\./,
         /Fixture App ?3 An app that exists only in tests\./,
         /Second App ?4 example\.com\/second-app An app with its own site\./,
         /Fixture Testing ?5,6/,
@@ -85,7 +85,8 @@ test('the build emits the CV in PDF and DOCX from the Professional record', asyn
     });
 
     await t.test(`the ${format.toUpperCase()} contact is the site, LinkedIn and the email, as host and path`, () => {
-      assert.ok(text.includes('joaodavidsilva.com · linkedin.com/in/fixture · fixture@joaodavidsilva.com'), text);
+      assert.ok(text.includes('Lisbon, Portugal · joaodavidsilva.com · linkedin.com/in/fixture · fixture@joaodavidsilva.com'), text);
+      assert.ok(text.includes('LANGUAGES Portuguese (native) · English (fluent)'), text);
       assert.doesNotMatch(text, /github\.com\/fixture(?![\/\w])/);
     });
 

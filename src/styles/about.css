@@ -8,6 +8,14 @@
   white-space: nowrap;
 }
 
+.record li > ul {
+  margin-block-start: 0.35em;
+}
+
+.record li > ul li + li {
+  margin-block-start: 0.2em;
+}
+
 .record .source-note {
   color: var(--ink-muted);
   font-size: 0.875em;

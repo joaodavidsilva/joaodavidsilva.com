@@ -42,6 +42,8 @@ interface Entry {
   detail?: string;
   /** Body text: a project's summary. */
   body?: string;
+  /** What was done: a role's highlights, one line each under the detail. */
+  bullets?: string[];
 }
 
 /** A section is João's own prose (opinions, not Claims) or a list of Claims. */
@@ -104,7 +106,7 @@ function cvOf(record: ProfessionalRecord): Cv {
       label: 'Roles',
       paragraphs: [],
       entries: record.roles.map((r) =>
-        claim(r.title, [r.source], { named: true, meta: { text: periodOf(r) }, detail: r.organisation }),
+        claim(r.title, [r.source], { named: true, meta: { text: periodOf(r) }, detail: r.organisation, bullets: r.highlights }),
       ),
     },
     {
@@ -133,6 +135,12 @@ function cvOf(record: ProfessionalRecord): Cv {
       paragraphs: [],
       entries: record.contributions.map((c) => claim(c.text, [c.source], { named: false })),
     },
+    // A fact about João, not a Claim with a source, so it reads as one plain line.
+    {
+      label: 'Languages',
+      paragraphs: record.languages.length ? [record.languages.join(' · ')] : [],
+      entries: [],
+    },
   ]
     .filter((section) => section.paragraphs.length || section.entries.length)
     .map((section) => ({ ...section, label: section.label.toUpperCase() }));
@@ -148,6 +156,7 @@ function cvOf(record: ProfessionalRecord): Cv {
     name: record.name,
     headline: record.headline,
     contact: [
+      ...(record.location ? [{ text: record.location }] : []),
       linked(record.url),
       ...record.sameAs.filter(isLinkedIn).map(linked),
       ...(record.email ? [{ text: record.email, url: `mailto:${record.email}` }] : []),
@@ -330,6 +339,16 @@ export function cvPdf(record: ProfessionalRecord): Promise<Uint8Array> {
         doc.y += 1;
         runs([body(entry.body)], left, doc.y, width);
       }
+      // Highlights hang from a bullet, so a wrapped line starts under the text, not under the bullet.
+      const INDENT = 12;
+      for (const bullet of entry.bullets ?? []) {
+        doc.y += 2;
+        doc.font('serif').fontSize(BODY);
+        ensure(doc.heightOfString(bullet, { width: width - INDENT, lineGap: LEADING }));
+        const top = doc.y;
+        doc.fillColor(MUTED).text('•', left + 2, top, { lineBreak: false });
+        runs([body(bullet)], left + INDENT, top, width - INDENT);
+      }
       doc.y += 7;
     }
   }
@@ -405,7 +424,8 @@ export async function cvDocx(record: ProfessionalRecord): Promise<Uint8Array> {
   const rightTab = [{ type: TabStopType.RIGHT, position: CONTENT_WIDTH }];
 
   const entry = (claim: Entry) => {
-    const last = !claim.detail && !claim.body;
+    const last = !claim.detail && !claim.body && !claim.bullets?.length;
+    const bullets = claim.bullets ?? [];
     return [
       new Paragraph({
         keepNext: !last,
@@ -419,15 +439,24 @@ export async function cvDocx(record: ProfessionalRecord): Promise<Uint8Array> {
       ...(claim.detail
         ? [
             new Paragraph({
-              keepNext: !!claim.body,
-              spacing: { after: claim.body ? 0 : 160 },
+              keepNext: !!claim.body || bullets.length > 0,
+              spacing: { after: claim.body || bullets.length ? 0 : 160 },
               children: [new TextRun({ text: claim.detail, italics: true, color: hex(MUTED) })],
             }),
           ]
         : []),
       ...(claim.body
-        ? [new Paragraph({ spacing: { before: 20, after: 160 }, children: [new TextRun(claim.body)] })]
+        ? [new Paragraph({ spacing: { before: 20, after: bullets.length ? 0 : 160 }, children: [new TextRun(claim.body)] })]
         : []),
+      ...bullets.map(
+        (bullet, i) =>
+          new Paragraph({
+            tabStops: [{ type: TabStopType.LEFT, position: 240 }],
+            indent: { left: 240, hanging: 240 },
+            spacing: { before: 40, after: i === bullets.length - 1 ? 160 : 0 },
+            children: [new TextRun({ text: '•\t', color: hex(MUTED) }), new TextRun(bullet)],
+          }),
+      ),
     ];
   };
 

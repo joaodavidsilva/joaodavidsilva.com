@@ -36,13 +36,29 @@ export const recordSchema = z.strictObject({
   headline: text,
   url: z.url(),
   email: domainEmail.optional(),
+  // City and country only, never a postal address: recruiters filter by where a candidate can work.
+  // Street numbers and postcodes carry digits; street names start with words like these.
+  location: text
+    .refine((value) => !/\d|(?<!\p{L})(rua|avenida|av\.|travessa|largo|praça|street|st\.|road|rd\.|avenue|lane)(?!\p{L})/iu.test(value), {
+      message: 'city and country only, like "Lisbon, Portugal": never a street, number or postcode',
+    })
+    .optional(),
+  languages: z.array(text).default([]),
   // João's own prose: opinions, not Claims, so they carry no source. Blank lines separate paragraphs.
   interests: text.optional(),
   approach: text.optional(),
   sameAs: z.array(z.url()).default([]),
   roles: z
     .array(
-      z.strictObject({ title: text, organisation: text, start: month, end: month.optional(), source }),
+      z.strictObject({
+        title: text,
+        organisation: text,
+        start: month,
+        end: month.optional(),
+        // What João did in the role; each line rests on the role's own source.
+        highlights: z.array(text).default([]),
+        source,
+      }),
     )
     .default([]),
   projects: z

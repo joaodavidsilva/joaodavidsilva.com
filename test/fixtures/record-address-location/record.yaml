@@ -1,0 +1,9 @@
+record:
+  name: Fixture Person
+  headline: Engineering beyond implementation.
+  url: https://joaodavidsilva.com/
+  location: Rua Augusta 100, 1100-048 Lisboa
+  projects:
+    - name: Fixture App
+      summary: An app that exists only in tests.
+      source: { page: /hello/ }

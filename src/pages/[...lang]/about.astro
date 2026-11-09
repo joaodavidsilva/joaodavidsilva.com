@@ -34,6 +34,7 @@ const src = (source: Source) =>
     <header>
       <h1>{ui.about}</h1>
       <p>{record.name}. {record.headline}</p>
+      {record.location && <p>{record.location}</p>}
       <p class="cv">{words.downloadCv} <a href={CV_PATHS.pdf} download={cvFileName(record, 'pdf')}>PDF</a>, <a href={CV_PATHS.docx} download={cvFileName(record, 'docx')}>DOCX</a></p>
     </header>
     {[[words.interests, record.interests], [words.approach, record.approach]].map(([title, prose]) => {
@@ -43,7 +44,9 @@ const src = (source: Source) =>
     {record.roles.length > 0 && (
       <section><h2>{words.roles}</h2><ul>
         {record.roles.map((r) => (
-          <li>{r.title} · {r.organisation} · <span class="period">{periodOf(r, ui)}</span> <Fragment set:html={src(r.source)} /></li>
+          <li>{r.title} · {r.organisation} · <span class="period">{periodOf(r, ui)}</span> <Fragment set:html={src(r.source)} />
+            {r.highlights.length > 0 && <ul>{r.highlights.map((h) => <li>{h}</li>)}</ul>}
+          </li>
         ))}
       </ul></section>
     )}
@@ -75,6 +78,9 @@ const src = (source: Source) =>
       <section><h2>{words.contributions}</h2><ul>
         {record.contributions.map((c) => <li>{c.text} <Fragment set:html={src(c.source)} /></li>)}
       </ul></section>
+    )}
+    {record.languages.length > 0 && (
+      <section><h2>{words.languages}</h2><ul>{record.languages.map((l) => <li>{l}</li>)}</ul></section>
     )}
     {record.sameAs.length > 0 && (
       <section><h2>{words.elsewhere}</h2><ul>
