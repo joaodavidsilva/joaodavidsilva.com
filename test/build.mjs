@@ -9,13 +9,22 @@ const astro = join(root, 'node_modules', '.bin', 'astro');
 
 /** Builds the fixture content set `name` with the real build. */
 export function buildFixture(name) {
+  return build(name, join(root, 'test', 'fixtures', name));
+}
+
+/** Builds the site's real content with the real build. */
+export function buildSite() {
+  return build('site', join(root, 'content'));
+}
+
+function build(name, contentDir) {
   const outDir = mkdtempSync(join(tmpdir(), `jds-${name}-`));
   const result = spawnSync(astro, ['build'], {
     cwd: root,
     encoding: 'utf8',
     env: {
       ...process.env,
-      JDS_CONTENT_DIR: join(root, 'test', 'fixtures', name),
+      JDS_CONTENT_DIR: contentDir,
       JDS_OUT_DIR: outDir,
       ASTRO_TELEMETRY_DISABLED: '1',
     },
