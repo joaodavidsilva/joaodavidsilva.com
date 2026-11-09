@@ -48,6 +48,10 @@ export function personOf(record: Record) {
   };
 }
 
+/** Paragraphs of one of João's prose fields; empty when he has not written it. */
+export const paragraphsOf = (prose: string | undefined) =>
+  (prose ?? '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+
 export function hrefOf(source: { page: string } | { url: string }): string {
   return 'page' in source ? source.page : source.url;
 }
@@ -66,6 +70,8 @@ export function aboutMarkdown(record: Record): string {
   const section = (title: string, lines: string[]) => {
     if (lines.length) out.push(`## ${title}`, '', ...lines, '');
   };
+  section('Interests', paragraphsOf(record.interests).flatMap((p, i) => (i ? ['', p] : [p])));
+  section('Approach to engineering', paragraphsOf(record.approach).flatMap((p, i) => (i ? ['', p] : [p])));
   section('Roles', record.roles.map((r) => `- ${r.title}, ${r.organisation}, ${period(r)}. ${sourceMd(r.source)}`));
   section('Projects', record.projects.map((p) => `- ${p.name}: ${p.summary} ${sourceMd(p.source)}`));
   section(
