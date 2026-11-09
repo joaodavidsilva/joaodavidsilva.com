@@ -1,0 +1,221 @@
+/*
+ * Base typography and colour: the site's visual foundation.
+ * Typographic and journal-like: no gradients, shadows or decorative illustration.
+ * Font families (--font-serif, --font-sans, --font-mono) come from the Astro fonts config.
+ */
+
+:root {
+  /* Follows the system setting; light-dark() picks the matching value. */
+  color-scheme: light dark;
+
+  /*
+   * Warm off-white paper, near-black ink and one ink-blue accent.
+   * Every text colour reads at WCAG AA or better on every background, in both modes.
+   */
+  --paper: light-dark(#faf8f3, #161513);
+  --surface: light-dark(#f1ede3, #211f1c);
+  --ink: light-dark(#1d1b18, #ebe7de);
+  --ink-muted: light-dark(#5c574f, #a9a397);
+  --accent: light-dark(#1f4396, #93b1f2);
+  --rule: light-dark(#ddd7ca, #35322c);
+
+  /* 18px on a phone growing to 20px on a desktop. */
+  --text-size: clamp(1.125rem, 1.0714rem + 0.238vw, 1.25rem);
+  /* Long-form reading measure: 64ch sets about 65–72 characters of Source Serif 4 prose. */
+  --measure: 64ch;
+  --gutter: 1.25rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: var(--text-size);
+  line-height: 1.6;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  overflow-wrap: break-word;
+}
+
+body > header,
+main,
+body > footer {
+  inline-size: min(100% - 2 * var(--gutter), var(--measure));
+  margin-inline: auto;
+}
+
+main {
+  padding-block: 2rem 4rem;
+}
+
+/* Interface text is set in Inter; children only, so the `ch` measure above stays in body metrics. */
+body > header > *,
+body > footer > *,
+nav {
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+}
+
+body > header {
+  padding-block: 1.5rem 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-sans);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  margin-block: 2em 0.6em;
+}
+
+h1 {
+  font-size: 2.1em;
+  letter-spacing: -0.02em;
+  margin-block-start: 0.5em;
+}
+
+h2 {
+  font-size: 1.5em;
+}
+
+h3 {
+  font-size: 1.25em;
+}
+
+h4,
+h5,
+h6 {
+  font-size: 1em;
+}
+
+p,
+ul,
+ol,
+dl,
+blockquote,
+figure,
+pre,
+table {
+  margin-block: 0 1.25em;
+}
+
+p,
+li,
+dd,
+blockquote {
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  text-decoration-thickness: 0.12em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+em,
+i,
+cite {
+  font-style: italic;
+}
+
+strong,
+b {
+  font-weight: 650;
+}
+
+small,
+figcaption,
+time {
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+}
+
+figcaption {
+  margin-block-start: 0.5em;
+  color: var(--ink-muted);
+}
+
+blockquote {
+  margin-inline: 0;
+  padding-inline-start: 1em;
+  border-inline-start: 3px solid var(--rule);
+  color: var(--ink-muted);
+}
+
+hr {
+  border: 0;
+  border-block-start: 1px solid var(--rule);
+  margin-block: 2.5em;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+:not(pre) > code {
+  background-color: var(--surface);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+pre {
+  background-color: var(--surface);
+  padding: 1em 1.25em;
+  border-radius: 4px;
+  line-height: 1.5;
+  overflow-x: auto;
+  overflow-wrap: normal;
+}
+
+pre code {
+  font-size: inherit;
+}
+
+img,
+svg,
+video {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.4em 0.8em;
+  border-block-end: 1px solid var(--rule);
+  text-align: start;
+}

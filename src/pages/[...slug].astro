@@ -1,6 +1,8 @@
 ---
+import { Font } from 'astro:assets';
 import { render } from 'astro:content';
 import { getPages, metadataOf, slugOf, twinPathOf, type Page } from '../lib/pages';
+import '../styles/global.css';
 
 export async function getStaticPaths() {
   const pages = await getPages();
@@ -32,6 +34,9 @@ const jsonLd = {
     <meta name="description" content={meta.summary} />
     <link rel="canonical" href={meta.canonical} />
     <link rel="alternate" type="text/markdown" href={twinPathOf(page)} />
+    <Font cssVariable="--font-serif" preload={[{ subset: 'latin', style: 'normal' }]} />
+    <Font cssVariable="--font-sans" preload={[{ subset: 'latin' }]} />
+    <Font cssVariable="--font-mono" />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body>
