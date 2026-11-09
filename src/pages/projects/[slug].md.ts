@@ -32,6 +32,9 @@ export const GET: APIRoute<{ project: Project }> = async ({ props: { project } }
     `Status: ${meta.status}${meta.version ? `. Version: ${meta.version}` : ''}.`,
     (project.body ?? '').trim(),
     figures.map((figure) => `![${figure.alt}](${figure.src})${figure.caption ? `\n\n${figure.caption}` : ''}`).join('\n\n'),
+    project.data.waitlist
+      ? `## Waitlist\n\nJoin the Waitlist with the form at ${meta.canonical}#waitlist (in a browser: a Turnstile bot check guards it).`
+      : '',
     links.length ? `## Links\n\n${links.map((link) => `- [${link.label}](${link.url})`).join('\n')}` : '',
     legal.length ? `## Legal documents\n\n${legal.map((doc) => `- [${doc.title}](${doc.path})`).join('\n')}` : '',
   ];

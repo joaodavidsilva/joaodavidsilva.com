@@ -71,5 +71,6 @@ export function buildContent(name, contentDir) {
     output: `${result.stdout}\n${result.stderr}`,
     has: (path) => existsSync(join(outDir, path)),
     read: (path) => readFileSync(join(outDir, path), 'utf8'),
+    bytes: (path) => readFileSync(join(outDir, path)),
   };
 }
