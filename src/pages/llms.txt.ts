@@ -3,6 +3,7 @@ import { SITE_URL } from '../../site.config.mjs';
 import { getPages, twinPathOf } from '../lib/pages';
 import * as writing from '../lib/articles';
 import { getSeries, twinPathOf as seriesTwinPathOf } from '../lib/series';
+import * as projects from '../lib/projects';
 import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
 import { ABOUT_TITLE, getRecord } from '../lib/record';
 import { ORIGINAL_LANGUAGE, translationsOf } from '../lib/translations';
@@ -19,8 +20,6 @@ export const GET: APIRoute = async () => {
         : '';
       return `- [${page.data.title}](${new URL(twinPathOf(page), SITE_URL).href}): ${page.data.summary}${pointer}`;
     });
-  const record = await getRecord();
-  if (record) lines.push(`- [${ABOUT_TITLE}](${new URL('/about.md', SITE_URL).href}): ${record.name}. ${record.headline}`);
   const articles = (await writing.getArticles()).map(
     (article) => `- [${article.data.title}](${new URL(writing.twinPathOf(article), SITE_URL).href}): ${article.data.summary}`,
   );
@@ -28,9 +27,16 @@ export const GET: APIRoute = async () => {
   const series = (await getSeries()).map(
     (one) => `- [${one.entry.data.title}](${new URL(seriesTwinPathOf(one), SITE_URL).href}): ${one.entry.data.summary}`,
   );
+  const projectList = await projects.getProjects();
+  const projectLines = [
+    `- [${projects.PROJECTS_TITLE}](${new URL(projects.PROJECTS_TWIN_PATH, SITE_URL).href}): ${projects.PROJECTS_SUMMARY}`,
+    ...projectList.map((project) => `- [${project.data.name}](${new URL(projects.twinPathOf(project), SITE_URL).href}): ${project.data.oneLine}`),
+  ];
   const knowledge = (await getKnowledge())
     .filter(({ entry }) => entry.data.language === 'en')
     .map(({ entry }) => `- [${entry.data.title}](${new URL(knowledgeTwinPathOf(entry), SITE_URL).href}): ${entry.data.summary}`);
+  const record = await getRecord();
+  if (record) lines.push(`- [${ABOUT_TITLE}](${new URL('/about.md', SITE_URL).href}): ${record.name}. ${record.headline}`);
   const body = [
     '# João David Silva',
     '',
@@ -41,6 +47,7 @@ export const GET: APIRoute = async () => {
     ...lines,
     '',
     ...(articles.length || series.length ? ['## Writing', '', writingIndex, ...series, ...articles, ''] : []),
+    ...(projectList.length ? ['## Projects', '', ...projectLines, ''] : []),
     ...(knowledge.length ? ['## Knowledge', '', ...knowledge, ''] : []),
   ].join('\n');
   return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
