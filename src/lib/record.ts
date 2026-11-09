@@ -8,6 +8,21 @@ export type { Record, Source };
 export const ABOUT_PATH = '/about/';
 export const ABOUT_TITLE = 'About';
 
+/** Where the CV is published, by format; generated from the record at build time. */
+export const CV_PATHS = { pdf: '/cv.pdf', docx: '/cv.docx' } as const;
+export type CvFormat = keyof typeof CV_PATHS;
+
+/** The file name a downloaded CV is saved under, e.g. `joao-david-silva-cv.pdf`. */
+export function cvFileName(record: Record, format: CvFormat): string {
+  const slug = record.name
+    .normalize('NFD')
+    .replace(/\p{Mn}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  return `${slug}-cv.${format}`;
+}
+
 /** The Professional record, or undefined when the content set has none. Internal sources must resolve. */
 export async function getRecord(): Promise<Record | undefined> {
   const [entry] = await getCollection('record');
@@ -52,26 +67,27 @@ export function hrefOf(source: { page: string } | { url: string }): string {
   return 'page' in source ? source.page : source.url;
 }
 
-const absolute = (href: string) => new URL(href, SITE_URL).href;
+export const absoluteUrl = (href: string) => new URL(href, SITE_URL).href;
 
 function sourceMd(source: Source): string {
-  return 'attested' in source ? `(Attested: ${source.attested})` : `([source](${absolute(hrefOf(source))}))`;
+  return 'attested' in source ? `(Attested: ${source.attested})` : `([source](${absoluteUrl(hrefOf(source))}))`;
 }
 
-const period = (role: Record['roles'][number]) => `${role.start} – ${role.end ?? 'present'}`;
+export const periodOf = (role: Record['roles'][number]) => `${role.start} – ${role.end ?? 'present'}`;
 
 /** The About page as Markdown, from the same record as the HTML. */
 export function aboutMarkdown(record: Record): string {
-  const out = [`# ${ABOUT_TITLE}`, '', `${record.name}. ${record.headline}`, ''];
+  const cv = `Download the CV: [PDF](${absoluteUrl(CV_PATHS.pdf)}), [DOCX](${absoluteUrl(CV_PATHS.docx)})`;
+  const out = [`# ${ABOUT_TITLE}`, '', `${record.name}. ${record.headline}`, '', cv, ''];
   const section = (title: string, lines: string[]) => {
     if (lines.length) out.push(`## ${title}`, '', ...lines, '');
   };
-  section('Roles', record.roles.map((r) => `- ${r.title}, ${r.organisation}, ${period(r)}. ${sourceMd(r.source)}`));
+  section('Roles', record.roles.map((r) => `- ${r.title}, ${r.organisation}, ${periodOf(r)}. ${sourceMd(r.source)}`));
   section('Projects', record.projects.map((p) => `- ${p.name}: ${p.summary} ${sourceMd(p.source)}`));
   section(
     'Skills',
     record.skills.map(
-      (s) => `- ${s.name}, demonstrated in: ${s.demonstrated.map((d) => `<${absolute(hrefOf(d))}>`).join(', ')}`,
+      (s) => `- ${s.name}, demonstrated in: ${s.demonstrated.map((d) => `<${absoluteUrl(hrefOf(d))}>`).join(', ')}`,
     ),
   );
   section('Achievements', record.achievements.map((a) => `- ${a.text} ${sourceMd(a.source)}`));

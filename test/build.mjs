@@ -17,6 +17,11 @@ export function buildSite() {
   return build('site', join(root, 'content'));
 }
 
+/** Builds the content set in `contentDir` (for tests that make their own content) with the real build. */
+export function buildContent(contentDir) {
+  return build('content', contentDir);
+}
+
 function build(name, contentDir) {
   const outDir = mkdtempSync(join(tmpdir(), `jds-${name}-`));
   const result = spawnSync(astro, ['build'], {
@@ -34,5 +39,6 @@ function build(name, contentDir) {
     output: `${result.stdout}\n${result.stderr}`,
     has: (path) => existsSync(join(outDir, path)),
     read: (path) => readFileSync(join(outDir, path), 'utf8'),
+    bytes: (path) => readFileSync(join(outDir, path)),
   };
 }
