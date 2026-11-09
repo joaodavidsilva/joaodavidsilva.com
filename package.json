@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/pdfkit": "0.17.7",
     "mammoth": "1.13.0",
+    "pagefind": "^1.6.0",
     "pdfjs-dist": "6.5.438",
     "wrangler": "4.158.0"
   }

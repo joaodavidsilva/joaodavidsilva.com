@@ -3,7 +3,8 @@ import Base from '../layouts/Base.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
 import { SITE_URL } from '../../site.config.mjs';
 import {
-  ABOUT_PATH, ABOUT_TITLE, CV_PATHS, cvFileName, getRecord, hrefOf, periodOf, personOf, type Record, type Source,
+  ABOUT_PATH, ABOUT_TITLE, CV_PATHS, cvFileName, getRecord, hrefOf, paragraphsOf, periodOf, personOf,
+  type Record, type Source,
 } from '../lib/record';
 
 // A dynamic route so the page exists only when the content set has a record.
@@ -30,6 +31,10 @@ const src = (source: Source) =>
       <p>{record.name}. {record.headline}</p>
       <p class="cv">Download the CV: <a href={CV_PATHS.pdf} download={cvFileName(record, 'pdf')}>PDF</a>, <a href={CV_PATHS.docx} download={cvFileName(record, 'docx')}>DOCX</a></p>
     </header>
+    {[['Interests', record.interests], ['Approach to engineering', record.approach]].map(([title, prose]) => {
+      const paragraphs = paragraphsOf(prose);
+      return paragraphs.length > 0 && <section><h2>{title}</h2>{paragraphs.map((p) => <p>{p}</p>)}</section>;
+    })}
     {record.roles.length > 0 && (
       <section><h2>Roles</h2><ul>
         {record.roles.map((r) => <li>{r.title}, {r.organisation}, {periodOf(r)}. <Fragment set:html={src(r.source)} /></li>)}

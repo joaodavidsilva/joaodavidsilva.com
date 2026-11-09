@@ -28,6 +28,13 @@ test('the About page and Person JSON-LD are generated from the Professional reco
     assert.match(md, /\(https:\/\/example\.com\/on-fixtures\)/);
   });
 
+  await t.test("João's interests and approach render as his own prose", () => {
+    assert.match(html, /<h2>Interests<\/h2>\s*<p>Fixture interest paragraph one\.<\/p>\s*<p>Fixture interest paragraph two\.<\/p>/);
+    assert.match(html, /<h2>Approach to engineering<\/h2>\s*<p>Fixture approach paragraph\.<\/p>/);
+    assert.match(md, /## Interests\n\nFixture interest paragraph one\.\n\nFixture interest paragraph two\.\n/);
+    assert.match(md, /## Approach to engineering\n\nFixture approach paragraph\.\n/);
+  });
+
   await t.test('attested Claims are labelled as attested', () => {
     assert.match(html, /class="attested"[^>]*>Attested<\/[a-z]+>[^<]*Award letter, kept by João/);
     assert.match(md, /Won the fixture prize\. \(Attested: Award letter, kept by João\)/);
@@ -55,6 +62,13 @@ test('the About page and Person JSON-LD are generated from the Professional reco
   await t.test('llms.txt lists the About page', () => {
     assert.match(site.read('llms.txt'), /- \[About\]\(https:\/\/joaodavidsilva\.com\/about\.md\)/);
   });
+});
+
+test('empty prose sections are omitted', () => {
+  const site = buildFixture('record-no-prose');
+  assert.ok(site.ok, site.output);
+  assert.doesNotMatch(site.read('about/index.html'), /Interests|Approach to engineering/);
+  assert.doesNotMatch(site.read('about.md'), /Interests|Approach to engineering/);
 });
 
 test('a Claim without a source fails the build', () => {
