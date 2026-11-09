@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import SuggestCorrection from '../../components/SuggestCorrection.astro';
 import { escapeMarkup as escape } from '../../lib/escape';
 import {
-  ABOUT_PATH, CV_PATHS, cvFileName, hrefOf, pageTitles, paragraphsOf, periodOf, personOf, type ProfessionalRecord, type Source,
+  ABOUT_PATH, CV_PATHS, cvFileName, hostPath, hrefOf, pageTitles, paragraphsOf, periodOf, personOf, type ProfessionalRecord, type Source,
 } from '../../lib/record';
 import { aboutRoutes } from '../../lib/routes';
 import { alternateAt, type Translations } from '../../lib/translations';
@@ -27,11 +27,6 @@ const src = (source: Source) =>
       ? `(<span class="attested">${words.attested}</span>: ${escape(source.attested)})`
       : `(<a href="${escape(hrefOf(source))}">${words.source}</a>)`
   }</span>`;
-// Links read as what they lead to: a page's title on this site, host and path elsewhere, never the raw URL.
-const hostPath = (url: string) => {
-  const { hostname, pathname } = new URL(url);
-  return `${hostname.replace(/^www\./, '')}${decodeURI(pathname).replace(/\/$/, '')}`;
-};
 ---
 <Base title={ui.about} description={`${record.name}. ${record.headline}`} canonical={page.canonical} language={language} twin={page.twin} translations={translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(person)} />

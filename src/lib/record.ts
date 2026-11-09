@@ -135,6 +135,12 @@ export function hrefOf(source: { page: string } | { url: string }): string {
 
 export const absoluteUrl = (href: string) => new URL(href, SITE_URL).href;
 
+/** A URL as a reader sees a link: host and path, without the scheme, `www.` or a trailing slash. */
+export const hostPath = (url: string) => {
+  const { hostname, pathname } = new URL(url);
+  return `${hostname.replace(/^www\./, '')}${decodeURI(pathname).replace(/\/$/, '')}`;
+};
+
 /** A role's period in `ui`'s language with months in words, such as "Apr 2023 – present". */
 export function periodOf(role: ProfessionalRecord['roles'][number], ui: Ui = uiOf(ORIGINAL_LANGUAGE)): string {
   const format = new Intl.DateTimeFormat(ui.locale, { month: 'short', year: 'numeric', timeZone: 'UTC' });
