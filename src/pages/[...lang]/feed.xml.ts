@@ -1,12 +1,11 @@
 import type { APIRoute } from 'astro';
 import { AUTHOR, FEED_PATH } from '../../../site.config.mjs';
 import * as writing from '../../lib/articles';
+import { escapeMarkup as escape } from '../../lib/escape';
 import { languageParams, sectionPathIn } from '../../lib/sections';
 import * as research from '../../lib/studies';
 import { absolute, pathIn, type Language } from '../../lib/translations';
 
-const escape = (text: string) =>
-  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // Dates are calendar days; Atom wants a date-time.
 const timestamp = (day: string) => `${day}T00:00:00Z`;

@@ -1,9 +1,16 @@
 import { execFileSync } from 'node:child_process';
 import { basename, dirname, resolve } from 'node:path';
 
-/** The day (YYYY-MM-DD, UTC) of the last commit that changed `file`, if it has any. */
+const lastCommitDays = new Map<string, string | undefined>();
+
+/** The day (YYYY-MM-DD, UTC) of the last commit that changed `file`, if it has any; asks git once per file. */
 export function lastCommitDayOf(file: string): string | undefined {
   const path = resolve(file);
+  if (!lastCommitDays.has(path)) lastCommitDays.set(path, gitLastCommitDayOf(path));
+  return lastCommitDays.get(path);
+}
+
+function gitLastCommitDayOf(path: string): string | undefined {
   let committed: string;
   try {
     committed = execFileSync('git', ['log', '-1', '--format=%cI', '--', basename(path)], {

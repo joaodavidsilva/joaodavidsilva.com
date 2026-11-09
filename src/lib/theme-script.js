@@ -11,7 +11,9 @@
   let theme = null;
   try {
     theme = localStorage.getItem(KEY);
-  } catch {}
+  } catch {
+    // localStorage can throw (storage disabled, private mode): fall back to the system theme (#11).
+  }
   apply(theme);
   root.dataset.js = '';
 
@@ -27,7 +29,9 @@
     try {
       if (explicit(theme)) localStorage.setItem(KEY, theme);
       else localStorage.removeItem(KEY);
-    } catch {}
+    } catch {
+      // localStorage can throw (storage disabled, private mode): the choice lasts for this page only (#11).
+    }
     const update = () => apply(theme);
     if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.startViewTransition(update);
