@@ -73,6 +73,7 @@
 
 .site-menu:popover-open {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
@@ -96,6 +97,69 @@
       transform: translateY(-0.75rem);
     }
   }
+}
+
+/*
+ * Theme toggle: System / Light / Dark. Hidden until the head script marks the
+ * page with data-js; without JavaScript the site follows the system setting.
+ */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+.theme-toggle {
+  display: none;
+}
+
+[data-js] .theme-toggle {
+  display: flex;
+  flex-basis: 100%;
+  order: 1;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+}
+
+.theme-toggle legend {
+  float: left;
+  align-self: center;
+  margin-inline-end: 0.5rem;
+  padding: 0;
+  color: var(--ink-muted);
+}
+
+.theme-toggle label {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  padding: 0 0.75em;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.theme-toggle label:has(:checked) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.theme-toggle label:has(:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.theme-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Without popover support the sections simply stay in the page. */
@@ -137,6 +201,22 @@
   .site-menu li a {
     display: inline;
     padding-block: 0;
+  }
+
+  .site-menu,
+  .site-menu:popover-open {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.5rem;
+  }
+
+  [data-js] .theme-toggle {
+    flex-basis: auto;
+  }
+
+  .theme-toggle label {
+    min-block-size: 2rem;
   }
 }
 
