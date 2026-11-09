@@ -181,3 +181,17 @@ test('Facts Memorizer: its legal documents keep their URLs', async (t) => {
     assert.match(site.read('projects/index.html'), /<a href="\/projects\/facts-memorizer\/">Facts Memorizer<\/a>/);
   });
 });
+
+test('dotore and AI Skills: Project pages link their own homes', () => {
+  const site = buildSite();
+  assert.ok(site.ok, site.output);
+  const dotore = site.read('projects/dotore/index.html');
+  assert.match(dotore, /href="https:\/\/joaodavidsilva\.github\.io\/dotore\/"/);
+  assert.match(dotore, /href="https:\/\/github\.com\/joaodavidsilva\/dotore"/);
+  const skills = site.read('projects/ai-skills/index.html');
+  assert.match(skills, /href="https:\/\/github\.com\/joaodavidsilva\/skills"/);
+  const index = site.read('projects/index.html');
+  for (const [slug, name] of [['dotore', 'dotore'], ['ai-skills', 'AI Skills']]) {
+    assert.match(index, new RegExp(`<a href="/projects/${slug}/">${name}</a>`));
+  }
+});
