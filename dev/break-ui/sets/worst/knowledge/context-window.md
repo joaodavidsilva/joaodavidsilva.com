@@ -2,9 +2,10 @@
 kind: concept
 title: "Context window"
 summary: "Everything the model sees on each model provider request: finite, model-specific, and the only surface through which it perceives anything."
+published: 2026-11-09
 category: "Context Engineering"
 tags: ["context", "tokens", "fundamentals"]
-related: [rag, session, session-http, subagent, harness, janela-de-contexto, spec-driven-development, claude-code-max-output-tokens, hexagonal-architecture, writing-tests-first]
+related: [rag, session, session-http, subagent, harness, spec-driven-development, claude-code-max-output-tokens, hexagonal-architecture, writing-tests-first]
 ---
 
 Everything the model sees on each model provider request: finite, model-specific, and the only surface through which it perceives anything.

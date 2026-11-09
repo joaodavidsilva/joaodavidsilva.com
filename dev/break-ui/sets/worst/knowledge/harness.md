@@ -2,6 +2,7 @@
 kind: concept
 title: "Harness"
 summary: "The program around the model: it sends requests, runs tool calls and decides what goes into the next context window."
+published: 2026-11-09
 category: "Harness Engineering"
 tags: ["harness", "agents", "tools"]
 related: []

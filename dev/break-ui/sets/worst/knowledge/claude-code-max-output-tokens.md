@@ -2,6 +2,7 @@
 kind: guide
 title: "CLAUDE_CODE_MAX_OUTPUT_TOKENS"
 summary: "The environment variable that caps how many tokens a single model response may use, and when raising it helps."
+published: 2026-11-09
 category: "Technical References & Guides"
 tags: ["environment-variables", "claude-code", "tokens"]
 related: []

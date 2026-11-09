@@ -2,6 +2,7 @@
 kind: guide
 title: "Model Context Protocol server lifecycle: initialisation, capability negotiation, transports, cancellation and graceful shutdown"
 summary: "How an MCP server moves from the initialize handshake through capability negotiation to serving tools, resources and prompts over stdio or Streamable HTTP, how cancellation and progress notifications travel in both directions, and how to shut down without leaving the client waiting on requests that will never be answered, with the failure modes each step hides."
+published: 2026-11-09
 category: "MCP & Tooling"
 tags: ["mcp", "Model Context Protocol", "tools", "transports", "json-rpc", "stdio", "streamable-http", "capabilities", "lifecycle", "cancellation", "context-engineering-for-long-running-autonomous-agents", "servers"]
 related: [context-window]

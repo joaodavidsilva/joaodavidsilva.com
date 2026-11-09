@@ -2,6 +2,7 @@
 kind: concept
 title: "RAG"
 summary: "Retrieval-augmented generation."
+published: 2026-11-09
 category: "AI Engineering"
 tags: []
 related: []

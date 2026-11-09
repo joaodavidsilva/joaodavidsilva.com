@@ -47,7 +47,7 @@ for (let i = 0; i < COUNTS.knowledge; i++) {
   file(
     `knowledge/${id}.md`,
     `---\nkind: ${i % 5 === 0 ? 'guide' : 'concept'}\ntitle: ${yaml(title(i, 2 + (i % 6)))}\nsummary: ${yaml(sentence(i + 1, 14 + (i % 10)))}\n` +
-      `category: ${yaml(KNOWLEDGE_CATEGORIES[i % KNOWLEDGE_CATEGORIES.length])}\ntags: ${JSON.stringify(entryTags)}\nrelated: [${related.join(', ')}]\n---\n\n${body(i)}\n`,
+      `published: ${day(i)}\ncategory: ${yaml(KNOWLEDGE_CATEGORIES[i % KNOWLEDGE_CATEGORIES.length])}\ntags: ${JSON.stringify(entryTags)}\nrelated: [${related.join(', ')}]\n---\n\n${body(i)}\n`,
   );
 }
 

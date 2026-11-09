@@ -2,6 +2,7 @@
 kind: concept
 title: "Spec-driven development"
 summary: "Writing the specification before the code, so an agent and a reviewer can check the result against something other than their own expectations."
+published: 2026-11-09
 category: "Development Processes & Methodologies"
 tags: ["specifications", "process", "review", "agents"]
 related: []
