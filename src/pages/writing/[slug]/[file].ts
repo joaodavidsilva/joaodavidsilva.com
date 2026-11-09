@@ -1,6 +1,7 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { readFileSync } from 'node:fs';
-import { folderFilesOf, getArticles } from '../../../lib/articles';
+import { getArticles } from '../../../lib/articles';
+import { folderFilesOf } from '../../../lib/own-folder';
 
 // An Article's own folder (its images and attachments) is published beside it, at `/writing/<slug>/<file>`.
 export const getStaticPaths = (async () => {

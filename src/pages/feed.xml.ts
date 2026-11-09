@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { AUTHOR, FEED_PATH, SITE_URL } from '../../site.config.mjs';
-import { getArticles, metadataOf } from '../lib/articles';
+import * as writing from '../lib/articles';
+import * as research from '../lib/studies';
 
 const escape = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -8,9 +9,12 @@ const escape = (text: string) =>
 // Dates are calendar days; Atom wants a date-time.
 const timestamp = (day: string) => `${day}T00:00:00Z`;
 
-/** The Atom feed of Articles, newest first, at FEED_PATH (a stable public URL; keep this file's name in step). */
+/** The Atom feed of Articles and Studies, newest first, at FEED_PATH (a stable public URL; keep this file's name in step). */
 export const GET: APIRoute = async () => {
-  const entries = (await getArticles()).map(metadataOf);
+  const entries = [
+    ...(await writing.getArticles()).map(writing.metadataOf),
+    ...(await research.getStudies()).map(research.metadataOf),
+  ].sort((a, b) => b.published.localeCompare(a.published) || a.canonical.localeCompare(b.canonical));
   const updated = entries.map((e) => e.updated).sort().at(-1);
   const feedUrl = new URL(FEED_PATH, SITE_URL).href;
   const xml = [

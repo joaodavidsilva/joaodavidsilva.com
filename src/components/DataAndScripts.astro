@@ -1,0 +1,30 @@
+---
+import type { StudyLink } from '../lib/studies';
+
+interface Props {
+  data: StudyLink[];
+  scripts: StudyLink[];
+}
+
+// What a Study's evidence can be checked or reproduced with.
+const { data, scripts } = Astro.props;
+const groups = [
+  ['Data', data],
+  ['Scripts', scripts],
+] as const;
+---
+{(data.length > 0 || scripts.length > 0) && (
+  <section class="attachments" id="data-and-scripts" aria-labelledby="data-and-scripts-heading">
+    <h2 id="data-and-scripts-heading">Data and scripts</h2>
+    {groups.map(([label, links]) => links.length > 0 && (
+      <>
+        <h3>{label}</h3>
+        <ul>
+          {links.map(({ title, href, description }) => (
+            <li>{description ? <><a href={href} download>{title}</a> ({description})</> : <a href={href}>{title}</a>}</li>
+          ))}
+        </ul>
+      </>
+    ))}
+  </section>
+)}

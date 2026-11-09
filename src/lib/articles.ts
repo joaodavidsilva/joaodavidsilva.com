@@ -1,8 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { existsSync, readdirSync, statSync } from 'node:fs';
-import { dirname, extname, join, resolve } from 'node:path';
 import { SITE_URL } from '../../site.config.mjs';
 import { lastUpdatedOf } from './git';
+import { describeFolderFile } from './own-folder';
 
 export type Article = CollectionEntry<'articles'>;
 
@@ -52,44 +51,14 @@ export interface Attachment {
   description: string;
 }
 
-/** The Article's own folder, `articles/<slug>/`, relative to the project. */
-const folderOf = (article: Article) => join(dirname(article.filePath!), article.id);
-
-/**
- * Every file in the Article's own folder (its images and attachments), published
- * beside it at `/writing/<slug>/<file>`, so relative links in its Markdown twin resolve.
- */
-export function folderFilesOf(article: Article): { file: string; source: string }[] {
-  const folder = resolve(folderOf(article));
-  if (!existsSync(folder)) return [];
-  return readdirSync(folder, { withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .map((entry) => ({ file: entry.name, source: join(folder, entry.name) }));
-}
-
 /** The Article's attachments, from its own folder; a missing file fails the build. */
 export function attachmentsOf(article: Article): Attachment[] {
-  return article.data.attachments.map(({ title, file }) => {
-    const source = resolve(folderOf(article), file);
-    if (!existsSync(source)) {
-      throw new Error(`${article.filePath}: attachment "${file}" not found in ${folderOf(article)}/`);
-    }
-    const type = extname(file).slice(1).toUpperCase() || 'file';
-    return { title, file, path: `${pathOf(article)}${file}`, description: `${file}, ${type}, ${sizeOf(source)}` };
-  });
-}
-
-function sizeOf(file: string): string {
-  const bytes = statSync(file).size;
-  if (bytes < 1024) return `${bytes} bytes`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
-/** Minutes an unhurried reader needs for the body, at about 230 words a minute. */
-export function readingMinutesOf(article: Article): number {
-  const words = (article.body ?? '').split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.round(words / 230));
+  return article.data.attachments.map(({ title, file }) => ({
+    title,
+    file,
+    path: `${pathOf(article)}${file}`,
+    description: describeFolderFile(article, file, 'attachment'),
+  }));
 }
 
 /** The Discuss links that are set, in display order. */

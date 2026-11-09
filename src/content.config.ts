@@ -92,6 +92,35 @@ const articles = defineCollection({
   }),
 });
 
+/** A Study's link to its data or a script: a file in its own folder, or an https URL elsewhere. */
+const studyLink = z.union([
+  z.strictObject({
+    title: z.string().min(1),
+    file: z.string().regex(/^[\w.-]+$/, "must be a file name in the Study's own folder"),
+  }),
+  z.strictObject({ title: z.string().min(1), url: z.url({ protocol: /^https$/ }) }),
+]);
+
+// One Markdown file per Study: `studies/<slug>.md`, published at `/research/<slug>/`, its own
+// folder `studies/<slug>/` beside it. The body carries the required sections (question,
+// hypothesis, method, observations, findings, limitations), checked in src/lib/studies.ts.
+// Studies are English Originals.
+const studies = defineCollection({
+  loader: glob({ pattern: '*.md', base: `${contentDir}/studies` }),
+  schema: z.strictObject({
+    title: z.string().min(1),
+    summary: z.string().min(1),
+    published: z.coerce.date(),
+    status: z.enum(['in progress', 'concluded', 'abandoned']),
+    language: z.literal('en').default('en'),
+    tags: z.array(z.string()).default([]),
+    featured: z.boolean().default(false),
+    updated: z.never({ error: '"last updated" comes from git history; remove this field' }).optional(),
+    data: z.array(studyLink).default([]),
+    scripts: z.array(studyLink).default([]),
+  }),
+});
+
 // The Professional record: one YAML file whose single `record` entry is João's verified profile.
 const recordFile = `${contentDir}/record.yaml`;
 const recordLoader = file(recordFile);
@@ -103,4 +132,4 @@ const record = defineCollection({
   schema: recordSchema,
 });
 
-export const collections = { pages, knowledge, articles, record };
+export const collections = { pages, knowledge, articles, studies, record };

@@ -11,10 +11,10 @@ import {
   discussOf,
   getArticles,
   metadataOf,
-  readingMinutesOf,
   twinPathOf,
   type Article,
 } from '../../lib/articles';
+import { readingMinutesOf } from '../../lib/own-folder';
 
 export async function getStaticPaths() {
   const articles = await getArticles();

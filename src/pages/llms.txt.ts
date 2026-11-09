@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { SITE_URL } from '../../site.config.mjs';
 import { getPages, twinPathOf } from '../lib/pages';
 import * as writing from '../lib/articles';
+import * as research from '../lib/studies';
 import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
 import { ABOUT_TITLE, getRecord } from '../lib/record';
 import { ORIGINAL_LANGUAGE, translationsOf } from '../lib/translations';
@@ -24,6 +25,11 @@ export const GET: APIRoute = async () => {
     (article) => `- [${article.data.title}](${new URL(writing.twinPathOf(article), SITE_URL).href}): ${article.data.summary}`,
   );
   const writingIndex = `- [${writing.WRITING.title}](${new URL(writing.WRITING.twin, SITE_URL).href}): ${writing.WRITING.summary}`;
+  const studies = (await research.getStudies()).map(
+    (study) =>
+      `- [${study.data.title}](${new URL(research.twinPathOf(study), SITE_URL).href}): ${study.data.summary} (${study.data.status})`,
+  );
+  const researchIndex = `- [${research.RESEARCH.title}](${new URL(research.RESEARCH.twin, SITE_URL).href}): ${research.RESEARCH.summary}`;
   const knowledge = (await getKnowledge())
     .filter(({ entry }) => entry.data.language === 'en')
     .map(({ entry }) => `- [${entry.data.title}](${new URL(knowledgeTwinPathOf(entry), SITE_URL).href}): ${entry.data.summary}`);
@@ -37,6 +43,7 @@ export const GET: APIRoute = async () => {
     ...lines,
     '',
     ...(articles.length ? ['## Writing', '', writingIndex, ...articles, ''] : []),
+    ...(studies.length ? ['## Research', '', researchIndex, ...studies, ''] : []),
     ...(knowledge.length ? ['## Knowledge', '', ...knowledge, ''] : []),
   ].join('\n');
   return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });

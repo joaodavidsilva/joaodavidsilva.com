@@ -23,7 +23,7 @@
   --astro-code-token-parameter: var(--ink);
 }
 
-/* Header of a long-form piece: summary, then a byline of dates and reading time, then tags. */
+/* Header of a long-form piece: a Study's status, then summary, a byline of dates and reading time, then tags. */
 .long-form-header .summary,
 main > header .summary {
   font-size: 1.15em;
@@ -122,17 +122,24 @@ figure img {
   font-weight: 650;
 }
 
-/* End matter: attachments and corrections. */
+/* End matter: attachments, corrections, a Study's data and scripts and its "Discussed in" backlinks. */
 .attachments,
-.corrections {
+.corrections,
+.discussed-in {
   margin-block-start: 3rem;
   font-size: 0.95em;
 }
 
 .attachments h2,
-.corrections h2 {
+.corrections h2,
+.discussed-in h2 {
   font-size: 1em;
   margin-block-start: 0;
+}
+
+.attachments h3 {
+  font-size: 0.95em;
+  margin-block: 1em 0;
 }
 
 /* Index lists: newest first, one piece per item. */
