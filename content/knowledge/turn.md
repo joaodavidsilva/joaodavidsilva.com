@@ -2,6 +2,7 @@
 kind: concept
 title: "Turn"
 summary: "One user message plus everything the agent does in response, up until it yields back to the user."
+published: 2026-11-09
 category: "Harness Engineering"
 tags: ["agent loop", "sessions"]
 related: [agent, tool, session, harness, tool-call]

@@ -11,14 +11,14 @@ import { uiOf } from '../../../lib/ui';
 export const getStaticPaths = knowledgeRoutes;
 
 const { item } = Astro.props as { item: KnowledgeEntry };
-const { entry, related, skillUrl, updated, translations } = item;
+const { entry, related, skillUrl, published, updated, translations } = item;
 const { title, summary, kind, category, tags, language } = entry.data;
 const ui = uiOf(language);
 const canonical = canonicalOf(entry);
 const { Content } = await render(entry);
 const type = kind === 'concept' ? 'DefinedTerm' : 'TechArticle';
 const jsonLd = {
-  ...jsonLdBase(type, { title, summary, updated, language, tags, canonical }),
+  ...jsonLdBase(type, { title, summary, published, updated, language, tags, canonical }),
   about: category,
   ...translationJsonLd(translations, type),
 };

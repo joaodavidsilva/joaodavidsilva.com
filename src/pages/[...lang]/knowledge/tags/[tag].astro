@@ -1,19 +1,20 @@
 ---
 import Base from '../../../../layouts/Base.astro';
 import KnowledgeList from '../../../../components/KnowledgeList.astro';
-import type { KnowledgeEntry } from '../../../../lib/knowledge';
-import { tagPathOf } from '../../../../lib/knowledge';
+import { listingJsonLd, tagMetadataOf, tagPathOf, type KnowledgeEntry } from '../../../../lib/knowledge';
 import { tagRoutes } from '../../../../lib/routes';
-import { absolute, pathIn, twinOf, type Language } from '../../../../lib/translations';
+import { pathIn, twinOf, type Language } from '../../../../lib/translations';
 import { uiOf } from '../../../../lib/ui';
 
 export const getStaticPaths = tagRoutes;
 
 const { tag, language, entries } = Astro.props as { tag: string; language: Language; entries: KnowledgeEntry[] };
 const ui = uiOf(language);
-const path = tagPathOf(tag, language);
+const meta = tagMetadataOf(tag, language, entries);
+const jsonLd = listingJsonLd(meta, entries);
 ---
-<Base title={`${ui.knowledge.title}: ${tag}`} description={ui.taggedSummary(tag)} canonical={absolute(path)} language={language} twin={twinOf(path)}>
+<Base title={meta.title} description={meta.summary} canonical={meta.canonical} language={language} twin={twinOf(tagPathOf(tag, language))}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <header>
     <h1>{ui.tagged(tag)}</h1>
     <p><a href={pathIn('/knowledge/', language)}>{ui.allEntries}</a></p>

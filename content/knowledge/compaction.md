@@ -2,6 +2,7 @@
 kind: concept
 title: "Compaction"
 summary: "A handoff done in-memory: the session's history is summarised and the summary seeds a fresh session."
+published: 2026-11-09
 category: "Context Engineering"
 tags: ["context", "sessions"]
 related: [session, context-window, harness, model, clearing, context]

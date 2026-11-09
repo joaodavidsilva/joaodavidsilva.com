@@ -1,8 +1,9 @@
 ---
 import Base from '../../layouts/Base.astro';
 import SuggestCorrection from '../../components/SuggestCorrection.astro';
+import { escapeMarkup as escape } from '../../lib/escape';
 import {
-  ABOUT_PATH, CV_PATHS, cvFileName, hrefOf, paragraphsOf, periodOf, personOf, type Record, type Source,
+  ABOUT_PATH, CV_PATHS, cvFileName, hrefOf, paragraphsOf, periodOf, personOf, type ProfessionalRecord, type Source,
 } from '../../lib/record';
 import { aboutRoutes } from '../../lib/routes';
 import { alternateAt, type Translations } from '../../lib/translations';
@@ -11,13 +12,12 @@ import { uiOf } from '../../lib/ui';
 // Exists only when the content set has a record, in each language it is translated into.
 export const getStaticPaths = aboutRoutes;
 
-const { record, translations } = Astro.props as { record: Record; translations: Translations };
+const { record, translations } = Astro.props as { record: ProfessionalRecord; translations: Translations };
 const { language } = record;
 const ui = uiOf(language);
 const words = ui.record;
 const page = alternateAt(ABOUT_PATH, language);
 const person = personOf(record);
-const escape = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 // One Claim's source; attested Claims are labelled so readers know only João can confirm them.
 const src = (source: Source) =>
   'attested' in source

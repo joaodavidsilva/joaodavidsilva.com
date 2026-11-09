@@ -77,8 +77,8 @@ export async function nowRoutes() {
 
 /** The About pages: none when the content set has no Professional record. */
 export async function aboutRoutes() {
-  return (await getAllRecords()).map(({ record, translations }) => ({
+  return (await getAllRecords()).map(({ record, translations, updated }) => ({
     params: { lang: langParam(record.language) },
-    props: { record, translations },
+    props: { record, translations, updated },
   }));
 }

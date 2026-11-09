@@ -2,6 +2,7 @@
 kind: concept
 title: "Model"
 summary: "The parameters: a stateless next-token predictor that can't do anything agentic until it is harnessed."
+published: 2026-11-09
 category: "AI Engineering"
 tags: ["models", "fundamentals"]
 related: [harness, token, agent, tool, session, context]

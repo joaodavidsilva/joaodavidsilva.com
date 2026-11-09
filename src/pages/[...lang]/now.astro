@@ -18,7 +18,7 @@ const ui = uiOf(language);
 const { Content } = await render(now);
 const date = dateOf(now);
 const jsonLd = {
-  ...jsonLdBase('WebPage', { ...page, updated: date, language }),
+  ...jsonLdBase('WebPage', { ...page, published: date, updated: date, language }),
   ...translationJsonLd(translations, 'WebPage'),
 };
 ---

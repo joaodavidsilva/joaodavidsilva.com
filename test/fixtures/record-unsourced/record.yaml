@@ -2,7 +2,7 @@ record:
   name: Fixture Person
   headline: Engineering beyond implementation.
   url: https://joaodavidsilva.com/
-  email: fixture@example.com
+  email: fixture@joaodavidsilva.com
   sameAs:
     - https://github.com/fixture
   roles:

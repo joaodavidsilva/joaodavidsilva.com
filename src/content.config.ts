@@ -12,9 +12,10 @@ import { translatable, withTranslations } from './lib/translations';
 // JDS_CONTENT_DIR lets the fixture build tests swap in their own content set.
 const contentDir = process.env.JDS_CONTENT_DIR ?? './content';
 
+// Collections are strict: an unknown or misspelt front-matter field fails the build.
 const pages = defineCollection({
   loader: glob({ pattern: '**/*.md', base: `${contentDir}/pages` }),
-  schema: z.object({
+  schema: z.strictObject({
     title: z.string().min(1),
     summary: z.string().min(1),
     published: z.coerce.date(),
@@ -29,7 +30,7 @@ const pages = defineCollection({
 const projects = defineCollection({
   loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/projects` }),
   schema: ({ image }) =>
-    z.object({
+    z.strictObject({
       name: z.string().min(1),
       oneLine: z.string().min(1),
       status: z.enum(['active', 'in development', 'paused', 'archived']),
@@ -38,19 +39,19 @@ const projects = defineCollection({
       ...translatable,
       tags: z.array(z.string()).default([]),
       links: z
-        .object({
+        .strictObject({
           site: z.url().optional(),
           repository: z.url().optional(),
-          stores: z.array(z.object({ name: z.string().min(1), url: z.url() })).default([]),
+          stores: z.array(z.strictObject({ name: z.string().min(1), url: z.url() })).default([]),
         })
         .default({ stores: [] }),
       // Present when the Project is an application: its page then carries SoftwareApplication JSON-LD.
       software: z
-        .object({ category: z.string().min(1), operatingSystems: z.array(z.string().min(1)).min(1) })
+        .strictObject({ category: z.string().min(1), operatingSystems: z.array(z.string().min(1)).min(1) })
         .optional(),
       // Screenshots or diagrams, shown on the Project page and linked from its twin.
       figures: z
-        .array(z.object({ src: image(), alt: z.string().min(1), caption: z.string().min(1).optional() }))
+        .array(z.strictObject({ src: image(), alt: z.string().min(1), caption: z.string().min(1).optional() }))
         .default([]),
       // Legal documents are pages, so they keep their own URLs.
       legal: z.array(reference('pages')).default([]),
@@ -62,10 +63,11 @@ const projects = defineCollection({
 const knowledge = defineCollection({
   loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/knowledge` }),
   schema: z
-    .object({
+    .strictObject({
       kind: z.enum(['concept', 'guide']),
       title: z.string().min(1),
       summary: z.string().min(1),
+      published: z.coerce.date(),
       category: z.enum(KNOWLEDGE_CATEGORIES as [string, ...string[]]),
       tags: z.array(z.string()).default([]),
       ...translatable,

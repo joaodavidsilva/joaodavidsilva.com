@@ -2,6 +2,7 @@
 kind: concept
 title: "Harness"
 summary: "Everything around the model that turns it into an agent: tools, system prompt, context-window management, permissions, hooks."
+published: 2026-11-09
 category: "Harness Engineering"
 tags: ["harness", "agents"]
 related: [model, agent, tool, context-window, turn, context, tool-call, session, compaction]

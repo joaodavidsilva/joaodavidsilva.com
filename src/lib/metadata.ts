@@ -35,6 +35,21 @@ export function metadataOf(entry: Entry, pathOf: PathOf, text: { title: string; 
   };
 }
 
+/** A listing's dates: when its earliest item was published and when its latest was last updated. */
+export const listingDatesOf = (items: { published?: string; updated?: string }[]) => ({
+  published: items.map((item) => item.published).filter(Boolean).sort()[0],
+  updated: items.map((item) => item.updated).filter(Boolean).sort().at(-1),
+});
+
+/** The JSON-LD of an index page listing `items`, in order. */
+export const collectionJsonLd = (meta: Metadata, items: { name: string; url: string }[]) => ({
+  ...jsonLdBase('CollectionPage', meta),
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: items.map((item, i) => ({ '@type': 'ListItem', position: i + 1, ...item })),
+  },
+});
+
 /** The JSON-LD every page starts from: a `type` with the page's shared metadata. */
 export const jsonLdBase = (type: string, meta: Metadata) => ({
   '@context': 'https://schema.org',

@@ -1,7 +1,7 @@
 import { getImage } from 'astro:assets';
 import { getCollection, getEntries, type CollectionEntry } from 'astro:content';
 import { LANGUAGES } from '../../site.config.mjs';
-import { metadataOf as sharedMetadataOf } from './metadata';
+import { listingDatesOf, metadataOf as sharedMetadataOf, type Metadata } from './metadata';
 import { getPages, pathOf as pagePathOf } from './pages';
 import {
   alternateAt, assertTranslations, inLanguage, locate, ORIGINAL_LANGUAGE, pathIn, translationsOf as translationsAmong,
@@ -97,4 +97,10 @@ export async function figuresOf(project: Project) {
 export function metadataOf(project: Project) {
   const { name, oneLine, status, version } = project.data;
   return { ...sharedMetadataOf(project, projectPathOf, { title: name, summary: oneLine }), status, version };
+}
+
+/** The Projects index's shared metadata, dated by the Projects it lists. */
+export function indexMetadataOf(language: Language, projects: Project[]): Metadata {
+  const { title, summary, canonical } = projectsIndexOf(language);
+  return { title, summary, ...listingDatesOf(projects.map(metadataOf)), language, tags: [], canonical };
 }

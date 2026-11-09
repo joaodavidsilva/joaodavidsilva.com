@@ -2,6 +2,7 @@
 kind: concept
 title: "Token"
 summary: "The atomic unit a model reads and writes; context window size, cost and latency are all counted in tokens."
+published: 2026-11-09
 category: "AI Engineering"
 tags: ["tokens", "models", "fundamentals"]
 related: [model, context-window]

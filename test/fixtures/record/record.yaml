@@ -2,7 +2,7 @@ record:
   name: Fixture Person
   headline: Engineering beyond implementation.
   url: https://joaodavidsilva.com/
-  email: fixture@example.com
+  email: fixture@joaodavidsilva.com
   interests: |
     Fixture interest paragraph one.
 
@@ -10,6 +10,7 @@ record:
   approach: Fixture approach paragraph.
   sameAs:
     - https://github.com/fixture
+    - https://www.linkedin.com/in/fixture/
   roles:
     - title: Staff Fixture Engineer
       organisation: Fixture Corp
@@ -23,7 +24,7 @@ record:
   projects:
     - name: Fixture App
       summary: An app that exists only in tests.
-      source: { page: /hello/ }
+      source: { page: /projects/fixture-app/ }
   skills:
     - name: Fixture Testing
       demonstrated:

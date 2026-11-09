@@ -13,7 +13,17 @@ export const GET: APIRoute = ({ props }) => {
   const ui = uiOf(language);
   const page = { ...ui.now, ...alternateAt(NOW_PATH, language) };
   return markdownResponse(
-    { title: page.title, summary: page.summary, updated: dateOf(now), language, canonical: page.canonical, ...translationFields(translations) },
+    {
+      title: page.title,
+      summary: page.summary,
+      // A Now entry is rewritten, not revised: its date is when it was both published and last updated.
+      published: dateOf(now),
+      updated: dateOf(now),
+      language,
+      tags: [],
+      canonical: page.canonical,
+      ...translationFields(translations),
+    },
     [`# ${page.title}`, `${ui.updated} ${dateOf(now)}.`, (now.body ?? '').trim()],
   );
 };

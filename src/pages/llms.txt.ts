@@ -3,7 +3,7 @@ import * as writing from '../lib/articles';
 import * as research from '../lib/studies';
 import { getAllSeries, twinPathOf as seriesTwinPathOf } from '../lib/series';
 import * as projects from '../lib/projects';
-import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
+import { getKnowledge, tagMetadataOf, tagPathOf, tagsOf, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
 import { getAllNow, NOW_PATH, translationsOf as nowTranslationsOf } from '../lib/now';
 import { getPages, translationsOf as pageTranslationsOf, twinPathOf } from '../lib/pages';
 import { ABOUT_PATH, getAllRecords } from '../lib/record';
@@ -56,9 +56,15 @@ export const GET: APIRoute = async () => {
   const projectLines = allProjects
     .filter((project) => !isTranslation(project))
     .map((project) => line(project.data.name, projects.twinPathOf(project), project.data.oneLine, projects.translationsOf(project, allProjects)));
-  const knowledge = (await getKnowledge()).map(({ entry, translations }) =>
+  const allKnowledge = await getKnowledge();
+  const knowledge = allKnowledge.map(({ entry, translations }) =>
     line(entry.data.title, knowledgeTwinPathOf(entry), entry.data.summary, translations),
   );
+  // Tags differ between languages, so a tag page has no Translations to point to.
+  for (const tag of tagsOf(allKnowledge)) {
+    const { title, summary } = tagMetadataOf(tag, 'en', []);
+    knowledge.push(line(title, twinOf(tagPathOf(tag, 'en')), summary, generatedTranslations(tagPathOf(tag, 'en'), [])));
+  }
   const body = [
     '# João David Silva',
     '',

@@ -36,6 +36,8 @@ test('Projects: index and Project page', async (t) => {
     const md = site.read('projects.md');
     assert.match(md, /^---\ntitle: "Projects"\n/);
     assert.ok(md.includes(`\ncanonical: ${SITE}/projects/\n`));
+    assert.match(md, /\npublished: \d{4}-\d{2}-\d{2}\n/);
+    assert.ok(md.includes('\ntags: []\n'), md);
     assert.match(md, /- \[Sample App\]\(https:\/\/joaodavidsilva\.com\/projects\/sample-app\.md\) \(active, version 2\.3\.1\): A sample app that practises one thing well\./);
     assert.match(md, /- \[Sample Library\]\(https:\/\/joaodavidsilva\.com\/projects\/sample-library\.md\) \(paused\): A small library, resting for now\./);
   });
@@ -226,4 +228,11 @@ test('dotore and AI Skills: Project pages link their own homes', () => {
   for (const [slug, name] of [['dotore', 'dotore'], ['ai-skills', 'AI Skills']]) {
     assert.match(index, new RegExp(`<a href="/projects/${slug}/">${name}</a>`));
   }
+});
+
+test('an unknown Project front-matter field fails the build', () => {
+  const site = buildFixture('project-unknown-field');
+  assert.equal(site.ok, false);
+  assert.match(site.output, /sample\.md/);
+  assert.match(site.output, /website/);
 });

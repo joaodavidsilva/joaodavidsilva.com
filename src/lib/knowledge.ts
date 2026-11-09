@@ -2,7 +2,8 @@ import { existsSync, readdirSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { KNOWLEDGE_CATEGORIES, SKILLS_REPO_URL } from '../../site.config.mjs';
-import { lastCommitDayOf } from './git';
+import { lastUpdatedOf } from './git';
+import { collectionJsonLd, day, listingDatesOf, type Metadata } from './metadata';
 import {
   absolute, alternateAt, assertTranslations, inLanguage, isTranslation, locate, pathIn, ORIGINAL_LANGUAGE,
   translationsOf as translationsAmong, type Language, type Translations,
@@ -18,7 +19,9 @@ export interface KnowledgeEntry {
   related: Entry[];
   /** URL of the Guide's Skill `SKILL.md`, if it has one. */
   skillUrl?: string;
-  /** YYYY-MM-DD of the last commit touching the source file. */
+  /** YYYY-MM-DD */
+  published: string;
+  /** YYYY-MM-DD of the last commit touching the source file, never before `published`. */
   updated: string;
   translations: Translations;
 }
@@ -59,11 +62,6 @@ function skillIndex(): Map<string, string> {
   return index;
 }
 
-/** "Last updated" from git history; an uncommitted entry is being written now. */
-function lastUpdated(filePath: string | undefined): string {
-  return (filePath && lastCommitDayOf(filePath)) || new Date().toISOString().slice(0, 10);
-}
-
 let cached: Promise<KnowledgeEntry[]> | undefined;
 
 /** Every entry and Translation, after checking cross-references and Skill references; sorted by title. */
@@ -99,11 +97,13 @@ async function load(): Promise<KnowledgeEntry[]> {
         }
         skillUrl = `${SKILLS_REPO_URL}/blob/main/${path}`;
       }
+      const published = day(entry.data.published);
       return {
         entry,
         related,
         skillUrl,
-        updated: lastUpdated(entry.filePath),
+        published,
+        updated: lastUpdatedOf(entry.filePath!, published),
         translations: translationsAmong(entry, entries, entryPathOf),
       };
     })
@@ -127,4 +127,27 @@ export function tagsOf(entries: KnowledgeEntry[]): string[] {
 /** Markdown list of entries linking their twins, used by the index and tag twins. */
 export function markdownList(entries: KnowledgeEntry[]): string {
   return entries.map(({ entry }) => `- [${entry.data.title}](${absolute(twinPathOf(entry))}): ${entry.data.summary}`).join('\n');
+}
+
+/** A Knowledge listing (the index or a tag page) as JSON-LD: a CollectionPage of its entries. */
+export const listingJsonLd = (meta: Metadata, entries: KnowledgeEntry[]) =>
+  collectionJsonLd(meta, entries.map(({ entry }) => ({ name: entry.data.title, url: canonicalOf(entry) })));
+
+/** The Knowledge index's shared metadata in `language`, dated by its entries. */
+export function indexMetadataOf(language: Language, entries: KnowledgeEntry[]): Metadata {
+  const { title, summary, canonical } = knowledgeIndexOf(language);
+  return { title, summary, ...listingDatesOf(entries), language, tags: [], canonical };
+}
+
+/** The shared metadata of the page listing the `entries` in `language` tagged `tag`. */
+export function tagMetadataOf(tag: string, language: Language, entries: KnowledgeEntry[]): Metadata {
+  const ui = uiOf(language);
+  return {
+    title: `${ui.knowledge.title}: ${tag}`,
+    summary: ui.taggedSummary(tag),
+    ...listingDatesOf(entries),
+    language,
+    tags: [tag],
+    canonical: absolute(tagPathOf(tag, language)),
+  };
 }

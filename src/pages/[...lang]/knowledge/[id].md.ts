@@ -8,11 +8,11 @@ import { uiOf } from '../../../lib/ui';
 export const getStaticPaths = knowledgeRoutes;
 
 export const GET: APIRoute = ({ props }) => {
-  const { entry, related, skillUrl, updated, translations } = (props as { item: KnowledgeEntry }).item;
+  const { entry, related, skillUrl, published, updated, translations } = (props as { item: KnowledgeEntry }).item;
   const { title, summary, kind, category, tags, language } = entry.data;
   const ui = uiOf(language);
   return markdownResponse(
-    { title, summary, kind, category, updated, language, tags, skill: skillUrl, canonical: canonicalOf(entry), ...translationFields(translations) },
+    { title, summary, kind, category, published, updated, language, tags, skill: skillUrl, canonical: canonicalOf(entry), ...translationFields(translations) },
     [
       `# ${title}`,
       (entry.body ?? '').trim(),

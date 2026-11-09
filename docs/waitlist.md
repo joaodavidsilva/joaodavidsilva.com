@@ -26,7 +26,7 @@ Preview URLs share the production `DB` binding, but their hostnames are not on t
 
 ## When the privacy notice changes
 
-Set `updated:` in `content/pages/privacy.md` and `PRIVACY_NOTICE_VERSION` in `wrangler.jsonc` to the same date; a test fails until they match.
+The notice's last-updated date comes from git: the day of the last commit to `content/pages/privacy.md`. Set `PRIVACY_NOTICE_VERSION` in `wrangler.jsonc` to that date in the same commit; a test fails until it matches the `updated:` field of the built `/privacy.md`.
 
 ## Local development
 

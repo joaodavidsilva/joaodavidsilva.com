@@ -2,6 +2,7 @@
 kind: concept
 title: "Clearing"
 summary: "Ending the current session and starting a fresh one with an empty context window."
+published: 2026-11-09
 category: "Context Engineering"
 tags: ["context", "sessions"]
 related: [session, context-window, model, turn, agent, context, harness, compaction]

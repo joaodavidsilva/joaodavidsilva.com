@@ -53,6 +53,8 @@ test('Now is published at /now/ with a Markdown twin', () => {
   assert.match(html, /<link rel="alternate" type="text\/markdown" href="\/now\.md"/);
   const md = site.read('now.md');
   assert.match(md, /^---\n[^]*\nupdated: 2026-10-01\n[^]*canonical: https:\/\/joaodavidsilva\.com\/now\/\n---\n/);
+  assert.ok(md.includes('\npublished: 2026-10-01\n'), md);
+  assert.ok(md.includes('\ntags: []\n'), md);
   assert.match(md, /Writing the fixture now block\./);
   assert.match(site.read('llms.txt'), /\[Now\]\(https:\/\/joaodavidsilva\.com\/now\.md\)/);
 });

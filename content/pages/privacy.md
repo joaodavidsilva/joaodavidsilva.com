@@ -14,7 +14,7 @@ João David Silva. Write to [privacy@joaodavidsilva.com](mailto:privacy@joaodavi
 
 ## No cookies
 
-The site sets no cookies and stores nothing on your device, so there is no consent banner. The Turnstile bot check on the Lozza Project page is described under [Lozza Waitlist](#lozza-waitlist).
+The site sets no cookies. If you choose a light or dark theme, your browser keeps that choice in its local storage, on your device only, so the next page opens in the theme you picked; nothing is sent to the site. Choosing System removes it. This is strictly necessary to provide the setting you asked for, so it needs no consent and there is no consent banner. The Turnstile bot check on the Lozza Project page is described under [Lozza Waitlist](#lozza-waitlist).
 
 ## Visit analytics
 

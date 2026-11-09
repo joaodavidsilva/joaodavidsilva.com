@@ -74,3 +74,10 @@ test('a page claiming a reserved path fails the build', () => {
   assert.equal(site.ok, false);
   assert.match(site.output, /dotore\.md: path "\/dotore\/" is reserved/);
 });
+
+test('an unknown page front-matter field fails the build', () => {
+  const site = buildFixture('page-unknown-field');
+  assert.equal(site.ok, false);
+  assert.match(site.output, /hello\.md/);
+  assert.match(site.output, /updated/);
+});
