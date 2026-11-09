@@ -11,6 +11,21 @@ record:
     - https://www.linkedin.com/in/joaodavidsilvaa/
     - https://x.com/joaodavidsilvaa
   projects:
+    - name: dotore
+      summary: A pure-Rust static analyzer, deterministic auto-fixer and remediation engine for JS/TS, React, Angular, Python and Rust.
+      source: { page: /projects/dotore/ }
+    - name: AI Skills
+      summary: Small, composable agent skills for real software engineering with coding agents, not vibe coding.
+      source: { page: /projects/ai-skills/ }
+    - name: BrightBoi
+      summary: A free macOS menu bar app that unlocks the extra brightness of the MacBook Pro's Liquid Retina XDR display, up to 200%.
+      source: { page: /projects/brightboi/ }
+    - name: Markdown Exporter
+      summary: A VS Code extension that turns a hand-picked selection of files and folders into one Markdown document for LLM context.
+      source: { page: /projects/markdown-exporter/ }
+    - name: Lozza
+      summary: A product in development, with a Waitlist for people who want to hear when it is available.
+      source: { page: /projects/lozza/ }
     - name: Facts Memorizer
-      summary: A times-tables practice app that keeps every answer on the device.
+      summary: A free times-tables practice app for children, with no accounts, no ads and no data collection.
       source: { page: /projects/facts-memorizer/ }
