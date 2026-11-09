@@ -9,3 +9,15 @@ export const REPO_URL = 'https://github.com/joaodavidsilva/joaodavidsilva.com';
 
 // The RSS/Atom feed of Articles and Studies; a public URL that must stay stable.
 export const FEED_PATH = '/feed.xml';
+
+// Languages a page may exist in, by code, with each language's own name for the switcher.
+// English is the Original at the root; every other language is a Translation under `/<code>/`,
+// so no English page may start with another language's code.
+export const LANGUAGES = {
+  en: 'English',
+  pt: 'Português',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  it: 'Italiano',
+};

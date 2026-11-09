@@ -3,6 +3,7 @@ title: Facts Memorizer privacy policy
 summary: Facts Memorizer collects no personal data; everything stays on your device.
 published: 2026-11-09
 language: en
+legal: true
 ---
 
 Effective date: 9 November 2026

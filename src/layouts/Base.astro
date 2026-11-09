@@ -2,6 +2,9 @@
 import { Font } from 'astro:assets';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import TranslationNotice from '../components/TranslationNotice.astro';
+import type { Translations } from '../lib/translations';
 import '../styles/global.css';
 import '../styles/chrome.css';
 
@@ -12,9 +15,12 @@ interface Props {
   language: string;
   /** Path of the page's Markdown twin. */
   twin: string;
+  /** The languages the page exists in; drives hreflang, the switcher and the translation notices. */
+  translations?: Translations;
 }
 
-const { title, description, canonical, language, twin } = Astro.props;
+const { title, description, canonical, language, twin, translations } = Astro.props;
+const alternates = translations && translations.versions.length > 1 ? translations.versions : [];
 ---
 <!doctype html>
 <html lang={language}>
@@ -25,6 +31,8 @@ const { title, description, canonical, language, twin } = Astro.props;
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="alternate" type="text/markdown" href={twin} />
+    {alternates.map((version) => <link rel="alternate" hreflang={version.language} href={version.canonical} />)}
+    {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={alternates[0].canonical} />}
     <Font cssVariable="--font-serif" preload={[{ subset: 'latin', style: 'normal' }]} />
     <Font cssVariable="--font-sans" preload={[{ subset: 'latin' }]} />
     <Font cssVariable="--font-mono" />
@@ -33,6 +41,8 @@ const { title, description, canonical, language, twin } = Astro.props;
   <body>
     <SiteHeader />
     <main>
+      {translations && <LanguageSwitcher translations={translations} language={language} />}
+      {translations && <TranslationNotice translations={translations} language={language} />}
       <slot />
     </main>
     <SiteFooter />

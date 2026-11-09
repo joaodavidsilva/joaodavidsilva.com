@@ -3,13 +3,14 @@ import { render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
 import { getPages, metadataOf, slugOf, twinPathOf, type Page } from '../lib/pages';
+import { translationsOf, type Translations } from '../lib/translations';
 
 export async function getStaticPaths() {
   const pages = await getPages();
-  return pages.map((page) => ({ params: { slug: slugOf(page) }, props: { page } }));
+  return pages.map((page) => ({ params: { slug: slugOf(page) }, props: { page, translations: translationsOf(page, pages) } }));
 }
 
-const { page } = Astro.props as { page: Page };
+const { page, translations } = Astro.props as { page: Page; translations: Translations };
 const meta = metadataOf(page);
 const { Content } = await render(page);
 const jsonLd = {
@@ -23,6 +24,11 @@ const jsonLd = {
   inLanguage: meta.language,
   keywords: meta.tags,
   url: meta.canonical,
+  ...(translations.original
+    ? { translationOfWork: { '@type': 'WebPage', url: translations.original.canonical } }
+    : translations.versions.length > 1
+      ? { workTranslation: translations.versions.slice(1).map((v) => ({ '@type': 'WebPage', url: v.canonical, inLanguage: v.language })) }
+      : {}),
 };
 ---
 <Base
@@ -31,6 +37,7 @@ const jsonLd = {
   canonical={meta.canonical}
   language={meta.language}
   twin={twinPathOf(page)}
+  translations={translations}
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <article>
