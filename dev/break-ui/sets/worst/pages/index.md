@@ -1,6 +1,6 @@
 ---
 title: João David Silva
-summary: "Engineering beyond implementation. An independent engineering publication by João David Silva: arguments, essays, studies, a knowledge base on engineering with and for AI agents, and the projects he maintains over time."
+summary: "Engineering beyond implementation. An independent engineering publication by João David Silva: arguments, essays, studies, a knowledge base on engineering with AI agents, and his projects."
 published: 2026-11-09
 language: en
 ---

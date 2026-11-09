@@ -86,10 +86,14 @@ h6 {
   margin-block: 2em 0.6em;
 }
 
+/* Scales down on phones so a long title leaves room for its summary; titles are never truncated. */
 h1 {
-  font-size: 2.1em;
+  font-size: clamp(1.6em, 1.2em + 2.5vw, 2.1em);
   letter-spacing: -0.02em;
   margin-block-start: 0.5em;
+  /* Hyphenation follows each page's `<html lang>`. */
+  hyphens: auto;
+  hyphenate-limit-chars: 10 4 4;
 }
 
 h2 {
@@ -209,13 +213,53 @@ video {
   block-size: auto;
 }
 
+/*
+ * A tall image (a full-page screenshot) never fills more than most of a screen: its box keeps
+ * the width its attributes reserve, and the picture is fitted inside it, flush with the text.
+ */
+main img,
+main video {
+  max-block-size: min(80svh, 48rem);
+  object-fit: contain;
+  object-position: left center;
+}
+
+/*
+ * Tables are set in Inter, a size down, cells top-aligned. Markdown wraps each in a
+ * focusable scroll region (src/lib/long-form-markdown.mjs): a wide table scrolls
+ * inside the column instead of widening the page.
+ */
+.table-scroll {
+  max-inline-size: 100%;
+  margin-block: 0 1.25em;
+  overflow-x: auto;
+  scrollbar-color: var(--ink-muted) var(--surface);
+}
+
+.table-scroll > table {
+  margin-block: 0;
+}
+
 table {
   border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+  line-height: 1.45;
 }
 
 th,
 td {
-  padding: 0.4em 0.8em;
+  padding: 0.5em 0.8em;
   border-block-end: 1px solid var(--rule);
   text-align: start;
+  vertical-align: top;
+}
+
+th {
+  font-weight: 650;
+  border-block-end-color: var(--ink-muted);
+}
+
+:is(th, td):first-child {
+  padding-inline-start: 0;
 }

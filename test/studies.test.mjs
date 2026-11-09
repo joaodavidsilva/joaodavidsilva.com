@@ -88,7 +88,7 @@ test('Studies, the Research index and Discussed-in backlinks', async (t) => {
       ['Recall scores', '/research/sleep-and-recall/recall.csv'],
       ['Analysis script', 'https://github.com/joaodavidsilva/sleep-and-recall/blob/main/analysis.py'],
     ]);
-    assert.match(textOf(section), /recall\.csv, CSV, \d+ bytes/);
+    assert.match(textOf(section), /Recall scores \(CSV, \d+ bytes\)/);
     const source = readFileSync(join(root, 'test/fixtures/studies/studies/sleep-and-recall/recall.csv'), 'utf8');
     assert.equal(site.read('research/sleep-and-recall/recall.csv'), source);
     assert.equal(sectionOf(tabsMain, 'data-and-scripts'), undefined);
@@ -98,7 +98,7 @@ test('Studies, the Research index and Discussed-in backlinks', async (t) => {
       body,
       new RegExp(
         '\\n## Data and scripts\\n\\n' +
-          `- Data: \\[Recall scores\\]\\(${SITE}/research/sleep-and-recall/recall\\.csv\\) \\(recall\\.csv, CSV, \\d+ bytes\\)\\n` +
+          `- Data: \\[Recall scores\\]\\(${SITE}/research/sleep-and-recall/recall\\.csv\\) \\(CSV, \\d+ bytes\\)\\n` +
           '- Script: \\[Analysis script\\]\\(https://github\\.com/joaodavidsilva/sleep-and-recall/blob/main/analysis\\.py\\)\\n',
       ),
     );

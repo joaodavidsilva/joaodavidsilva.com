@@ -12,17 +12,21 @@ import { translatable, withTranslations } from './lib/translations';
 // JDS_CONTENT_DIR lets the fixture build tests swap in their own content set.
 const contentDir = process.env.JDS_CONTENT_DIR ?? './content';
 
+// Limits on the fields that set the height of every list a piece appears in.
+const summary = z.string().min(1).max(200, 'keep the summary to 200 characters or fewer');
+const tags = z.array(z.string()).max(8, 'use at most 8 tags').default([]);
+
 // Collections are strict: an unknown or misspelt front-matter field fails the build.
 const pages = defineCollection({
   loader: glob({ pattern: '**/*.md', base: `${contentDir}/pages` }),
   schema: z.strictObject({
     title: z.string().min(1),
-    summary: z.string().min(1),
+    summary,
     published: z.coerce.date(),
     ...translatable,
     // A legal document: its Translations must never be outdated.
     legal: z.boolean().default(false),
-    tags: z.array(z.string()).default([]),
+    tags,
   }),
 });
 
@@ -32,12 +36,12 @@ const projects = defineCollection({
   schema: ({ image }) =>
     z.strictObject({
       name: z.string().min(1),
-      oneLine: z.string().min(1),
+      oneLine: z.string().min(1).max(120, 'keep oneLine to 120 characters or fewer'),
       status: z.enum(['active', 'in development', 'paused', 'archived']),
       version: z.string().min(1).optional(),
       published: z.coerce.date(),
       ...translatable,
-      tags: z.array(z.string()).default([]),
+      tags,
       links: z
         .strictObject({
           site: z.url().optional(),
@@ -66,10 +70,10 @@ const knowledge = defineCollection({
     .strictObject({
       kind: z.enum(['concept', 'guide']),
       title: z.string().min(1),
-      summary: z.string().min(1),
+      summary,
       published: z.coerce.date(),
       category: z.enum(KNOWLEDGE_CATEGORIES as [string, ...string[]]),
-      tags: z.array(z.string()).default([]),
+      tags,
       ...translatable,
       /** Ids of related entries (Concept cross-references). */
       related: z.array(z.string()).default([]),
@@ -94,7 +98,7 @@ const series = defineCollection({
   loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/series` }),
   schema: z.strictObject({
     title: z.string().min(1),
-    summary: z.string().min(1),
+    summary,
     published: z.coerce.date(),
     ...translatable,
     status: z.enum(['ongoing', 'complete']),
@@ -109,10 +113,10 @@ const articles = defineCollection({
   loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/articles` }),
   schema: z.strictObject({
     title: z.string().min(1),
-    summary: z.string().min(1),
+    summary,
     published: z.coerce.date(),
     ...translatable,
-    tags: z.array(z.string()).default([]),
+    tags,
     featured: z.boolean().default(false),
     updated: z.never({ error: '"last updated" comes from git history; remove this field' }).optional(),
     attachments: z
@@ -154,11 +158,11 @@ const studies = defineCollection({
   loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/studies` }),
   schema: z.strictObject({
     title: z.string().min(1),
-    summary: z.string().min(1),
+    summary,
     published: z.coerce.date(),
     status: z.enum(['in progress', 'concluded', 'abandoned']),
     ...translatable,
-    tags: z.array(z.string()).default([]),
+    tags,
     featured: z.boolean().default(false),
     updated: z.never({ error: '"last updated" comes from git history; remove this field' }).optional(),
     data: z.array(studyLink).default([]),

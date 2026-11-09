@@ -1,5 +1,6 @@
 ---
 import { render } from 'astro:content';
+import Day from './Day.astro';
 import { homeOf, type Piece } from '../lib/home';
 import type { Language } from '../lib/translations';
 import { uiOf } from '../lib/ui';
@@ -9,6 +10,7 @@ interface Props {
 }
 
 // The home page's sections in its language: only what exists in that language is listed.
+// Lists share the index pages' markup and styles: title as a heading, meta line below it.
 const { language } = Astro.props;
 const ui = uiOf(language);
 const { now, featured, recent, active } = await homeOf(language);
@@ -17,7 +19,7 @@ const NowBody = now && (await render(now.entry)).Content;
 {now && NowBody && (
   <section id="now" class="home-now">
     <h2><a href={now.path}>{ui.now.title}</a></h2>
-    <p class="home-meta">{ui.updated} <time datetime={now.date}>{now.date}</time></p>
+    <p class="piece-meta"><span>{ui.updated} <Day date={now.date} /></span></p>
     <NowBody />
   </section>
 )}
@@ -25,12 +27,14 @@ const NowBody = now && (await render(now.entry)).Content;
   (pieces as Piece[]).length > 0 && (
     <section id={id as string}>
       <h2>{title}</h2>
-      <ul class="home-list">
+      <ul class="piece-list">
         {(pieces as Piece[]).map((p) => (
           <li>
-            <p class="home-meta">{p.type} · <time datetime={p.published}>{p.published}</time></p>
-            <a href={p.path}>{p.title}</a>
-            <p>{p.summary}</p>
+            <article>
+              <h3><a href={p.path}>{p.title}</a></h3>
+              <p class="piece-meta"><span>{p.type}</span> <Day date={p.published} /></p>
+              <p>{p.summary}</p>
+            </article>
           </li>
         ))}
       </ul>
@@ -40,18 +44,14 @@ const NowBody = now && (await render(now.entry)).Content;
 {active.length > 0 && (
   <section id="projects">
     <h2>{ui.activeProjects}</h2>
-    <ul class="home-list">
+    <ul class="piece-list">
       {active.map((p) => (
         <li>
-          <a href={p.path}>{p.name}</a>{p.version && <span class="home-meta"> · {ui.version} {p.version}</span>}
+          <h3><a href={p.path}>{p.name}</a></h3>
+          {p.version && <p class="piece-meta">{ui.version} {p.version}</p>}
           <p>{p.oneLine}</p>
         </li>
       ))}
     </ul>
   </section>
 )}
-<style>
-  .home-list { list-style: none; padding: 0; }
-  .home-list p { margin-block: 0.25rem; }
-  .home-meta { color: var(--ink-muted); }
-</style>

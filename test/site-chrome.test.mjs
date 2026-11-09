@@ -192,8 +192,11 @@ test('site chrome', async (t) => {
     }
   });
 
-  await t.test('every content page ends with a link suggesting a correction', () => {
-    for (const { file, html, canonical, title } of pages) {
+  await t.test('every content page but the home page ends with a link suggesting a correction', () => {
+    // The home page is not a dated document: it has no correction link (spec #1 break-ui decision 5).
+    const home = pages.find((p) => p.file === 'index.html');
+    assert.doesNotMatch(elementAt(home.html, /<main\b[^>]*>/), /Suggest a correction/);
+    for (const { file, html, canonical, title } of pages.filter((p) => p !== home)) {
       const main = elementAt(html, /<main\b[^>]*>/);
       const links = linksIn(main);
       const suggest = links.at(-1);

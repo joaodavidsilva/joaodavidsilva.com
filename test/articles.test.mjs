@@ -163,15 +163,21 @@ test('Articles, the Writing index and the feed', async (t) => {
     assert.doesNotMatch(site.read('writing/second-thoughts.md'), /## Corrections/);
   });
 
+  await t.test('a corrected Article says so in its byline, linking to the Corrections', () => {
+    const byline = firstMain.match(/<p class="byline">(.*?)<\/p>/s)[1];
+    assert.match(byline, /<a href="#corrections">Corrected<\/a>/);
+    assert.doesNotMatch(mainOf(second).match(/<p class="byline">(.*?)<\/p>/s)[1], /Corrected/);
+  });
+
   await t.test('attachments are downloadable and linked', () => {
     const source = readFileSync(join(root, 'test/fixtures/articles/articles/first-light/materials.csv'), 'utf8');
     assert.equal(site.read('writing/first-light/materials.csv'), source);
     const link = linksIn(firstMain).find((l) => l.href === '/writing/first-light/materials.csv' && 'download' in l.attrs);
     assert.ok(link, 'no download link to the attachment');
     assert.equal(link.text, 'Materials list');
-    assert.match(textOf(firstMain), /materials\.csv, CSV, \d+ bytes/);
+    assert.match(textOf(firstMain), /Materials list \(CSV, \d+ bytes\)/);
     const { body } = twinOf(site.read('writing/first-light.md'));
-    assert.match(body, new RegExp(`\\n## Attachments\\n\\n- \\[Materials list\\]\\(${SITE}/writing/first-light/materials\\.csv\\) \\(materials\\.csv, CSV, \\d+ bytes\\)\\n`));
+    assert.match(body, new RegExp(`\\n## Attachments\\n\\n- \\[Materials list\\]\\(${SITE}/writing/first-light/materials\\.csv\\) \\(CSV, \\d+ bytes\\)\\n`));
   });
 
   await t.test('Discuss links appear only when set', () => {
@@ -190,6 +196,7 @@ test('Articles, the Writing index and the feed', async (t) => {
   await t.test('the Writing index lists Articles newest first', () => {
     const index = site.read('writing/index.html');
     const main = mainOf(index);
+    assert.match(main, /<h2[^>]*>2026<\/h2>/);
     assert.match(main, /<h1>Writing<\/h1>/);
     const titles = linksIn(main)
       .filter((l) => l.href.startsWith('/writing/'))
@@ -280,6 +287,10 @@ test('Articles, the Writing index and the feed', async (t) => {
     const callout = firstMain.match(/<div class="callout" role="note" data-kind="warning">(.*?)<\/div>/s)?.[1];
     assert.ok(callout, 'no warning callout');
     assert.match(textOf(callout), /^Warning Always unplug the saw first\.$/);
+  });
+
+  await t.test('tables sit in a labelled, focusable scroll region', () => {
+    assert.match(firstMain, /<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table>/);
   });
 
   await t.test('cross-references link Articles, sections and attachments', () => {
