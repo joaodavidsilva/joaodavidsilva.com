@@ -58,7 +58,7 @@
  * Narrow screens: the sections sit in a popover, a sheet across the top of the viewport.
  * It lives in the top layer, so opening it moves nothing on the page. Its first row repeats
  * the header row (the name, linking Home, and Close where Menu was), so you never lose
- * where you are; a scrim separates it from the page underneath.
+ * where you are; the page underneath dims, so it does not read as part of the sheet.
  */
 .site-menu {
   inset: 0 0 auto;
@@ -73,8 +73,9 @@
   font-size: 1.125rem;
 }
 
+/* Dims the page without a colour of its own, so it holds in both themes. */
 .site-menu::backdrop {
-  background-color: rgb(0 0 0 / 0.3);
+  backdrop-filter: brightness(0.7);
 }
 
 .site-menu:popover-open {
@@ -138,7 +139,6 @@
     inline-size: auto;
     padding: 0;
     border: 0;
-    background-color: transparent;
     overflow: visible;
     font-size: inherit;
   }
