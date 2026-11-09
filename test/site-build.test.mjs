@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildFixture } from './build.mjs';
+import { buildFixture, buildFixtureWithHistory } from './build.mjs';
 
 const canonical = 'https://joaodavidsilva.com/hello/';
 
 test('a page is published under the agent-readability contract', async (t) => {
-  const site = buildFixture('basic');
+  // "Last updated" comes from git history: the page was last committed on 4 March.
+  const site = buildFixtureWithHistory('basic', [{ date: '2026-03-04T12:00:00Z' }]);
   assert.ok(site.ok, site.output);
   const html = site.read('hello/index.html');
 

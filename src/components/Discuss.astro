@@ -1,0 +1,15 @@
+---
+interface Props {
+  links: { network: string; href: string }[];
+}
+
+// Where the conversation about a piece happens; rendered only when a link is set.
+const { links } = Astro.props;
+---
+{links.length > 0 && (
+  <ul class="discuss">
+    {links.map(({ network, href }) => (
+      <li><a href={href}>Discuss on {network}</a></li>
+    ))}
+  </ul>
+)}

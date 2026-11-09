@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import Day from '../../components/Day.astro';
+import { getArticles, metadataOf, pathOf, WRITING } from '../../lib/articles';
+
+const articles = (await getArticles()).map((article) => ({ path: pathOf(article), ...metadataOf(article) }));
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: WRITING.title,
+  headline: WRITING.title,
+  description: WRITING.summary,
+  inLanguage: 'en',
+  url: WRITING.canonical,
+  ...(articles.length > 0 && {
+    datePublished: articles.at(-1)!.published,
+    dateModified: articles.map((a) => a.updated).sort().at(-1),
+  }),
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: articles.map((article, i) => ({ '@type': 'ListItem', position: i + 1, url: article.canonical, name: article.title })),
+  },
+};
+---
+<Base title={WRITING.title} description={WRITING.summary} canonical={WRITING.canonical} language="en" twin={WRITING.twin}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <header>
+    <h1>{WRITING.title}</h1>
+    <p class="summary">{WRITING.summary}</p>
+  </header>
+  {articles.length > 0 ? (
+    <ol class="piece-list" reversed>
+      {articles.map(({ path, title, summary, published, featured }) => (
+        <li>
+          <article>
+            <h2><a href={path}>{title}</a></h2>
+            <p class="piece-meta">
+              <Day date={published} />
+              {featured && <span>Featured</span>}
+            </p>
+            <p>{summary}</p>
+          </article>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p>No Articles yet.</p>
+  )}
+</Base>

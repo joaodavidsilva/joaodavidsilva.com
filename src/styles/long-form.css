@@ -1,0 +1,170 @@
+/*
+ * Long-form pieces and their components: code, figures, footnotes, callouts,
+ * corrections, attachments, and the index lists that lead to them.
+ * Colours are palette tokens only, so every pairing keeps its contrast in both modes.
+ */
+
+/*
+ * Restrained code highlighting: Shiki's `css-variables` theme writes each token's
+ * colour as a variable; the palette gives them three values, ink, muted ink and the
+ * accent, on the code surface, following the light or dark theme.
+ */
+:root {
+  --astro-code-foreground: var(--ink);
+  --astro-code-background: var(--surface);
+  --astro-code-token-keyword: var(--accent);
+  --astro-code-token-constant: var(--accent);
+  --astro-code-token-link: var(--accent);
+  --astro-code-token-comment: var(--ink-muted);
+  --astro-code-token-punctuation: var(--ink-muted);
+  --astro-code-token-string: var(--ink);
+  --astro-code-token-string-expression: var(--ink);
+  --astro-code-token-function: var(--ink);
+  --astro-code-token-parameter: var(--ink);
+}
+
+/* Header of a long-form piece: summary, then a byline of dates and reading time, then tags. */
+.long-form-header .summary,
+main > header .summary {
+  font-size: 1.15em;
+  color: var(--ink-muted);
+}
+
+.byline,
+.tags,
+.piece-meta,
+.discuss {
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+  color: var(--ink-muted);
+}
+
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1em;
+  margin-block-end: 0.5em;
+}
+
+.byline time,
+.piece-meta time,
+.corrections time {
+  font-size: inherit;
+}
+
+.tags,
+.discuss {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em 1em;
+  list-style: none;
+  padding: 0;
+}
+
+.tags li::before {
+  content: "#" / "";
+}
+
+.long-form-body {
+  margin-block-start: 2.5rem;
+}
+
+/* Figures: the image, then its caption. */
+figure {
+  margin-inline: 0;
+}
+
+figure img {
+  display: block;
+}
+
+/* Footnotes: GFM's section, set smaller below a rule; its heading is for screen readers. */
+.footnotes {
+  margin-block-start: 3rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--rule);
+  font-size: 0.875em;
+}
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+[data-footnote-ref] {
+  text-decoration: none;
+}
+
+/* Callouts: a labelled note on the surface, marked by a rule. */
+.callout {
+  margin-block: 0 1.25em;
+  padding: 0.75em 1em;
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  background-color: var(--surface);
+}
+
+.callout > :last-child {
+  margin-block-end: 0;
+}
+
+.callout-label {
+  margin-block-end: 0.25em;
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+  font-weight: 650;
+}
+
+/* End matter: attachments and corrections. */
+.attachments,
+.corrections {
+  margin-block-start: 3rem;
+  font-size: 0.95em;
+}
+
+.attachments h2,
+.corrections h2 {
+  font-size: 1em;
+  margin-block-start: 0;
+}
+
+/* Index lists: newest first, one piece per item. */
+.piece-list {
+  list-style: none;
+  padding: 0;
+}
+
+.piece-list li + li {
+  margin-block-start: 2rem;
+}
+
+.piece-list h2 {
+  font-size: 1.25em;
+  margin-block: 0 0.25em;
+}
+
+.piece-list h2 a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.piece-list h2 a:hover {
+  text-decoration: underline;
+}
+
+.piece-meta {
+  display: flex;
+  gap: 1em;
+  margin-block-end: 0.25em;
+}
+
+.piece-list p {
+  margin-block-end: 0;
+}

@@ -1,0 +1,20 @@
+---
+import Day from './Day.astro';
+
+interface Props {
+  corrections: { date: string; note: string }[];
+}
+
+// Changes after publication, disclosed as dated notes.
+const { corrections } = Astro.props;
+---
+{corrections.length > 0 && (
+  <section class="corrections" id="corrections" aria-labelledby="corrections-heading">
+    <h2 id="corrections-heading">Corrections</h2>
+    <ul>
+      {corrections.map(({ date, note }) => (
+        <li><Day date={date} />: {note}</li>
+      ))}
+    </ul>
+  </section>
+)}

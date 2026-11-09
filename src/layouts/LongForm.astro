@@ -1,0 +1,54 @@
+---
+import Base from './Base.astro';
+import Day from '../components/Day.astro';
+import SuggestCorrection from '../components/SuggestCorrection.astro';
+
+interface Props {
+  title: string;
+  summary: string;
+  canonical: string;
+  language: string;
+  /** Path of the page's Markdown twin. */
+  twin: string;
+  /** YYYY-MM-DD */
+  published: string;
+  /** YYYY-MM-DD, from git history. */
+  updated: string;
+  tags: string[];
+  readingMinutes: number;
+  jsonLd: object;
+}
+
+// The long-form layout for pieces read start to finish (Articles, Studies).
+// Slots: `header` adds to the header, the default slot is the body, `after`
+// holds end matter (attachments, corrections) and `discuss` sits beside
+// "Suggest a correction".
+const { title, summary, canonical, language, twin, published, updated, tags, readingMinutes, jsonLd } = Astro.props;
+---
+<Base title={title} description={summary} canonical={canonical} language={language} twin={twin}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <article class="long-form">
+    <header class="long-form-header">
+      <slot name="header" />
+      <h1>{title}</h1>
+      <p class="summary">{summary}</p>
+      <p class="byline">
+        <span>Published <Day date={published} /></span>
+        {updated !== published && <span>Updated <Day date={updated} /></span>}
+        <span>{readingMinutes} min read</span>
+      </p>
+      {tags.length > 0 && (
+        <ul class="tags" aria-label="Tags">
+          {tags.map((tag) => <li>{tag}</li>)}
+        </ul>
+      )}
+    </header>
+    <div class="long-form-body">
+      <slot />
+    </div>
+    <slot name="after" />
+    <SuggestCorrection title={title} canonical={canonical}>
+      <slot name="discuss" />
+    </SuggestCorrection>
+  </article>
+</Base>

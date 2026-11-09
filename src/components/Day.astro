@@ -1,0 +1,16 @@
+---
+interface Props {
+  /** YYYY-MM-DD */
+  date: string;
+}
+
+// A calendar day, machine-readable in `datetime` and written out for people.
+const { date } = Astro.props;
+const label = new Date(`${date}T00:00:00Z`).toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+---
+<time datetime={date}>{label}</time>

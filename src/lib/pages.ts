@@ -1,5 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { RESERVED_PATHS, SITE_URL } from '../../site.config.mjs';
+import { lastUpdatedOf } from './git';
 
 export type Page = CollectionEntry<'pages'>;
 
@@ -38,12 +39,13 @@ export async function getPages(): Promise<Page[]> {
 
 /** The metadata shared by the JSON-LD and the Markdown twin front-matter. */
 export function metadataOf(page: Page) {
-  const { title, summary, published, updated, language, tags } = page.data;
+  const { title, summary, published, language, tags } = page.data;
+  const publishedDay = published.toISOString().slice(0, 10);
   return {
     title,
     summary,
-    published: published.toISOString().slice(0, 10),
-    updated: (updated ?? published).toISOString().slice(0, 10),
+    published: publishedDay,
+    updated: lastUpdatedOf(page.filePath!, publishedDay),
     language,
     tags,
     canonical: canonicalOf(page),

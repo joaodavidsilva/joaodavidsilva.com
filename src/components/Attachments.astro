@@ -1,0 +1,19 @@
+---
+import type { Attachment } from '../lib/articles';
+
+interface Props {
+  attachments: Attachment[];
+}
+
+const { attachments } = Astro.props;
+---
+{attachments.length > 0 && (
+  <section class="attachments" aria-labelledby="attachments-heading">
+    <h2 id="attachments-heading">Attachments</h2>
+    <ul>
+      {attachments.map(({ title, path, file, description }) => (
+        <li><a href={path} download={file}>{title}</a> ({description})</li>
+      ))}
+    </ul>
+  </section>
+)}

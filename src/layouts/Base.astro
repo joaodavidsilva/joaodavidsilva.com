@@ -1,9 +1,11 @@
 ---
 import { Font } from 'astro:assets';
+import { FEED_PATH } from '../../site.config.mjs';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import '../styles/global.css';
 import '../styles/chrome.css';
+import '../styles/long-form.css';
 
 interface Props {
   title: string;
@@ -25,6 +27,7 @@ const { title, description, canonical, language, twin } = Astro.props;
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="alternate" type="text/markdown" href={twin} />
+    <link rel="alternate" type="application/atom+xml" title="João David Silva" href={FEED_PATH} />
     <Font cssVariable="--font-serif" preload={[{ subset: 'latin', style: 'normal' }]} />
     <Font cssVariable="--font-sans" preload={[{ subset: 'latin' }]} />
     <Font cssVariable="--font-mono" />

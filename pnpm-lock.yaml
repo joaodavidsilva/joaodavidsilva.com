@@ -21,6 +21,9 @@ importers:
         specifier: 7.4.7
         version: 7.4.7(esbuild@0.28.2)(yaml@2.9.1)
     devDependencies:
+      sax:
+        specifier: 1.6.1
+        version: 1.6.1
       wrangler:
         specifier: 4.158.0
         version: 4.158.0

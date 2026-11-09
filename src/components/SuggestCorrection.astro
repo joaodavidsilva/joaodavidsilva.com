@@ -6,11 +6,13 @@ interface Props {
   canonical: string;
 }
 
-// Opens the `correction` issue form with its `page` field pre-filled.
+// Opens the `correction` issue form with its `page` field pre-filled. Anything
+// slotted in (such as Discuss links) comes before it, so it always closes the page.
 const { title, canonical } = Astro.props;
 const params = new URLSearchParams({ template: 'correction.yml', title: `Correction: ${title}`, page: canonical });
 const href = `${REPO_URL}/issues/new?${params}`;
 ---
 <footer class="content-footer">
+  <slot />
   <p><a href={href}>Suggest a correction</a></p>
 </footer>
