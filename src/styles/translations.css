@@ -1,14 +1,30 @@
-/* The language switcher, the "Translated by AI" label and the outdated-translation notice. */
+/*
+ * Translation chrome above a page's title: one wrapped line of language links, then a single
+ * muted note combining the "Translated by AI" label and the outdated status.
+ */
+
+.translation-chrome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1.25em;
+  margin-block-end: 1.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+}
+
+/* The global `nav` rule sets interface text at 0.875em; the block already has. */
+.translation-chrome nav {
+  font-size: inherit;
+}
 
 .language-switcher ul {
   display: flex;
   flex-wrap: wrap;
   gap: 0 1.25em;
   list-style: none;
-  margin: 0 0 1.5rem;
+  margin: 0;
   padding: 0;
-  font-family: var(--font-sans);
-  font-size: 0.875em;
 }
 
 .language-switcher a[aria-current] {
@@ -17,18 +33,7 @@
   text-decoration: none;
 }
 
-.translation-label,
-.outdated-translation {
-  font-family: var(--font-sans);
-  font-size: 0.875em;
-}
-
-.translation-label {
+.translation-note {
+  margin: 0;
   color: var(--ink-muted);
-}
-
-.outdated-translation {
-  padding-inline-start: 0.75em;
-  border-inline-start: 3px solid var(--accent);
-  color: var(--ink);
 }

@@ -1,5 +1,6 @@
 ---
 import type { Language, Translations } from '../lib/translations';
+import { uiOf } from '../lib/ui';
 import '../styles/translations.css';
 
 interface Props {
@@ -8,22 +9,17 @@ interface Props {
   language: Language;
 }
 
-// Portuguese carries no label and reads its notice in Portuguese; any other Translation is
-// labelled "Translated by AI", in English like its notice, since no one reviewed the language.
+// One muted note after the language links, combining the AI label and the outdated status.
+// Portuguese carries no AI label and reads its note in Portuguese; any other Translation is
+// labelled "Translated by AI", in English like its note, since no one reviewed the language.
 const { translations, language } = Astro.props;
 const { original, ai, outdated } = translations;
+const ui = uiOf(language);
+const words = ai && outdated ? ui.translationNotice.aiOutdated : ai ? ui.translationNotice.ai : ui.translationNotice.outdated;
+const noteLanguage = ui.locale.split('-')[0];
 ---
-{original && ai && (
-  <p class="translation-label" lang="en">
-    Translated by AI from the <a href={original.path} hreflang={original.language}>English original</a>.
+{original && (ai || outdated) && (
+  <p class={outdated ? 'translation-note outdated' : 'translation-note'} role="note" lang={noteLanguage === language ? undefined : noteLanguage}>
+    {words.before}<a href={original.path} hreflang={original.language}>{words.link}</a>{words.after}
   </p>
 )}
-{original && outdated && (language === 'pt' ? (
-  <p class="outdated-translation" role="note">
-    O original desta página mudou desde que foi traduzida. <a href={original.path} hreflang={original.language}>Leia o original em inglês</a>.
-  </p>
-) : (
-  <p class="outdated-translation" role="note" lang="en">
-    The original of this page has changed since it was translated. <a href={original.path} hreflang={original.language}>Read the original in English</a>.
-  </p>
-))}

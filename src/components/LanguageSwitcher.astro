@@ -9,22 +9,20 @@ interface Props {
   language: Language;
 }
 
-// Offers only the languages the page exists in; shown only when there is more than one.
+// Offers only the languages the page exists in; Base renders it only when there is more than one.
 const { translations, language } = Astro.props;
 ---
-{translations.alternates.length > 1 && (
-  <nav class="language-switcher" aria-label={uiOf(language).languages}>
-    <ul>
-      {translations.alternates.map((alternate) => (
-        <li>
-          <a
-            href={alternate.path}
-            hreflang={alternate.language}
-            lang={alternate.language}
-            aria-current={alternate.language === language ? 'page' : undefined}
-          >{alternate.name}</a>
-        </li>
-      ))}
-    </ul>
-  </nav>
-)}
+<nav class="language-switcher" aria-label={uiOf(language).languages}>
+  <ul>
+    {translations.alternates.map((alternate) => (
+      <li>
+        <a
+          href={alternate.path}
+          hreflang={alternate.language}
+          lang={alternate.language}
+          aria-current={alternate.language === language ? 'page' : undefined}
+        >{alternate.name}</a>
+      </li>
+    ))}
+  </ul>
+</nav>

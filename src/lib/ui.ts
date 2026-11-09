@@ -77,6 +77,12 @@ const en = {
   corrections: 'Corrections',
   discussOn: (network: string) => `Discuss on ${network}`,
   suggestCorrection: 'Suggest a correction',
+  /** The one note under the language links of a Translation; each is split around its link to the Original. */
+  translationNotice: {
+    ai: { before: 'Translated by AI from the ', link: 'English original', after: '.' },
+    outdated: { before: 'The ', link: 'English original', after: ' has changed since this translation.' },
+    aiOutdated: { before: 'Translated by AI from the ', link: 'English original', after: ', which has changed since.' },
+  },
   record: {
     interests: 'Interests',
     approach: 'Approach to engineering',
@@ -169,6 +175,11 @@ const pt: Ui = {
   corrections: 'Correções',
   discussOn: (network: string) => `Discutir no ${network}`,
   suggestCorrection: 'Sugerir uma correção',
+  translationNotice: {
+    ai: { before: 'Traduzido por IA a partir do ', link: 'original em inglês', after: '.' },
+    outdated: { before: 'O ', link: 'original em inglês', after: ' mudou desde esta tradução.' },
+    aiOutdated: { before: 'Traduzido por IA a partir do ', link: 'original em inglês', after: ', que entretanto mudou.' },
+  },
   record: {
     interests: 'Interesses',
     approach: 'Abordagem à engenharia',

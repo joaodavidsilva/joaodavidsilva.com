@@ -33,7 +33,7 @@ function switcherOf(html) {
   ]);
 }
 
-const OUTDATED = /class="outdated-translation"/;
+const OUTDATED = /class="translation-note outdated"/;
 const AI_LABEL = /Translated by AI/;
 
 test('Translations', async (t) => {
@@ -86,6 +86,16 @@ test('Translations', async (t) => {
     assert.match(es, AI_LABEL);
   });
 
+  await t.test('the translation chrome is one block: the language links, then a single note', () => {
+    const chrome = es.match(/<div class="translation-chrome">(.*?)<\/div>/s)?.[1];
+    assert.ok(chrome, 'no translation chrome');
+    assert.match(chrome, /^\s*<nav\b[^>]*class="language-switcher"[^>]*>.*<\/nav>\s*<p\b[^>]*class="translation-note"[^>]*>[^]*<\/p>\s*$/s);
+    assert.equal(es.match(/class="translation-note/g).length, 1);
+    assert.doesNotMatch(pt, /class="translation-note/, 'an up-to-date Portuguese Translation needs no note');
+    assert.match(pt, /<div class="translation-chrome">/);
+    assert.doesNotMatch(site.read('solo/index.html'), /translation-chrome/);
+  });
+
   await t.test('an up-to-date Translation shows no outdated notice', () => {
     assert.doesNotMatch(pt, OUTDATED);
     assert.doesNotMatch(es, OUTDATED);
@@ -133,10 +143,14 @@ test('editing an Original makes its Translations show the outdated notice', () =
   const site = buildEdited('outdated', (pages) => appendFileSync(join(pages, 'guide.md'), '\nA new paragraph.\n'));
   assert.ok(site.ok, site.output);
   for (const [file, original] of [['pt/guide/index.html', '/guide/'], ['es/guide/index.html', '/guide/']]) {
-    const notice = site.read(file).match(/<p\b[^>]*class="outdated-translation"[^>]*>(.*?)<\/p>/s);
+    const notice = site.read(file).match(/<p\b[^>]*class="translation-note outdated"[^>]*>(.*?)<\/p>/s);
     assert.ok(notice, `${file}: no outdated notice`);
     assert.match(notice[1], new RegExp(`<a href="${original}"[^>]*>`), `${file}: notice does not link to the Original`);
   }
+  // An AI Translation whose Original changed says both in one note, not two stacked blocks.
+  const es = site.read('es/guide/index.html');
+  assert.equal(es.match(/class="translation-note/g).length, 1, 'es: AI and outdated status are not one note');
+  assert.match(es.match(/<p\b[^>]*class="translation-note outdated"[^>]*>(.*?)<\/p>/s)[1], /Translated by AI.*has changed/s);
   assert.ok(site.read('pt/guide.md').includes('\noutdated: true\n'));
   assert.doesNotMatch(site.read('guide/index.html'), OUTDATED);
   assert.doesNotMatch(site.read('pt/terms/index.html'), OUTDATED);

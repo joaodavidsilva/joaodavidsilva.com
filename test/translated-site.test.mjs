@@ -23,7 +23,7 @@ function switcherOf(html) {
 const mainOf = (html) => html.match(/<main\b[^>]*>(.*)<\/main>/s)[1];
 const hrefsIn = (html) => [...html.matchAll(/<a\b[^>]*\shref="([^"]+)"/g)].map((m) => m[1]);
 const sectionOf = (html, id) => html.match(new RegExp(`<section\\b[^>]*id="${id}"[^>]*>(.*?)</section>`, 's'))?.[1] ?? '';
-const OUTDATED = /class="outdated-translation"/;
+const OUTDATED = /class="translation-note outdated"/;
 
 /** Each page type: its English path, its Portuguese path and whether it is a Translation of a file (not a generated index). */
 const PAGE_TYPES = [
@@ -212,7 +212,7 @@ test('editing each Original makes its Portuguese Translation outdated', () => {
   assert.ok(site.ok, site.output);
   for (const [type, en, pt, translated] of PAGE_TYPES) {
     if (!translated) continue;
-    const notice = site.read(fileOf(pt)).match(/<p\b[^>]*class="outdated-translation"[^>]*>(.*?)<\/p>/s);
+    const notice = site.read(fileOf(pt)).match(/<p\b[^>]*class="translation-note outdated"[^>]*>(.*?)<\/p>/s);
     assert.ok(notice, `${type}: no outdated notice`);
     assert.match(notice[1], new RegExp(`<a href="${en}"`), `${type}: notice does not link to the Original`);
     const twin = site.read((pt === '/pt/' ? 'pt/index.md' : twinOf(pt).slice(1)));

@@ -48,8 +48,12 @@ const feed = await sectionPathIn('feed', FEED_PATH, language);
   <body>
     <SiteHeader language={language} />
     <main>
-      {translations && <LanguageSwitcher translations={translations} language={language} />}
-      {translations && <TranslationNotice translations={translations} language={language} />}
+      {alternates.length > 0 && translations && (
+        <div class="translation-chrome">
+          <LanguageSwitcher translations={translations} language={language} />
+          <TranslationNotice translations={translations} language={language} />
+        </div>
+      )}
       <slot />
     </main>
     <SiteFooter language={language} feed={feed} />
