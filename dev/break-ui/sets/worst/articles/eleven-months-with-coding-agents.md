@@ -1,8 +1,8 @@
 ---
 title: "What eleven months of shipping with coding agents taught me about specifications, review, and the parts of engineering that never get automated"
-summary: "Agents made typing cheap and judgement expensive. This is what changed in how I write specifications, review diffs, test, and decide what not to build, with the numbers from eleven months of commits, the regressions that slipped through, and the review checklist I ended up with — plus what I would do differently if I started again tomorrow."
+summary: "Agents made typing cheap and judgement expensive. What changed in how I write specifications, review diffs, test and decide what not to build, with eleven months of numbers and the checklist I kept."
 published: 2026-11-09
-tags: [agents, specifications, code-review, testing, tdd, process, ai, llm, claude, cursor, context-engineering-for-long-running-autonomous-agents, regressions]
+tags: [agents, specifications, code-review, testing, tdd, ai, context-engineering-for-long-running-autonomous-agents, regressions]
 featured: true
 series: shipping-with-agents
 part: 1

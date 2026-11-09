@@ -1,5 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { day, metadataOf as sharedMetadataOf } from './metadata';
+import { assertPublished, day, metadataOf as sharedMetadataOf } from './metadata';
 import { describeFolderFile } from './own-folder';
 import {
   alternateAt, assertTranslations, locate, originalIdOf, ORIGINAL_LANGUAGE, translationsOf as translationsAmong,
@@ -22,11 +22,14 @@ export const twinPathOf = (article: Article) => locate(article, articlePathOf).t
 export const canonicalOf = (article: Article) => locate(article, articlePathOf).canonical;
 export const translationsOf = (article: Article, articles: Article[]) => translationsAmong(article, articles, articlePathOf);
 
-/** Every Article and Translation, newest first. */
+/** Every Article and Translation, newest first; one published after today fails the build. */
 export async function getAllArticles(): Promise<Article[]> {
   const articles = await getCollection('articles');
   assertTranslations(articles, { pathOf: articlePathOf, same: ['featured', 'series', 'part'] });
-  for (const article of articles) attachmentsOf(article);
+  for (const article of articles) {
+    assertPublished(article);
+    attachmentsOf(article);
+  }
   return articles.sort((a, b) => b.data.published.getTime() - a.data.published.getTime() || a.id.localeCompare(b.id));
 }
 

@@ -1,7 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { SITE_URL } from '../../site.config.mjs';
 import type { Article } from './articles';
-import { metadataOf as sharedMetadataOf } from './metadata';
+import { assertPublished, metadataOf as sharedMetadataOf } from './metadata';
 import { describeFolderFile } from './own-folder';
 import {
   alternateAt, assertTranslations, inLanguage, isTranslation, locate, originalIdOf, ORIGINAL_LANGUAGE,
@@ -29,13 +29,14 @@ export const canonicalOf = (study: Study) => locate(study, studyPathOf).canonica
 export const translationsOf = (study: Study, studies: Study[]) => translationsAmong(study, studies, studyPathOf);
 
 /**
- * Every Study and Translation, newest first; an Original missing a section (a Translation
- * translates the headings) or a data file fails the build.
+ * Every Study and Translation, newest first; one published after today, an Original missing
+ * a section (a Translation translates the headings) or a data file fails the build.
  */
 export async function getAllStudies(): Promise<Study[]> {
   const studies = await getCollection('studies');
   assertTranslations(studies, { pathOf: studyPathOf, same: ['status', 'featured'] });
   for (const study of studies) {
+    assertPublished(study);
     if (!isTranslation(study)) assertSections(study);
     linksOf(study);
   }

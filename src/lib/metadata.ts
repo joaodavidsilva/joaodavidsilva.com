@@ -4,6 +4,17 @@ import { locate, type Language, type PathOf, type Translatable } from './transla
 /** A calendar day, YYYY-MM-DD (UTC). */
 export const day = (date: Date) => date.toISOString().slice(0, 10);
 
+/**
+ * Fails the build for an entry published after the build day: a static site has no
+ * scheduler, so a future date would publish the piece early with a date still to come.
+ */
+export function assertPublished(entry: { filePath?: string; data: { published: Date } }) {
+  const published = day(entry.data.published);
+  if (published > day(new Date())) {
+    throw new Error(`${entry.filePath}: published ${published} is after today; set the date or keep it out of content/`);
+  }
+}
+
 /** The metadata every page shares between its HTML, its JSON-LD and its Markdown twin. */
 export interface Metadata {
   title: string;

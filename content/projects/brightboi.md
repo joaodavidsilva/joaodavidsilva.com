@@ -1,6 +1,6 @@
 ---
 name: BrightBoi
-oneLine: A free macOS menu bar app that unlocks the extra brightness of the MacBook Pro's Liquid Retina XDR display, from 0 to 200%.
+oneLine: A free macOS menu bar app that unlocks the extra brightness of the MacBook Pro's Liquid Retina XDR display, up to 200%.
 status: active
 version: 1.2.0
 published: 2026-11-09

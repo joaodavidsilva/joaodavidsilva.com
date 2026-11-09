@@ -1,6 +1,6 @@
 ---
 title: "Does writing the failing test first make coding agents produce fewer regressions across a six-month, three-repository, 1,284-pull-request sample?"
-summary: "A pre-registered comparison of test-first and test-after prompting across three repositories, measuring regressions per hundred merged pull requests, review time and reverted merges, with the analysis scripts and every raw count published so anyone can rerun it."
+summary: "A pre-registered comparison of test-first and test-after prompting across three repositories: regressions per hundred merged pull requests, review time and reverted merges, every raw count published."
 published: 2026-10-15
 status: in progress
 featured: true
