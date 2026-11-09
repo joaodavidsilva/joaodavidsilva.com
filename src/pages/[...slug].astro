@@ -1,0 +1,50 @@
+---
+import { render } from 'astro:content';
+import { getPages, metadataOf, slugOf, twinPathOf, type Page } from '../lib/pages';
+
+export async function getStaticPaths() {
+  const pages = await getPages();
+  return pages.map((page) => ({ params: { slug: slugOf(page) }, props: { page } }));
+}
+
+const { page } = Astro.props as { page: Page };
+const meta = metadataOf(page);
+const { Content } = await render(page);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: meta.title,
+  headline: meta.title,
+  description: meta.summary,
+  datePublished: meta.published,
+  dateModified: meta.updated,
+  inLanguage: meta.language,
+  keywords: meta.tags,
+  url: meta.canonical,
+};
+---
+<!doctype html>
+<html lang={meta.language}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{meta.title} · João David Silva</title>
+    <meta name="description" content={meta.summary} />
+    <link rel="canonical" href={meta.canonical} />
+    <link rel="alternate" type="text/markdown" href={twinPathOf(page)} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <header><a href="/">João David Silva</a></header>
+    <main>
+      <article>
+        <header>
+          <h1>{meta.title}</h1>
+          <p>{meta.summary}</p>
+          <p>Published <time datetime={meta.published}>{meta.published}</time></p>
+        </header>
+        <Content />
+      </article>
+    </main>
+  </body>
+</html>
