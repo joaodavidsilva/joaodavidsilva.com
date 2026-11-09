@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import KnowledgeSearch from '../../components/KnowledgeSearch.astro';
 import KnowledgeList from '../../components/KnowledgeList.astro';
 import { byCategory, getKnowledge, tagPathOf, tagsOf } from '../../lib/knowledge';
 import { SITE_URL } from '../../../site.config.mjs';
@@ -14,6 +15,7 @@ const summary = 'Concepts and Guides on engineering with and for AI agents, by c
     <h1>Knowledge</h1>
     <p>{summary}</p>
   </header>
+  <KnowledgeSearch />
   {tags.length > 0 && (
     <nav aria-label="Filter by tag">
       <h2>Tags</h2>
