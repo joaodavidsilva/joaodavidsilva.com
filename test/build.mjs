@@ -33,6 +33,7 @@ function build(name, contentDir) {
   });
   return {
     ok: result.status === 0,
+    dir: outDir,
     output: `${result.stdout}\n${result.stderr}`,
     has: (path) => existsSync(join(outDir, path)),
     read: (path) => readFileSync(join(outDir, path), 'utf8'),

@@ -30,7 +30,7 @@ const jsonLd = {
 ---
 <Base title={title} description={summary} canonical={canonical} language={language} twin={twinPathOf(entry)}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <article>
+  <article data-pagefind-body>
     <header>
       <p>{kind === 'concept' ? 'Concept' : 'Guide'} · <a href={`/knowledge/#${categoryIdOf(category)}`}>{category}</a></p>
       <h1>{title}</h1>
