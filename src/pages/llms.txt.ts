@@ -1,12 +1,16 @@
 import type { APIRoute } from 'astro';
 import { SITE_URL } from '../../site.config.mjs';
 import { getPages, twinPathOf } from '../lib/pages';
+import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
 
 export const GET: APIRoute = async () => {
   const pages = (await getPages()).filter((page) => page.data.language === 'en');
   const lines = pages
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((page) => `- [${page.data.title}](${new URL(twinPathOf(page), SITE_URL).href}): ${page.data.summary}`);
+  const knowledge = (await getKnowledge())
+    .filter(({ entry }) => entry.data.language === 'en')
+    .map(({ entry }) => `- [${entry.data.title}](${new URL(knowledgeTwinPathOf(entry), SITE_URL).href}): ${entry.data.summary}`);
   const body = [
     '# João David Silva',
     '',
@@ -16,6 +20,7 @@ export const GET: APIRoute = async () => {
     '',
     ...lines,
     '',
+    ...(knowledge.length ? ['## Knowledge', '', ...knowledge, ''] : []),
   ].join('\n');
   return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 };
