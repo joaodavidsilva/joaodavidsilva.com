@@ -155,6 +155,12 @@ const studies = defineCollection({
   }),
 });
 
+// Now: one dated Markdown entry, `content/now.md`, saying what João is working on.
+const now = defineCollection({
+  loader: glob({ pattern: 'now.md', base: contentDir }),
+  schema: z.strictObject({ date: z.coerce.date() }),
+});
+
 // The Professional record: one YAML file whose single `record` entry is João's verified profile.
 const recordFile = `${contentDir}/record.yaml`;
 const recordLoader = file(recordFile);
@@ -166,4 +172,4 @@ const record = defineCollection({
   schema: recordSchema,
 });
 
-export const collections = { pages, projects, knowledge, articles, studies, record };
+export const collections = { pages, now, projects, knowledge, articles, studies, record };

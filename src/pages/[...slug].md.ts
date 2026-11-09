@@ -1,5 +1,6 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { getPages, metadataOf, twinPathOf, type Page } from '../lib/pages';
+import { homeMarkdown } from '../lib/home';
 import { translationsOf, type Translations } from '../lib/translations';
 
 export const getStaticPaths = (async () => {
@@ -12,7 +13,7 @@ export const getStaticPaths = (async () => {
 
 const yamlString = (value: string) => JSON.stringify(value);
 
-export const GET: APIRoute = ({ props }) => {
+export const GET: APIRoute = async ({ props }) => {
   const { page, translations } = props as { page: Page; translations: Translations };
   const meta = metadataOf(page);
   const frontMatter = [
@@ -27,7 +28,7 @@ export const GET: APIRoute = ({ props }) => {
     ...(translations.original ? [`original: ${translations.original.canonical}`, `outdated: ${translations.outdated}`] : []),
     '---',
   ].join('\n');
-  return new Response(`${frontMatter}\n\n# ${meta.title}\n\n${(page.body ?? '').trim()}\n`, {
+  return new Response(`${frontMatter}\n\n# ${meta.title}\n\n${(page.body ?? '').trim()}\n${page.id === 'index' ? `\n${await homeMarkdown()}` : ''}`, {
     headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
   });
 };

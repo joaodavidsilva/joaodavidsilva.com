@@ -2,6 +2,7 @@
 import { render } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
+import HomeSections from '../components/HomeSections.astro';
 import { getPages, metadataOf, slugOf, twinPathOf, type Page } from '../lib/pages';
 import { translationsOf, type Translations } from '../lib/translations';
 
@@ -47,6 +48,7 @@ const jsonLd = {
       <p>Published <time datetime={meta.published}>{meta.published}</time></p>
     </header>
     <Content />
+    {page.id === 'index' && <HomeSections />}
     <SuggestCorrection title={meta.title} canonical={meta.canonical} />
   </article>
 </Base>

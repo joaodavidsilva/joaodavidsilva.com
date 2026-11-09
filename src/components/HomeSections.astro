@@ -1,0 +1,49 @@
+---
+import { render } from 'astro:content';
+import { homeOf, type Piece } from '../lib/home';
+import { dateOf, NOW } from '../lib/now';
+
+const { now, featured, recent, active } = await homeOf();
+const NowBody = now && (await render(now)).Content;
+---
+{now && NowBody && (
+  <section id="now" class="home-now">
+    <h2><a href={NOW.path}>Now</a></h2>
+    <p class="home-meta">Updated <time datetime={dateOf(now)}>{dateOf(now)}</time></p>
+    <NowBody />
+  </section>
+)}
+{[['featured', 'Featured', featured], ['recent', 'Recent', recent]].map(([id, title, pieces]) =>
+  (pieces as Piece[]).length > 0 && (
+    <section id={id as string}>
+      <h2>{title}</h2>
+      <ul class="home-list">
+        {(pieces as Piece[]).map((p) => (
+          <li>
+            <p class="home-meta">{p.type} · <time datetime={p.published}>{p.published}</time></p>
+            <a href={p.path}>{p.title}</a>
+            <p>{p.summary}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ),
+)}
+{active.length > 0 && (
+  <section id="projects">
+    <h2>Active projects</h2>
+    <ul class="home-list">
+      {active.map((p) => (
+        <li>
+          <a href={p.path}>{p.name}</a>{p.version && <span class="home-meta"> · Version {p.version}</span>}
+          <p>{p.oneLine}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+<style>
+  .home-list { list-style: none; padding: 0; }
+  .home-list p { margin-block: 0.25rem; }
+  .home-meta { color: var(--ink-muted); }
+</style>

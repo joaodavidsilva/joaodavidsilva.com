@@ -5,6 +5,7 @@ import * as writing from '../lib/articles';
 import * as research from '../lib/studies';
 import * as projects from '../lib/projects';
 import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
+import { getNow, NOW } from '../lib/now';
 import { ABOUT_TITLE, getRecord } from '../lib/record';
 import { ORIGINAL_LANGUAGE, translationsOf } from '../lib/translations';
 
@@ -37,6 +38,7 @@ export const GET: APIRoute = async () => {
   const knowledge = (await getKnowledge())
     .filter(({ entry }) => entry.data.language === 'en')
     .map(({ entry }) => `- [${entry.data.title}](${new URL(knowledgeTwinPathOf(entry), SITE_URL).href}): ${entry.data.summary}`);
+  if (await getNow()) lines.push(`- [${NOW.title}](${new URL(NOW.twin, SITE_URL).href}): ${NOW.summary}`);
   const record = await getRecord();
   if (record) lines.push(`- [${ABOUT_TITLE}](${new URL('/about.md', SITE_URL).href}): ${record.name}. ${record.headline}`);
   const body = [
