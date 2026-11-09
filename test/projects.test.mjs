@@ -181,3 +181,17 @@ test('Facts Memorizer: its legal documents keep their URLs', async (t) => {
     assert.match(site.read('projects/index.html'), /<a href="\/projects\/facts-memorizer\/">Facts Memorizer<\/a>/);
   });
 });
+
+test('brightboi: Project page with screenshots, repository and latest release', () => {
+  const site = buildSite();
+  assert.ok(site.ok, site.output);
+  const html = site.read('projects/brightboi/index.html');
+  assert.match(html, /href="https:\/\/github\.com\/joaodavidsilva\/brightboi"/);
+  assert.match(html, /href="https:\/\/github\.com\/joaodavidsilva\/brightboi\/releases\/latest"/);
+  assert.ok((html.match(/<figure>\s*<img /g) ?? []).length >= 4, 'expected the four README screenshots');
+  const ld = jsonLdOf(html);
+  assert.equal(ld['@type'], 'SoftwareApplication');
+  assert.equal(ld.screenshot.length, 4);
+  assert.ok(site.has('projects/brightboi.md'));
+  assert.match(site.read('projects/index.html'), /<a href="\/projects\/brightboi\/">BrightBoi<\/a>/);
+});
