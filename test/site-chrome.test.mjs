@@ -122,7 +122,7 @@ test('site chrome', async (t) => {
   await t.test('the menu works without custom JavaScript', () => {
     for (const { file, html } of pages) {
       assert.doesNotMatch(siteHeaderOf(html), /\son\w+=/, `${file}: inline event handler`);
-      assert.doesNotMatch(html, /<script\b(?![^>]*application\/ld\+json)/, `${file}: script`);
+      assert.doesNotMatch(html, /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script))/, `${file}: script`);
     }
   });
 
@@ -165,7 +165,7 @@ test('site chrome', async (t) => {
     assert.deepEqual(viewTransition.declarations, [['navigation', 'auto']]);
     assert.ok(viewTransition.context.includes(NO_PREFERENCE), 'page transitions run under reduced motion');
     // A CSS opt-in: browsers without View Transitions ignore it; no client-side router takes over links.
-    for (const { html } of pages) assert.doesNotMatch(html, /<script\b(?![^>]*application\/ld\+json)/);
+    for (const { html } of pages) assert.doesNotMatch(html, /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script))/);
   });
 
   await t.test('the footer links feeds, llms.txt, profiles, email, licence and build date on every page', () => {

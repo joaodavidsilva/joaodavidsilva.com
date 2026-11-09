@@ -23,6 +23,12 @@ const currentOf = (href: string) => (path === href ? 'page' : path.startsWith(hr
           <li><a href={href} aria-current={currentOf(href)}>{label}</a></li>
         ))}
       </ul>
+      <fieldset class="theme-toggle">
+        <legend>Theme</legend>
+        {['System', 'Light', 'Dark'].map((label) => (
+          <label><input type="radio" name="theme" value={label.toLowerCase()} checked={label === 'System'} /> {label}</label>
+        ))}
+      </fieldset>
       <button class="menu-button" type="button" popovertarget="site-menu" popovertargetaction="hide">Close</button>
     </div>
   </nav>

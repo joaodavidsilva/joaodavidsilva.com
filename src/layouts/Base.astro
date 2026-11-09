@@ -2,6 +2,7 @@
 import { Font } from 'astro:assets';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import themeScript from '../lib/theme-script.js?raw';
 import '../styles/global.css';
 import '../styles/chrome.css';
 
@@ -21,6 +22,7 @@ const { title, description, canonical, language, twin } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline data-theme-script set:html={themeScript} />
     <title>{title} · João David Silva</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
