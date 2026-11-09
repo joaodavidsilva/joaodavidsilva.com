@@ -53,6 +53,7 @@ const jsonLd = {
   readingMinutes={readingMinutesOf(article)}
   jsonLd={jsonLd}
   translations={translations}
+  corrected={corrections.length > 0}
 >
   {position && <SeriesPosition slot="header" position={position} />}
   <Content />

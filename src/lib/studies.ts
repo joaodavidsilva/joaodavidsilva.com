@@ -89,7 +89,7 @@ export interface StudyLink {
   title: string;
   /** A file in the Original's own folder, served at `/research/<slug>/<file>`, or an external URL. */
   href: string;
-  /** For files: "recall.csv, CSV, 32 bytes". */
+  /** For files: "CSV, 32 bytes". */
   description?: string;
 }
 

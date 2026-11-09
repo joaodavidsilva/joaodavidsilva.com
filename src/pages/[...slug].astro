@@ -1,6 +1,7 @@
 ---
 import { render } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import Day from '../components/Day.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
 import HomeSections from '../components/HomeSections.astro';
 import { jsonLdBase } from '../lib/metadata';
@@ -18,6 +19,9 @@ const meta = metadataOf(page);
 const ui = uiOf(meta.language);
 const { Content } = await render(page);
 const jsonLd = { ...jsonLdBase('WebPage', meta), ...translationJsonLd(translations, 'WebPage') };
+// The home page is not a dated document: its title is the site name the header already
+// shows, so it is kept for screen readers only, and it has no date or correction link.
+const home = originalIdOf(page) === 'index';
 ---
 <Base
   title={meta.title}
@@ -29,13 +33,13 @@ const jsonLd = { ...jsonLdBase('WebPage', meta), ...translationJsonLd(translatio
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <article>
-    <header>
-      <h1>{meta.title}</h1>
-      <p>{meta.summary}</p>
-      <p>{ui.published} <time datetime={meta.published}>{meta.published}</time></p>
+    <header class="long-form-header">
+      <h1 class:list={{ 'sr-only': home }}>{meta.title}</h1>
+      <p class="summary">{meta.summary}</p>
+      {!home && <p class="byline"><span>{ui.published} <Day date={meta.published} /></span></p>}
     </header>
     <Content />
-    {originalIdOf(page) === 'index' && <HomeSections language={meta.language} />}
-    <SuggestCorrection title={meta.title} canonical={meta.canonical} />
+    {home && <HomeSections language={meta.language} />}
+    {!home && <SuggestCorrection title={meta.title} canonical={meta.canonical} />}
   </article>
 </Base>

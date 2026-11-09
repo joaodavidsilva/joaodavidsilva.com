@@ -43,10 +43,12 @@ export async function homeOf(language: Language) {
     })),
   ].sort((a, b) => b.time - a.time || a.path.localeCompare(b.path));
   const now = await getNow(language);
+  const featured = pieces.filter((p) => p.featured).slice(0, FEATURED_MAX);
   return {
     now: now && { entry: now, date: dateOf(now), path: pathIn(NOW_PATH, language) },
-    featured: pieces.filter((p) => p.featured).slice(0, FEATURED_MAX),
-    recent: pieces.slice(0, RECENT_MAX),
+    featured,
+    // A piece shown in Featured is not repeated in Recent.
+    recent: pieces.filter((p) => !featured.includes(p)).slice(0, RECENT_MAX),
     active: (await projects.getProjects(language))
       .filter((p) => p.data.status === 'active')
       .map((p) => ({ name: p.data.name, oneLine: p.data.oneLine, version: p.data.version, path: projects.pathOf(p), twin: projects.twinPathOf(p) })),

@@ -49,7 +49,7 @@ export interface Attachment {
   file: string;
   /** Where the file is served: beside the Original, at `/writing/<slug>/<file>`. */
   path: string;
-  /** "materials.csv, CSV, 32 bytes". */
+  /** "CSV, 32 bytes". */
   description: string;
 }
 

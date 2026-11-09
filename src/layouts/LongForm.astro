@@ -20,13 +20,15 @@ interface Props {
   readingMinutes: number;
   jsonLd: object;
   translations: Translations;
+  /** Whether the piece has Corrections: the byline then links to them (`#corrections`). */
+  corrected?: boolean;
 }
 
 // The long-form layout for pieces read start to finish (Articles, Studies).
 // Slots: `header` adds to the header, the default slot is the body, `after`
 // holds end matter (attachments, corrections) and `discuss` sits beside
 // "Suggest a correction".
-const { title, summary, canonical, language, twin, published, updated, tags, readingMinutes, jsonLd, translations } = Astro.props;
+const { title, summary, canonical, language, twin, published, updated, tags, readingMinutes, jsonLd, translations, corrected = false } = Astro.props;
 const ui = uiOf(language);
 ---
 <Base title={title} description={summary} canonical={canonical} language={language} twin={twin} translations={translations}>
@@ -40,6 +42,7 @@ const ui = uiOf(language);
         <span>{ui.published} <Day date={published} /></span>
         {updated !== published && <span>{ui.updated} <Day date={updated} /></span>}
         <span>{ui.minRead(readingMinutes)}</span>
+        {corrected && <span><a href="#corrections">{ui.corrected}</a></span>}
       </p>
       {tags.length > 0 && (
         <ul class="tags" aria-label={ui.tags}>

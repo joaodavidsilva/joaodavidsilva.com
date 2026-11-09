@@ -5,6 +5,10 @@
  *   becomes a `<figure>` with that title as its `<figcaption>`.
  * - Callouts: a blockquote opening with a GitHub alert marker, `> [!NOTE]`, becomes a
  *   labelled callout. The Markdown twin keeps the marker, which GitHub also renders.
+ * - Tables: each `<table>` sits in a focusable, labelled scroll region,
+ *   `<div class="table-scroll" tabindex="0" role="region" aria-label="Table">`, so a wide
+ *   table scrolls inside the column (keyboard included) instead of widening the page.
+ *   The label is in the document's `language` (front-matter), English by default.
  *
  * Footnotes (GFM) and code highlighting (Shiki `css-variables`) come from the processor;
  * cross-references are plain links, checked by the link check.
@@ -18,6 +22,7 @@ const CALLOUT_KINDS = {
   CAUTION: 'Caution',
 };
 const CALLOUT_MARKER = /^\[!(\w+)\][^\S\n]*(?:\n|$)/;
+const TABLE_LABELS = { en: 'Table', pt: 'Tabela', es: 'Tabla', fr: 'Tableau', de: 'Tabelle', it: 'Tabella' };
 
 const isBlank = (node) => node.type === 'text' && !node.value.trim();
 const element = (tagName, properties, children) => ({ type: 'element', tagName, properties, children });
@@ -70,13 +75,27 @@ const callouts = {
   },
 };
 
+// The document's front-matter `language`, which Astro seeds into the processor's data bag.
+const tables = ({ data }) => {
+  const label = TABLE_LABELS[data?.astro?.frontmatter?.language] ?? TABLE_LABELS.en;
+  return {
+    name: 'long-form-tables',
+    element: {
+      filter: ['table'],
+      visit(table, ctx) {
+        ctx.wrapNode(table, element('div', { className: ['table-scroll'], tabIndex: 0, role: 'region', ariaLabel: label }, []));
+      },
+    },
+  };
+};
+
 /** Registers the long-form components on the Markdown processor. */
 export function longFormMarkdown() {
   return {
     name: 'long-form-markdown',
     hooks: {
       'astro:config:setup'({ config }) {
-        config.markdown.processor.options.hastPlugins.push(figures, callouts);
+        config.markdown.processor.options.hastPlugins.push(figures, callouts, tables);
       },
     },
   };

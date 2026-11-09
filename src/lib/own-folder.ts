@@ -23,8 +23,8 @@ export function folderFilesOf(entry: Entry): { file: string; source: string }[] 
 }
 
 /**
- * "materials.csv, CSV, 32 bytes" for `file` in the entry's own folder; a missing file
- * fails the build, naming what referenced it (`kind`, such as "attachment").
+ * "CSV, 32 bytes" for `file` in the entry's own folder (the link downloads it under its
+ * name); a missing file fails the build, naming what referenced it (`kind`, such as "attachment").
  */
 export function describeFolderFile(entry: Entry, file: string, kind: string): string {
   const source = resolve(folderOf(entry), file);
@@ -32,7 +32,7 @@ export function describeFolderFile(entry: Entry, file: string, kind: string): st
     throw new Error(`${entry.filePath}: ${kind} "${file}" not found in ${folderOf(entry)}/`);
   }
   const type = extname(file).slice(1).toUpperCase() || 'file';
-  return `${file}, ${type}, ${sizeOf(source)}`;
+  return `${type}, ${sizeOf(source)}`;
 }
 
 function sizeOf(file: string): string {

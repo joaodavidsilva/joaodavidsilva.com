@@ -75,6 +75,7 @@ const en = {
   discussedIn: 'Discussed in',
   attachments: 'Attachments',
   corrections: 'Corrections',
+  corrected: 'Corrected',
   discussOn: (network: string) => `Discuss on ${network}`,
   suggestCorrection: 'Suggest a correction',
   record: {
@@ -167,6 +168,7 @@ const pt: Ui = {
   discussedIn: 'Discutido em',
   attachments: 'Anexos',
   corrections: 'Correções',
+  corrected: 'Corrigido',
   discussOn: (network: string) => `Discutir no ${network}`,
   suggestCorrection: 'Sugerir uma correção',
   record: {

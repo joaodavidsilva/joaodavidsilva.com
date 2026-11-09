@@ -74,6 +74,7 @@ test('every page type has a Portuguese Translation', async (t) => {
   await t.test('Translations carry their translated text', () => {
     assert.match(site.read('pt/index.html'), /A introdução de teste\./);
     assert.match(site.read('pt/writing/a1/index.html'), /<h1>Artigo um<\/h1>/);
+    assert.match(site.read('pt/writing/a1/index.html'), /<div class="table-scroll" tabindex="0" role="region" aria-label="Tabela"><table>/);
     assert.match(site.read('pt/writing/series/doghouse/index.html'), /A introdução da casota\./);
     assert.match(site.read('pt/research/s1/index.html'), /As conclusões\./);
     assert.match(site.read('pt/knowledge/k1/index.html'), /O corpo do primeiro conceito\./);
@@ -137,12 +138,12 @@ test('every page type has a Portuguese Translation', async (t) => {
 
   await t.test('the Portuguese home lists Portuguese pieces, Projects and Now', () => {
     const home = site.read('pt/index.html');
-    assert.deepEqual(hrefsIn(sectionOf(home, 'recent')), ['/pt/writing/a1/', '/pt/research/s1/']);
+    assert.deepEqual(hrefsIn(sectionOf(home, 'recent')), ['/pt/research/s1/']);
     assert.deepEqual(hrefsIn(sectionOf(home, 'featured')), ['/pt/writing/a1/']);
     assert.deepEqual(hrefsIn(sectionOf(home, 'projects')), ['/pt/projects/p1/']);
     assert.ok(hrefsIn(sectionOf(home, 'now')).includes('/pt/now/'));
     assert.match(site.read('pt/index.md'), /\[Artigo um\]\(https:\/\/joaodavidsilva\.com\/pt\/writing\/a1\.md\)/);
-    assert.deepEqual(hrefsIn(sectionOf(site.read('index.html'), 'recent')), ['/writing/a2/', '/writing/a1/', '/research/s1/']);
+    assert.deepEqual(hrefsIn(sectionOf(site.read('index.html'), 'recent')), ['/writing/a2/', '/research/s1/']);
   });
 
   await t.test('the Portuguese feed carries Portuguese Articles and Studies', () => {

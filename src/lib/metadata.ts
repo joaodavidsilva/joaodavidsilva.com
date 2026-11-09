@@ -52,6 +52,18 @@ export const listingDatesOf = (items: { published?: string; updated?: string }[]
   updated: items.map((item) => item.updated).filter(Boolean).sort().at(-1),
 });
 
+/** Items already in date order, grouped by the year they were published, in that order. */
+export function byYear<T extends { published: string }>(items: T[]): [year: string, items: T[]][] {
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    const year = item.published.slice(0, 4);
+    const group = groups.get(year);
+    if (group) group.push(item);
+    else groups.set(year, [item]);
+  }
+  return [...groups];
+}
+
 /** The JSON-LD of an index page listing `items`, in order. */
 export const collectionJsonLd = (meta: Metadata, items: { name: string; url: string }[]) => ({
   ...jsonLdBase('CollectionPage', meta),
