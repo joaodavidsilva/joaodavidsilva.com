@@ -1,0 +1,40 @@
+---
+// Progressive enhancement: the form stays hidden until the script runs, so
+// without JavaScript readers browse the index below. Pagefind's client loads
+// only here, and only once the reader starts typing.
+---
+<form role="search" class="knowledge-search" data-knowledge-search-form hidden>
+  <label for="knowledge-search-input">Search the Knowledge Base</label>
+  <input id="knowledge-search-input" type="search" name="q" autocomplete="off" />
+  <p aria-live="polite" data-knowledge-search-status></p>
+  <ul data-knowledge-search-results></ul>
+</form>
+<script is:inline type="module" data-knowledge-search>
+  const form = document.querySelector('[data-knowledge-search-form]');
+  const input = form.querySelector('input');
+  const status = form.querySelector('[data-knowledge-search-status]');
+  const list = form.querySelector('[data-knowledge-search-results]');
+  let pagefind;
+  let latest = 0;
+  form.hidden = false;
+  form.addEventListener('submit', (event) => event.preventDefault());
+  input.addEventListener('input', async () => {
+    const query = input.value.trim();
+    const run = ++latest;
+    if (!query) { list.replaceChildren(); status.textContent = ''; return; }
+    pagefind ??= await import('/pagefind/pagefind.js');
+    const search = await pagefind.debouncedSearch(query);
+    if (search === null || run !== latest) return;
+    const pages = await Promise.all(search.results.slice(0, 10).map((r) => r.data()));
+    if (run !== latest) return;
+    list.replaceChildren(...pages.map((page) => {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = page.url;
+      link.textContent = page.meta.title;
+      item.append(link);
+      return item;
+    }));
+    status.textContent = `${search.results.length} result${search.results.length === 1 ? '' : 's'}`;
+  });
+</script>

@@ -3,6 +3,11 @@ record:
   headline: Engineering beyond implementation.
   url: https://joaodavidsilva.com/
   email: fixture@example.com
+  interests: |
+    Fixture interest paragraph one.
+
+    Fixture interest paragraph two.
+  approach: Fixture approach paragraph.
   sameAs:
     - https://github.com/fixture
   roles:

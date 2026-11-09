@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
 import { SITE_URL } from '../../site.config.mjs';
-import { ABOUT_PATH, ABOUT_TITLE, getRecord, hrefOf, personOf, type Record, type Source } from '../lib/record';
+import { ABOUT_PATH, ABOUT_TITLE, getRecord, hrefOf, paragraphsOf, personOf, type Record, type Source } from '../lib/record';
 
 // A dynamic route so the page exists only when the content set has a record.
 export async function getStaticPaths() {
@@ -28,6 +28,10 @@ const period = (role: Record['roles'][number]) => `${role.start} – ${role.end 
       <h1>{ABOUT_TITLE}</h1>
       <p>{record.name}. {record.headline}</p>
     </header>
+    {[['Interests', record.interests], ['Approach to engineering', record.approach]].map(([title, prose]) => {
+      const paragraphs = paragraphsOf(prose);
+      return paragraphs.length > 0 && <section><h2>{title}</h2>{paragraphs.map((p) => <p>{p}</p>)}</section>;
+    })}
     {record.roles.length > 0 && (
       <section><h2>Roles</h2><ul>
         {record.roles.map((r) => <li>{r.title}, {r.organisation}, {period(r)}. <Fragment set:html={src(r.source)} /></li>)}

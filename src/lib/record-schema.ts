@@ -29,6 +29,9 @@ export const recordSchema = z.strictObject({
   headline: text,
   url: z.url(),
   email: z.email().optional(),
+  // João's own prose: opinions, not Claims, so they carry no source. Blank lines separate paragraphs.
+  interests: text.optional(),
+  approach: text.optional(),
   sameAs: z.array(z.url()).default([]),
   roles: z
     .array(
