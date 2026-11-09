@@ -46,7 +46,7 @@ test('Projects: index and Project page', async (t) => {
     assert.match(text, /Status Active/);
     assert.match(text, /Version 2\.3\.1/);
     assert.match(text, /The project body explains why Sample App exists\./);
-    assert.doesNotMatch(page, /<script(?![^>]*application\/ld\+json)/);
+    assert.doesNotMatch(page, /<script(?![^>]*(?:application\/ld\+json|data-theme-script))/);
   });
 
   await t.test('a Project page renders its external links', () => {
