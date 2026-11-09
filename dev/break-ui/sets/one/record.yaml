@@ -1,0 +1,18 @@
+record:
+  name: João David Silva
+  headline: Engineering beyond implementation.
+  url: https://joaodavidsilva.com/
+  interests: One paragraph.
+  sameAs: [https://github.com/joaodavidsilva]
+  roles:
+    - { title: Engineer, organisation: Q, start: 2023-04, source: { url: "https://example.com/" } }
+  projects:
+    - { name: Lozza, summary: In development., source: { page: /privacy/ } }
+  skills:
+    - { name: TypeScript, demonstrated: [{ url: "https://github.com/joaodavidsilva/markdown-exporter" }] }
+  achievements:
+    - { text: One achievement., source: { attested: Private records } }
+  publications:
+    - { title: First, source: { url: "https://example.com/" } }
+  contributions:
+    - { text: One contribution., source: { url: "https://example.com/" } }

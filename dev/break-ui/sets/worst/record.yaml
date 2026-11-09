@@ -1,0 +1,42 @@
+record:
+  name: João David Silva
+  headline: "Engineering beyond implementation: specifications, review and the judgement that coding agents cannot supply, for teams shipping production software with AI."
+  url: https://joaodavidsilva.com/
+  email: me@joaodavidsilva.com
+  interests: |
+    I care about the parts of engineering that happen before and after the code: deciding what to build, writing it down so someone else can check it, and reviewing what comes back.
+
+    Lately that someone else is often an agent, which makes the writing-down part matter more, not less.
+
+    Outside work: running, bread, and teaching my kids their times tables with an app I built for the purpose.
+  approach: |
+    Specifications first, tests second, code third. Small pull requests. Public corrections.
+  sameAs:
+    - https://github.com/joaodavidsilva
+    - https://www.linkedin.com/in/joaodavidsilvaa/
+    - https://x.com/joaodavidsilvaa
+    - https://bsky.app/profile/joaodavidsilva.com
+    - https://mastodon.social/@joaodavidsilva
+    - https://stackoverflow.com/users/1234567/jo%C3%A3o-david-silva
+    - https://orcid.org/0000-0002-1825-0097
+  roles:
+    - { title: "Senior Product Design Engineer, Platform Infrastructure and Developer Experience", organisation: "Fundação para a Ciência e a Tecnologia, I.P. (FCT) — Unidade de Computação Científica Nacional (FCCN)", start: 2023-04, source: { attested: "Employment contract and payslips, kept in João's personal records; available to verified employers on request" } }
+    - { title: Engineer, organisation: Q, start: 2019-01, end: 2023-03, source: { url: "https://www.linkedin.com/in/joaodavidsilvaa/details/experience/" } }
+  projects:
+    - { name: Facts Memorizer, summary: A times-tables practice app that keeps every answer on the device., source: { page: /colophon/ } }
+    - { name: Lozza, summary: In development., url: "https://joaodavidsilva.com/projects/lozza/", source: { attested: Private repository } }
+  skills:
+    - name: Specification writing
+      demonstrated:
+        - { url: "https://github.com/joaodavidsilva/joaodavidsilva.com/issues/1" }
+        - { url: "https://github.com/joaodavidsilva/skills/blob/main/skills/engineering/writing-specifications-that-agents-can-check/SKILL.md" }
+        - { page: /privacy/ }
+    - name: TypeScript
+      demonstrated:
+        - { url: "https://github.com/joaodavidsilva/markdown-exporter" }
+  achievements:
+    - { text: "Facts Memorizer reached 10,000 downloads across the App Store and Google Play within its first year, with a 4.8 average rating from 1,284 reviews.", source: { attested: App Store Connect and Play Console dashboards } }
+  publications:
+    - { title: "What eleven months of shipping with coding agents taught me", url: "https://joaodavidsilva.com/writing/eleven-months-with-coding-agents/", source: { url: "https://joaodavidsilva.com/writing/eleven-months-with-coding-agents/" } }
+  contributions:
+    - { text: Fixed Pagefind's handling of empty indexes., source: { url: "https://github.com/CloudCannon/pagefind/pull/1234" } }

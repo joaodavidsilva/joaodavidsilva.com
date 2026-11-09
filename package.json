@@ -10,6 +10,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "break-ui": "node dev/break-ui/serve.mjs",
     "test": "node --test --test-concurrency=1 \"test/*.test.mjs\"",
     "ci:build": "sh scripts/ci-build.sh",
     "translation:hash": "node scripts/original-hash.mjs",
