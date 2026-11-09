@@ -138,6 +138,12 @@ test('a legal document that does not exist fails the build', () => {
   assert.match(site.output, /projects\/orphan\/privacy/);
 });
 
+test('a legal document not marked legal fails the build', () => {
+  const site = buildFixture('project-unmarked-legal');
+  assert.equal(site.ok, false);
+  assert.match(site.output, /loose\/privacy\.md: a Project's legal document must set legal: true/);
+});
+
 test('a page claiming a Project page path fails the build', () => {
   const site = buildFixture('project-path-collision');
   assert.equal(site.ok, false);
