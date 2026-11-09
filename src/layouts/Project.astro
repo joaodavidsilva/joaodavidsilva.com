@@ -2,6 +2,7 @@
 import { render } from 'astro:content';
 import Base from './Base.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
+import WaitlistForm from '../components/WaitlistForm.astro';
 import { SITE_URL } from '../../site.config.mjs';
 import {
   figuresOf,
@@ -79,6 +80,7 @@ const jsonLd = software
         {figure.caption && <figcaption>{figure.caption}</figcaption>}
       </figure>
     ))}
+    {project.data.waitlist && <WaitlistForm source={project.data.waitlist} />}
     {legal.length > 0 && (
       <section aria-labelledby="legal-documents">
         <h2 id="legal-documents">Legal documents</h2>

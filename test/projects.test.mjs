@@ -203,6 +203,17 @@ test('brightboi: Project page with screenshots, repository and latest release', 
   assert.match(site.read('projects/index.html'), /<a href="\/projects\/brightboi\/">BrightBoi<\/a>/);
 });
 
+test('Markdown Exporter: Project page links its repository and extension listing', () => {
+  const site = buildSite();
+  assert.ok(site.ok, site.output);
+  const html = site.read('projects/markdown-exporter/index.html');
+  assert.match(html, /href="https:\/\/github\.com\/joaodavidsilva\/markdown-exporter"/);
+  assert.match(html, /href="https:\/\/marketplace\.visualstudio\.com\/items\?itemName=joaodavidsilva\.markdown-exporter"/);
+  assert.equal(jsonLdOf(html)['@type'], 'SoftwareApplication');
+  assert.ok(site.has('projects/markdown-exporter.md'));
+  assert.match(site.read('projects/index.html'), /<a href="\/projects\/markdown-exporter\/">Markdown Exporter<\/a>/);
+});
+
 test('dotore and AI Skills: Project pages link their own homes', () => {
   const site = buildSite();
   assert.ok(site.ok, site.output);

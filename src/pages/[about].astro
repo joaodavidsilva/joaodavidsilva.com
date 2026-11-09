@@ -2,7 +2,10 @@
 import Base from '../layouts/Base.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
 import { SITE_URL } from '../../site.config.mjs';
-import { ABOUT_PATH, ABOUT_TITLE, getRecord, hrefOf, paragraphsOf, personOf, type Record, type Source } from '../lib/record';
+import {
+  ABOUT_PATH, ABOUT_TITLE, CV_PATHS, cvFileName, getRecord, hrefOf, paragraphsOf, periodOf, personOf,
+  type Record, type Source,
+} from '../lib/record';
 
 // A dynamic route so the page exists only when the content set has a record.
 export async function getStaticPaths() {
@@ -19,7 +22,6 @@ const src = (source: Source) =>
   'attested' in source
     ? `(<span class="attested">Attested</span>: ${escape(source.attested)})`
     : `(<a href="${escape(hrefOf(source))}">source</a>)`;
-const period = (role: Record['roles'][number]) => `${role.start} – ${role.end ?? 'present'}`;
 ---
 <Base title={ABOUT_TITLE} description={`${record.name}. ${record.headline}`} canonical={canonical} language="en" twin="/about.md">
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(person)} />
@@ -27,6 +29,7 @@ const period = (role: Record['roles'][number]) => `${role.start} – ${role.end 
     <header>
       <h1>{ABOUT_TITLE}</h1>
       <p>{record.name}. {record.headline}</p>
+      <p class="cv">Download the CV: <a href={CV_PATHS.pdf} download={cvFileName(record, 'pdf')}>PDF</a>, <a href={CV_PATHS.docx} download={cvFileName(record, 'docx')}>DOCX</a></p>
     </header>
     {[['Interests', record.interests], ['Approach to engineering', record.approach]].map(([title, prose]) => {
       const paragraphs = paragraphsOf(prose);
@@ -34,7 +37,7 @@ const period = (role: Record['roles'][number]) => `${role.start} – ${role.end 
     })}
     {record.roles.length > 0 && (
       <section><h2>Roles</h2><ul>
-        {record.roles.map((r) => <li>{r.title}, {r.organisation}, {period(r)}. <Fragment set:html={src(r.source)} /></li>)}
+        {record.roles.map((r) => <li>{r.title}, {r.organisation}, {periodOf(r)}. <Fragment set:html={src(r.source)} /></li>)}
       </ul></section>
     )}
     {record.projects.length > 0 && (
