@@ -2,6 +2,7 @@ import { getImage } from 'astro:assets';
 import { getCollection, getEntries, type CollectionEntry } from 'astro:content';
 import { SITE_URL } from '../../site.config.mjs';
 import { getPages, pathOf as pagePathOf } from './pages';
+import { ORIGINAL_LANGUAGE } from './translations';
 
 export type Project = CollectionEntry<'projects'>;
 
@@ -53,6 +54,7 @@ export async function legalOf(project: Project): Promise<{ title: string; path: 
   const pages = await getEntries(project.data.legal);
   return pages.map((page, i) => {
     if (!page) throw new Error(`${project.filePath}: legal document "${project.data.legal[i].id}" is not a page`);
+    if (!page.data.legal) throw new Error(`${page.filePath}: a Project's legal document must set legal: true`);
     return { title: page.data.title, path: pagePathOf(page) };
   });
 }
@@ -69,13 +71,13 @@ export async function figuresOf(project: Project) {
 
 /** The metadata shared by the JSON-LD and the Markdown twin front-matter. */
 export function metadataOf(project: Project) {
-  const { name, oneLine, status, version, published, updated, language, tags } = project.data;
+  const { name, oneLine, status, version, published, updated, tags } = project.data;
   return {
     title: name,
     summary: oneLine,
     published: published.toISOString().slice(0, 10),
     updated: (updated ?? published).toISOString().slice(0, 10),
-    language,
+    language: ORIGINAL_LANGUAGE,
     tags,
     canonical: canonicalOf(project),
     status,

@@ -35,6 +35,7 @@ const pages = defineCollection({
 });
 
 // A Project: something João maintains over time. `content/projects/<slug>.md` is `/projects/<slug>/`.
+// Projects are Originals; they have no Translations yet.
 const projects = defineCollection({
   loader: glob({ pattern: '*.md', base: `${contentDir}/projects` }),
   schema: ({ image }) =>
@@ -45,7 +46,6 @@ const projects = defineCollection({
       version: z.string().min(1).optional(),
       published: z.coerce.date(),
       updated: z.coerce.date().optional(),
-      language: z.enum(['en', 'pt']).default('en'),
       tags: z.array(z.string()).default([]),
       links: z
         .object({
