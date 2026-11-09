@@ -11,5 +11,9 @@ echo "git history: full ($(git rev-list --count HEAD) commits)"
 
 [ "${JDS_CI_HISTORY_ONLY:-}" = "1" ] && exit 0
 
+# A Guide's `skill` reference is checked against the skills repo (ADR-0002).
+rm -rf .skills
+git clone --quiet --depth 1 https://github.com/joaodavidsilva/skills.git .skills
+
 pnpm test
 pnpm build

@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import { SITE_URL } from './site.config.mjs';
+import { pagefind } from './src/lib/pagefind.mjs';
 import { fontsourceVariable } from './src/lib/self-hosted-fonts.mjs';
 
 const selfHosted = fontsourceVariable();
@@ -9,6 +10,7 @@ const subsets = ['latin', 'latin-ext'];
 export default defineConfig({
   site: SITE_URL,
   trailingSlash: 'always',
+  integrations: [pagefind()],
   outDir: process.env.JDS_OUT_DIR ?? './dist',
   // Highlighting colours follow color-scheme, so they match the System / Light / Dark theme.
   markdown: {
