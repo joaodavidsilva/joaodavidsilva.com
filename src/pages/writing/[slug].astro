@@ -4,6 +4,8 @@ import LongForm from '../../layouts/LongForm.astro';
 import Attachments from '../../components/Attachments.astro';
 import Corrections from '../../components/Corrections.astro';
 import Discuss from '../../components/Discuss.astro';
+import SeriesNav from '../../components/SeriesNav.astro';
+import SeriesPosition from '../../components/SeriesPosition.astro';
 import { AUTHOR } from '../../../site.config.mjs';
 import {
   attachmentsOf,
@@ -15,17 +17,23 @@ import {
   type Article,
 } from '../../lib/articles';
 import { readingMinutesOf } from '../../lib/own-folder';
+import { getSeries, positionOf, type Position } from '../../lib/series';
 
 export async function getStaticPaths() {
-  const articles = await getArticles();
-  return articles.map((article) => ({ params: { slug: article.id }, props: { article } }));
+  const [articles, series] = await Promise.all([getArticles(), getSeries()]);
+  return articles.map((article) => ({
+    params: { slug: article.id },
+    props: { article, position: positionOf(article, series) },
+  }));
 }
 
 interface Props {
   article: Article;
+  /** Its place in a Series, if it is a part of one. */
+  position?: Position;
 }
 
-const { article } = Astro.props;
+const { article, position } = Astro.props;
 const meta = metadataOf(article);
 const corrections = correctionsOf(article);
 const { Content } = await render(article);
@@ -44,6 +52,10 @@ const jsonLd = {
   ...(corrections.length > 0 && {
     correction: corrections.map(({ date, note }) => ({ '@type': 'CorrectionComment', datePublished: date, text: note })),
   }),
+  ...(position && {
+    isPartOf: { '@type': 'CreativeWorkSeries', name: position.series.title, url: position.series.canonical },
+    position: position.part,
+  }),
 };
 ---
 <LongForm
@@ -58,8 +70,10 @@ const jsonLd = {
   readingMinutes={readingMinutesOf(article)}
   jsonLd={jsonLd}
 >
+  {position && <SeriesPosition slot="header" position={position} />}
   <Content />
   <Fragment slot="after">
+    {position && <SeriesNav position={position} />}
     <Attachments attachments={attachmentsOf(article)} />
     <Corrections corrections={corrections} />
   </Fragment>

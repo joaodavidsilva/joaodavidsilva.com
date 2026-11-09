@@ -3,6 +3,7 @@ import { SITE_URL } from '../../site.config.mjs';
 import { getPages, twinPathOf } from '../lib/pages';
 import * as writing from '../lib/articles';
 import * as research from '../lib/studies';
+import { getSeries, twinPathOf as seriesTwinPathOf } from '../lib/series';
 import * as projects from '../lib/projects';
 import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
 import { getNow, NOW } from '../lib/now';
@@ -30,6 +31,9 @@ export const GET: APIRoute = async () => {
       `- [${study.data.title}](${new URL(research.twinPathOf(study), SITE_URL).href}): ${study.data.summary} (${study.data.status})`,
   );
   const researchIndex = `- [${research.RESEARCH.title}](${new URL(research.RESEARCH.twin, SITE_URL).href}): ${research.RESEARCH.summary}`;
+  const series = (await getSeries()).map(
+    (one) => `- [${one.entry.data.title}](${new URL(seriesTwinPathOf(one), SITE_URL).href}): ${one.entry.data.summary}`,
+  );
   const projectList = await projects.getProjects();
   const projectLines = [
     `- [${projects.PROJECTS_TITLE}](${new URL(projects.PROJECTS_TWIN_PATH, SITE_URL).href}): ${projects.PROJECTS_SUMMARY}`,
@@ -50,7 +54,7 @@ export const GET: APIRoute = async () => {
     '',
     ...lines,
     '',
-    ...(articles.length ? ['## Writing', '', writingIndex, ...articles, ''] : []),
+    ...(articles.length || series.length ? ['## Writing', '', writingIndex, ...series, ...articles, ''] : []),
     ...(studies.length ? ['## Research', '', researchIndex, ...studies, ''] : []),
     ...(projectList.length ? ['## Projects', '', ...projectLines, ''] : []),
     ...(knowledge.length ? ['## Knowledge', '', ...knowledge, ''] : []),
