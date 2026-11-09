@@ -3,12 +3,20 @@ import { SITE_URL } from '../../site.config.mjs';
 import { getPages, twinPathOf } from '../lib/pages';
 import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
 import { ABOUT_TITLE, getRecord } from '../lib/record';
+import { ORIGINAL_LANGUAGE, translationsOf } from '../lib/translations';
 
 export const GET: APIRoute = async () => {
-  const pages = (await getPages()).filter((page) => page.data.language === 'en');
+  const pages = await getPages();
   const lines = pages
+    .filter((page) => page.data.language === ORIGINAL_LANGUAGE)
     .sort((a, b) => a.id.localeCompare(b.id))
-    .map((page) => `- [${page.data.title}](${new URL(twinPathOf(page), SITE_URL).href}): ${page.data.summary}`);
+    .map((page) => {
+      const translations = translationsOf(page, pages).versions.slice(1);
+      const pointer = translations.length
+        ? ` (Translations: ${translations.map((v) => `[${v.name}](${new URL(v.twin, SITE_URL).href})`).join(', ')})`
+        : '';
+      return `- [${page.data.title}](${new URL(twinPathOf(page), SITE_URL).href}): ${page.data.summary}${pointer}`;
+    });
   const knowledge = (await getKnowledge())
     .filter(({ entry }) => entry.data.language === 'en')
     .map(({ entry }) => `- [${entry.data.title}](${new URL(knowledgeTwinPathOf(entry), SITE_URL).href}): ${entry.data.summary}`);
