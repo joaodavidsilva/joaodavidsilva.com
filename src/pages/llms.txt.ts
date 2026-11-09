@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { SITE_URL } from '../../site.config.mjs';
 import { getPages, twinPathOf } from '../lib/pages';
 import * as writing from '../lib/articles';
+import { getSeries, twinPathOf as seriesTwinPathOf } from '../lib/series';
 import * as projects from '../lib/projects';
 import { getKnowledge, twinPathOf as knowledgeTwinPathOf } from '../lib/knowledge';
 import { ABOUT_TITLE, getRecord } from '../lib/record';
@@ -23,6 +24,9 @@ export const GET: APIRoute = async () => {
     (article) => `- [${article.data.title}](${new URL(writing.twinPathOf(article), SITE_URL).href}): ${article.data.summary}`,
   );
   const writingIndex = `- [${writing.WRITING.title}](${new URL(writing.WRITING.twin, SITE_URL).href}): ${writing.WRITING.summary}`;
+  const series = (await getSeries()).map(
+    (one) => `- [${one.entry.data.title}](${new URL(seriesTwinPathOf(one), SITE_URL).href}): ${one.entry.data.summary}`,
+  );
   const projectList = await projects.getProjects();
   const projectLines = [
     `- [${projects.PROJECTS_TITLE}](${new URL(projects.PROJECTS_TWIN_PATH, SITE_URL).href}): ${projects.PROJECTS_SUMMARY}`,
@@ -42,7 +46,7 @@ export const GET: APIRoute = async () => {
     '',
     ...lines,
     '',
-    ...(articles.length ? ['## Writing', '', writingIndex, ...articles, ''] : []),
+    ...(articles.length || series.length ? ['## Writing', '', writingIndex, ...series, ...articles, ''] : []),
     ...(projectList.length ? ['## Projects', '', ...projectLines, ''] : []),
     ...(knowledge.length ? ['## Knowledge', '', ...knowledge, ''] : []),
   ].join('\n');

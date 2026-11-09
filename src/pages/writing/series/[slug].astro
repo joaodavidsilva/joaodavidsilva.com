@@ -1,0 +1,72 @@
+---
+import { render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import Day from '../../../components/Day.astro';
+import SuggestCorrection from '../../../components/SuggestCorrection.astro';
+import { AUTHOR } from '../../../../site.config.mjs';
+import { getSeries, metadataOf, partsOf, twinPathOf, STATUS_LABELS, type Series } from '../../../lib/series';
+
+export async function getStaticPaths() {
+  const series = await getSeries();
+  return series.map((one) => ({ params: { slug: one.entry.id }, props: { series: one } }));
+}
+
+interface Props {
+  series: Series;
+}
+
+const { series } = Astro.props;
+const meta = metadataOf(series);
+const parts = partsOf(series);
+const { Content } = await render(series.entry);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWorkSeries',
+  name: meta.title,
+  headline: meta.title,
+  description: meta.summary,
+  datePublished: meta.published,
+  dateModified: meta.updated,
+  inLanguage: meta.language,
+  creativeWorkStatus: meta.status,
+  url: meta.canonical,
+  mainEntityOfPage: meta.canonical,
+  author: { '@type': 'Person', ...AUTHOR },
+  hasPart: parts.map(({ part, title, canonical }) => ({ '@type': 'Article', position: part, headline: title, url: canonical })),
+};
+---
+<Base title={meta.title} description={meta.summary} canonical={meta.canonical} language={meta.language} twin={twinPathOf(series)}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <article class="long-form">
+    <header class="long-form-header">
+      <p class="series-kind">Series</p>
+      <h1>{meta.title}</h1>
+      <p class="summary">{meta.summary}</p>
+      <p class="byline">
+        <span>{STATUS_LABELS[meta.status]}</span>
+        <span>{parts.length === 1 ? '1 part' : `${parts.length} parts`}</span>
+        <span>Started <Day date={meta.published} /></span>
+      </p>
+    </header>
+    <div class="long-form-body">
+      <Content />
+    </div>
+    <section aria-labelledby="parts-heading">
+      <h2 id="parts-heading">Parts</h2>
+      {parts.length > 0 ? (
+        <ol class="series-parts">
+          {parts.map(({ path, title, summary, published }) => (
+            <li>
+              <h3><a href={path}>{title}</a></h3>
+              <p class="piece-meta"><Day date={published} /></p>
+              <p>{summary}</p>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p>No parts yet.</p>
+      )}
+    </section>
+    <SuggestCorrection title={meta.title} canonical={meta.canonical} />
+  </article>
+</Base>

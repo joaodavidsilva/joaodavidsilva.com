@@ -2,8 +2,10 @@
 import Base from '../../layouts/Base.astro';
 import Day from '../../components/Day.astro';
 import { getArticles, metadataOf, pathOf, WRITING } from '../../lib/articles';
+import { getSeries, metadataOf as seriesMetadataOf, pathOf as seriesPathOf, STATUS_LABELS } from '../../lib/series';
 
 const articles = (await getArticles()).map((article) => ({ path: pathOf(article), ...metadataOf(article) }));
+const series = (await getSeries()).map((one) => ({ path: seriesPathOf(one), parts: one.parts.length, ...seriesMetadataOf(one) }));
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
@@ -45,5 +47,22 @@ const jsonLd = {
     </ol>
   ) : (
     <p>No Articles yet.</p>
+  )}
+  {series.length > 0 && (
+    <section class="series-list" aria-labelledby="series-heading">
+      <h2 id="series-heading">Series</h2>
+      <ul class="piece-list">
+        {series.map(({ path, title, summary, status, parts }) => (
+          <li>
+            <h3><a href={path}>{title}</a></h3>
+            <p class="piece-meta">
+              <span>{STATUS_LABELS[status]}</span>
+              <span>{parts === 1 ? '1 part' : `${parts} parts`}</span>
+            </p>
+            <p>{summary}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   )}
 </Base>

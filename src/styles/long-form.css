@@ -168,3 +168,54 @@ figure img {
 .piece-list p {
   margin-block-end: 0;
 }
+
+/* Series: a part's position above its title, its neighbours after its body, and the Series' parts in order. */
+.series-position,
+.series-kind,
+.series-nav {
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+  color: var(--ink-muted);
+}
+
+.series-position,
+.series-kind {
+  margin-block-end: 0.5em;
+}
+
+.series-nav {
+  margin-block-start: 3rem;
+}
+
+.series-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5em 2em;
+  list-style: none;
+  padding: 0;
+}
+
+.series-nav .next {
+  margin-inline-start: auto;
+}
+
+.series-parts {
+  padding-inline-start: 1.5em;
+}
+
+.series-parts li + li,
+.series-list li + li {
+  margin-block-start: 1.5rem;
+}
+
+.series-parts h3,
+.series-list h3 {
+  font-size: 1.1em;
+  margin-block: 0 0.25em;
+}
+
+.series-parts p,
+.series-list p {
+  margin-block: 0;
+}
