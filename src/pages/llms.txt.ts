@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { SITE_URL } from '../../site.config.mjs';
 import { getPages, twinPathOf } from '../lib/pages';
 import * as projects from '../lib/projects';
+import { ABOUT_TITLE, getRecord } from '../lib/record';
 
 export const GET: APIRoute = async () => {
   const pages = (await getPages()).filter((page) => page.data.language === 'en');
@@ -14,6 +15,8 @@ export const GET: APIRoute = async () => {
       .filter((project) => project.data.language === 'en')
       .map((project) => `- [${project.data.name}](${new URL(projects.twinPathOf(project), SITE_URL).href}): ${project.data.oneLine}`),
   ];
+  const record = await getRecord();
+  if (record) lines.push(`- [${ABOUT_TITLE}](${new URL('/about.md', SITE_URL).href}): ${record.name}. ${record.headline}`);
   const body = [
     '# João David Silva',
     '',

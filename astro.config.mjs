@@ -10,6 +10,13 @@ export default defineConfig({
   site: SITE_URL,
   trailingSlash: 'always',
   outDir: process.env.JDS_OUT_DIR ?? './dist',
+  // Highlighting colours follow color-scheme, so they match the System / Light / Dark theme.
+  markdown: {
+    shikiConfig: {
+      themes: { light: 'github-light', dark: 'github-dark' },
+      defaultColor: 'light-dark()',
+    },
+  },
   fonts: [
     {
       provider: selfHosted,

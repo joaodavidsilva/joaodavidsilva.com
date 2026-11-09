@@ -6,3 +6,7 @@ language: en
 ---
 
 The sample body paragraph.
+
+```js
+const greeting = "hello";
+```
