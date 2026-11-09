@@ -2,7 +2,6 @@
 title: Privacy notice
 summary: What joaodavidsilva.com processes about visitors, who processes it and how to reach João.
 published: 2026-11-09
-updated: 2026-11-09
 language: en
 legal: true
 ---

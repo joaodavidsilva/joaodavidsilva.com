@@ -16,6 +16,7 @@
     {
       "binding": "DB",
       "database_name": "joaodavidsilva-waitlist",
+      "database_id": "17d6d5a1-d7e4-44e1-a239-1a941ed9bf50",
       "migrations_dir": "./migrations"
     }
   ],

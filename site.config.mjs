@@ -48,7 +48,6 @@ export const WAITLISTS = { lozza: 'Lozza' };
 // The same-origin Waitlist Worker endpoint (worker/index.js).
 export const WAITLIST_ENDPOINT = '/api/waitlist';
 
-// The public Turnstile site key of the Waitlist widget (Invisible mode). This is Cloudflare's
-// "always passes, invisible" test key until the joaodavidsilva.com widget is created; its secret
-// key is the TURNSTILE_SECRET_KEY Wrangler secret.
-export const TURNSTILE_SITE_KEY = '1x00000000000000000000BB';
+// The public Turnstile site key of the joaodavidsilva.com Waitlist widget (Invisible mode); its
+// secret key is the TURNSTILE_SECRET_KEY Wrangler secret.
+export const TURNSTILE_SITE_KEY = '0x4AAAAAAF6A1X0a1Au4dRbI';
