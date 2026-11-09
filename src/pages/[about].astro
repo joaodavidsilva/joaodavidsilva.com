@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+import SuggestCorrection from '../components/SuggestCorrection.astro';
+import { SITE_URL } from '../../site.config.mjs';
+import { ABOUT_PATH, ABOUT_TITLE, getRecord, hrefOf, paragraphsOf, personOf, type Record, type Source } from '../lib/record';
+
+// A dynamic route so the page exists only when the content set has a record.
+export async function getStaticPaths() {
+  const record = await getRecord();
+  return record ? [{ params: { about: 'about' }, props: { record } }] : [];
+}
+
+const { record } = Astro.props as { record: Record };
+const canonical = new URL(ABOUT_PATH, SITE_URL).href;
+const person = personOf(record);
+const escape = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+// One Claim's source; attested Claims are labelled so readers know only João can confirm them.
+const src = (source: Source) =>
+  'attested' in source
+    ? `(<span class="attested">Attested</span>: ${escape(source.attested)})`
+    : `(<a href="${escape(hrefOf(source))}">source</a>)`;
+const period = (role: Record['roles'][number]) => `${role.start} – ${role.end ?? 'present'}`;
+---
+<Base title={ABOUT_TITLE} description={`${record.name}. ${record.headline}`} canonical={canonical} language="en" twin="/about.md">
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(person)} />
+  <article class="record">
+    <header>
+      <h1>{ABOUT_TITLE}</h1>
+      <p>{record.name}. {record.headline}</p>
+    </header>
+    {[['Interests', record.interests], ['Approach to engineering', record.approach]].map(([title, prose]) => {
+      const paragraphs = paragraphsOf(prose);
+      return paragraphs.length > 0 && <section><h2>{title}</h2>{paragraphs.map((p) => <p>{p}</p>)}</section>;
+    })}
+    {record.roles.length > 0 && (
+      <section><h2>Roles</h2><ul>
+        {record.roles.map((r) => <li>{r.title}, {r.organisation}, {period(r)}. <Fragment set:html={src(r.source)} /></li>)}
+      </ul></section>
+    )}
+    {record.projects.length > 0 && (
+      <section><h2>Projects</h2><ul>
+        {record.projects.map((p) => <li>{p.name}: {p.summary} <Fragment set:html={src(p.source)} /></li>)}
+      </ul></section>
+    )}
+    {record.skills.length > 0 && (
+      <section><h2>Skills</h2><ul>
+        {record.skills.map((s) => (
+          <li>{s.name}, demonstrated in: {s.demonstrated.map((d, i) => <>{i > 0 && ', '}<a href={hrefOf(d)}>{hrefOf(d)}</a></>)}</li>
+        ))}
+      </ul></section>
+    )}
+    {record.achievements.length > 0 && (
+      <section><h2>Achievements</h2><ul>
+        {record.achievements.map((a) => <li>{a.text} <Fragment set:html={src(a.source)} /></li>)}
+      </ul></section>
+    )}
+    {record.publications.length > 0 && (
+      <section><h2>Publications</h2><ul>
+        {record.publications.map((p) => <li>{p.title} <Fragment set:html={src(p.source)} /></li>)}
+      </ul></section>
+    )}
+    {record.contributions.length > 0 && (
+      <section><h2>Open-source contributions</h2><ul>
+        {record.contributions.map((c) => <li>{c.text} <Fragment set:html={src(c.source)} /></li>)}
+      </ul></section>
+    )}
+    {record.sameAs.length > 0 && (
+      <section><h2>Elsewhere</h2><ul>
+        {record.sameAs.map((url) => <li><a href={url} rel="me">{url}</a></li>)}
+      </ul></section>
+    )}
+    <SuggestCorrection title={ABOUT_TITLE} canonical={canonical} />
+  </article>
+</Base>
