@@ -1,5 +1,7 @@
 ---
 import type { Position } from '../lib/series';
+import { languageOfPath } from '../lib/translations';
+import { uiAt } from '../lib/ui';
 
 interface Props {
   position: Position;
@@ -7,5 +9,7 @@ interface Props {
 
 // "Part N of M · <Series>", above the title of a part of a Series.
 const { position } = Astro.props;
+const ui = uiAt(Astro.url);
+const english = position.series.language !== languageOfPath(Astro.url.pathname);
 ---
-<p class="series-position">Part {position.part} of {position.of} · <a href={position.series.path}>{position.series.title}</a></p>
+<p class="series-position">{ui.part(position.part, position.of)} · <a href={position.series.path} hreflang={english ? position.series.language : undefined}>{position.series.title}</a>{english && ` ${ui.inEnglish}`}</p>

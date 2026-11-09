@@ -1,12 +1,14 @@
 ---
+import { uiAt } from '../lib/ui';
+
 interface Props {
   /** YYYY-MM-DD */
   date: string;
 }
 
-// A calendar day, machine-readable in `datetime` and written out for people.
+// A calendar day, machine-readable in `datetime` and written out for people in the page's language.
 const { date } = Astro.props;
-const label = new Date(`${date}T00:00:00Z`).toLocaleDateString('en-GB', {
+const label = new Date(`${date}T00:00:00Z`).toLocaleDateString(uiAt(Astro.url).locale, {
   day: 'numeric',
   month: 'long',
   year: 'numeric',

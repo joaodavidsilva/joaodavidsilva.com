@@ -1,5 +1,6 @@
 ---
 import Day from './Day.astro';
+import { uiAt } from '../lib/ui';
 
 interface Props {
   corrections: { date: string; note: string }[];
@@ -7,10 +8,11 @@ interface Props {
 
 // Changes after publication, disclosed as dated notes.
 const { corrections } = Astro.props;
+const ui = uiAt(Astro.url);
 ---
 {corrections.length > 0 && (
   <section class="corrections" id="corrections" aria-labelledby="corrections-heading">
-    <h2 id="corrections-heading">Corrections</h2>
+    <h2 id="corrections-heading">{ui.corrections}</h2>
     <ul>
       {corrections.map(({ date, note }) => (
         <li><Day date={date} />: {note}</li>

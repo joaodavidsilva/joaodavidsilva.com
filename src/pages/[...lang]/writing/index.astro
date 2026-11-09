@@ -1,0 +1,75 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Day from '../../../components/Day.astro';
+import { getArticles, metadataOf, pathOf, writingIndexOf } from '../../../lib/articles';
+import { jsonLdBase } from '../../../lib/metadata';
+import { languageParams, languagesOfSection } from '../../../lib/sections';
+import { getSeries, metadataOf as seriesMetadataOf, pathOf as seriesPathOf } from '../../../lib/series';
+import { generatedTranslations, type Language } from '../../../lib/translations';
+import { uiOf } from '../../../lib/ui';
+
+export const getStaticPaths = () => languageParams('writing');
+
+const { language } = Astro.props as { language: Language };
+const ui = uiOf(language);
+const index = writingIndexOf(language);
+const articles = (await getArticles(language)).map((article) => ({ path: pathOf(article), ...metadataOf(article) }));
+const series = (await getSeries(language))
+  .filter(({ entry }) => entry.data.language === language)
+  .map((one) => ({ path: seriesPathOf(one), parts: one.parts.length, ...seriesMetadataOf(one) }));
+const translations = generatedTranslations('/writing/', await languagesOfSection('writing'));
+const jsonLd = {
+  ...jsonLdBase('CollectionPage', {
+    ...index,
+    language,
+    published: articles.at(-1)?.published,
+    updated: articles.map((a) => a.updated).sort().at(-1),
+  }),
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: articles.map((article, i) => ({ '@type': 'ListItem', position: i + 1, url: article.canonical, name: article.title })),
+  },
+};
+---
+<Base title={index.title} description={index.summary} canonical={index.canonical} language={language} twin={index.twin} translations={translations}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <header>
+    <h1>{index.title}</h1>
+    <p class="summary">{index.summary}</p>
+  </header>
+  {articles.length > 0 ? (
+    <ol class="piece-list" reversed>
+      {articles.map(({ path, title, summary, published, featured }) => (
+        <li>
+          <article>
+            <h2><a href={path}>{title}</a></h2>
+            <p class="piece-meta">
+              <Day date={published} />
+              {featured && <span>{ui.featured}</span>}
+            </p>
+            <p>{summary}</p>
+          </article>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p>{ui.noArticles}</p>
+  )}
+  {series.length > 0 && (
+    <section class="series-list" aria-labelledby="series-heading">
+      <h2 id="series-heading">{ui.series}</h2>
+      <ul class="piece-list">
+        {series.map(({ path, title, summary, status, parts }) => (
+          <li>
+            <h3><a href={path}>{title}</a></h3>
+            <p class="piece-meta">
+              <span>{ui.seriesStatus[status]}</span>
+              <span>{ui.parts(parts)}</span>
+            </p>
+            <p>{summary}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Base>

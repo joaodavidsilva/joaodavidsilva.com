@@ -1,5 +1,6 @@
 ---
 import Day from './Day.astro';
+import { uiAt } from '../lib/ui';
 
 interface Props {
   articles: { title: string; path: string; published: string }[];
@@ -7,10 +8,11 @@ interface Props {
 
 // The Articles that cite a Study: from evidence to interpretation.
 const { articles } = Astro.props;
+const ui = uiAt(Astro.url);
 ---
 {articles.length > 0 && (
   <section class="discussed-in" id="discussed-in" aria-labelledby="discussed-in-heading">
-    <h2 id="discussed-in-heading">Discussed in</h2>
+    <h2 id="discussed-in-heading">{ui.discussedIn}</h2>
     <ul>
       {articles.map(({ title, path, published }) => (
         <li><a href={path}>{title}</a>, <Day date={published} /></li>

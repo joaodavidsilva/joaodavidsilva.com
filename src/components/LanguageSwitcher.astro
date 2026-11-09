@@ -1,28 +1,28 @@
 ---
-import type { Translations } from '../lib/translations';
+import type { Language, Translations } from '../lib/translations';
+import { uiOf } from '../lib/ui';
 import '../styles/translations.css';
 
 interface Props {
   translations: Translations;
   /** The language of the current page. */
-  language: string;
+  language: Language;
 }
 
 // Offers only the languages the page exists in; shown only when there is more than one.
 const { translations, language } = Astro.props;
-const label = language === 'pt' ? 'Idiomas' : 'Languages';
 ---
-{translations.versions.length > 1 && (
-  <nav class="language-switcher" aria-label={label}>
+{translations.alternates.length > 1 && (
+  <nav class="language-switcher" aria-label={uiOf(language).languages}>
     <ul>
-      {translations.versions.map((version) => (
+      {translations.alternates.map((alternate) => (
         <li>
           <a
-            href={version.path}
-            hreflang={version.language}
-            lang={version.language}
-            aria-current={version.language === language ? 'page' : undefined}
-          >{version.name}</a>
+            href={alternate.path}
+            hreflang={alternate.language}
+            lang={alternate.language}
+            aria-current={alternate.language === language ? 'page' : undefined}
+          >{alternate.name}</a>
         </li>
       ))}
     </ul>

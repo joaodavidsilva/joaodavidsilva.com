@@ -1,6 +1,6 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { cvPdf } from '../lib/cv';
-import { getRecord, type Record } from '../lib/record';
+import { getRecord, type ProfessionalRecord } from '../lib/record';
 
 // A dynamic route so the CV exists only when the content set has a record.
 export const getStaticPaths = (async () => {
@@ -9,6 +9,6 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 export const GET: APIRoute = async ({ props }) =>
-  new Response(await cvPdf((props as { record: Record }).record), {
+  new Response(await cvPdf((props as { record: ProfessionalRecord }).record), {
     headers: { 'Content-Type': 'application/pdf' },
   });

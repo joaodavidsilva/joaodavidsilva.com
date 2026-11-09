@@ -2,12 +2,14 @@
 import Base from './Base.astro';
 import Day from '../components/Day.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
+import type { Language, Translations } from '../lib/translations';
+import { uiOf } from '../lib/ui';
 
 interface Props {
   title: string;
   summary: string;
   canonical: string;
-  language: string;
+  language: Language;
   /** Path of the page's Markdown twin. */
   twin: string;
   /** YYYY-MM-DD */
@@ -17,15 +19,17 @@ interface Props {
   tags: string[];
   readingMinutes: number;
   jsonLd: object;
+  translations: Translations;
 }
 
 // The long-form layout for pieces read start to finish (Articles, Studies).
 // Slots: `header` adds to the header, the default slot is the body, `after`
 // holds end matter (attachments, corrections) and `discuss` sits beside
 // "Suggest a correction".
-const { title, summary, canonical, language, twin, published, updated, tags, readingMinutes, jsonLd } = Astro.props;
+const { title, summary, canonical, language, twin, published, updated, tags, readingMinutes, jsonLd, translations } = Astro.props;
+const ui = uiOf(language);
 ---
-<Base title={title} description={summary} canonical={canonical} language={language} twin={twin}>
+<Base title={title} description={summary} canonical={canonical} language={language} twin={twin} translations={translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <article class="long-form">
     <header class="long-form-header">
@@ -33,12 +37,12 @@ const { title, summary, canonical, language, twin, published, updated, tags, rea
       <h1>{title}</h1>
       <p class="summary">{summary}</p>
       <p class="byline">
-        <span>Published <Day date={published} /></span>
-        {updated !== published && <span>Updated <Day date={updated} /></span>}
-        <span>{readingMinutes} min read</span>
+        <span>{ui.published} <Day date={published} /></span>
+        {updated !== published && <span>{ui.updated} <Day date={updated} /></span>}
+        <span>{ui.minRead(readingMinutes)}</span>
       </p>
       {tags.length > 0 && (
-        <ul class="tags" aria-label="Tags">
+        <ul class="tags" aria-label={ui.tags}>
           {tags.map((tag) => <li>{tag}</li>)}
         </ul>
       )}

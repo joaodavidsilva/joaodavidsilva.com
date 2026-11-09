@@ -51,20 +51,24 @@ test('the build emits the CV in PDF and DOCX from the Professional record', asyn
       for (const expected of [
         'Fixture Person',
         'Engineering beyond implementation.',
-        'fixture@example.com',
+        'fixture@joaodavidsilva.com',
         'https://joaodavidsilva.com/',
-        'https://github.com/fixture',
+        'https://www.linkedin.com/in/fixture/',
         'Interests Fixture interest paragraph one. Fixture interest paragraph two.',
         'Approach to engineering Fixture approach paragraph.',
         'Staff Fixture Engineer, Fixture Corp, 2024-01 – present',
         'Junior Fixture Engineer, Old Corp, 2020-03 – 2023-12 Source: https://example.com/old-corp-team',
-        'Fixture App: An app that exists only in tests. Source: https://joaodavidsilva.com/hello/',
+        'Fixture App: An app that exists only in tests. Source: https://joaodavidsilva.com/projects/fixture-app/',
         'Fixture Testing Demonstrated in: https://joaodavidsilva.com/hello/, https://github.com/fixture/tests',
         'On fixtures Source: https://example.com/on-fixtures',
         'Fixed a bug in a fixture library. Source: https://github.com/fixture/lib/pull/1',
       ]) {
         assert.ok(text.includes(expected), `${format} missing "${expected}" in: ${text}`);
       }
+    });
+
+    await t.test(`the ${format.toUpperCase()} contact is limited to the email, the site and LinkedIn`, () => {
+      assert.doesNotMatch(text, /https:\/\/github\.com\/fixture(?![\/\w])/);
     });
 
     await t.test(`the ${format.toUpperCase()} labels attested Claims`, () => {

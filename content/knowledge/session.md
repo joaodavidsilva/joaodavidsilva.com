@@ -2,6 +2,7 @@
 kind: concept
 title: "Session"
 summary: "One bounded run of interaction with an agent; the session is what fills the context window."
+published: 2026-11-09
 category: "Context Engineering"
 tags: ["sessions", "context"]
 related: [agent, clearing, compaction, context-window, model, turn]

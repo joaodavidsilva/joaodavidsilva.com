@@ -1,35 +1,49 @@
 import { getImage } from 'astro:assets';
 import { getCollection, getEntries, type CollectionEntry } from 'astro:content';
-import { SITE_URL } from '../../site.config.mjs';
+import { LANGUAGES } from '../../site.config.mjs';
+import { listingDatesOf, metadataOf as sharedMetadataOf, type Metadata } from './metadata';
 import { getPages, pathOf as pagePathOf } from './pages';
-import { ORIGINAL_LANGUAGE } from './translations';
-import { lastUpdatedOf } from './git';
+import {
+  alternateAt, assertTranslations, inLanguage, locate, ORIGINAL_LANGUAGE, pathIn, translationsOf as translationsAmong,
+  type Language,
+} from './translations';
+import { uiOf, type Ui } from './ui';
 
 export type Project = CollectionEntry<'projects'>;
+type Status = Project['data']['status'];
 
 export const PROJECTS_PATH = '/projects/';
-export const PROJECTS_TWIN_PATH = '/projects.md';
-export const PROJECTS_TITLE = 'Projects';
-export const PROJECTS_SUMMARY = 'What João David Silva maintains over time, with the status and latest version of each.';
+
+/** Where the Project with id `id` is published, in English. */
+const projectPathOf = (id: string) => `${PROJECTS_PATH}${id}/`;
+
+/** The Projects index in `language`. */
+export function projectsIndexOf(language: Language) {
+  return { ...uiOf(language).projects, ...alternateAt(PROJECTS_PATH, language) };
+}
 
 /** The order Projects are listed in: what is alive first. */
-const STATUS_ORDER: Project['data']['status'][] = ['active', 'in development', 'paused', 'archived'];
+const STATUS_ORDER: Status[] = ['active', 'in development', 'paused', 'archived'];
 
-export const statusLabel = (status: Project['data']['status']) => status[0].toUpperCase() + status.slice(1);
+export const pathOf = (project: Project) => locate(project, projectPathOf).path;
+export const twinPathOf = (project: Project) => locate(project, projectPathOf).twin;
+export const canonicalOf = (project: Project) => locate(project, projectPathOf).canonical;
+export const translationsOf = (project: Project, projects: Project[]) => translationsAmong(project, projects, projectPathOf);
 
-export const pathOf = (project: Project) => `${PROJECTS_PATH}${project.id}/`;
-export const twinPathOf = (project: Project) => `${PROJECTS_PATH}${project.id}.md`;
-export const canonicalOf = (project: Project) => new URL(pathOf(project), SITE_URL).href;
-
-/** Every Project in listing order, after enforcing that no page claims the index or a Project page path. */
-export async function getProjects(): Promise<Project[]> {
+/**
+ * Every Project and Translation in listing order, after enforcing that no page claims an
+ * index or a Project page path.
+ */
+export async function getAllProjects(): Promise<Project[]> {
   const projects = await getCollection('projects');
-  const owned = new Set([PROJECTS_PATH, ...projects.map(pathOf)]);
+  assertTranslations(projects, { pathOf: projectPathOf, same: ['status', 'version', 'links', 'software', 'legal', 'waitlist'] });
+  const indexes = (Object.keys(LANGUAGES) as Language[]).map((language) => pathIn(PROJECTS_PATH, language));
+  const owned = new Set([...indexes, ...projects.map(pathOf)]);
   for (const page of await getPages()) {
     const path = pagePathOf(page);
     if (owned.has(path)) {
       throw new Error(
-        `${page.filePath}: path "${path}" belongs to ${path === PROJECTS_PATH ? 'the Projects index' : 'a Project page'}`,
+        `${page.filePath}: path "${path}" belongs to ${indexes.includes(path) ? 'the Projects index' : 'a Project page'}`,
       );
     }
   }
@@ -40,23 +54,32 @@ export async function getProjects(): Promise<Project[]> {
   );
 }
 
-/** The external links of a Project, labelled, in display order. */
-export function linksOf(project: Project): { label: string; url: string }[] {
+/** Every Project in `language`, in listing order. */
+export async function getProjects(language: Language = ORIGINAL_LANGUAGE): Promise<Project[]> {
+  return (await getAllProjects()).filter((project) => project.data.language === language);
+}
+
+/** The external links of a Project, labelled in `ui`'s language, in display order. */
+export function linksOf(project: Project, ui: Ui): { label: string; url: string }[] {
   const { site, repository, stores } = project.data.links;
   return [
-    ...(site ? [{ label: 'Website', url: site }] : []),
-    ...(repository ? [{ label: 'Source code', url: repository }] : []),
+    ...(site ? [{ label: ui.website, url: site }] : []),
+    ...(repository ? [{ label: ui.sourceCode, url: repository }] : []),
     ...stores.map(({ name, url }) => ({ label: name, url })),
   ];
 }
 
-/** The legal documents of a Project: pages that keep their own URLs. */
-export async function legalOf(project: Project): Promise<{ title: string; path: string }[]> {
-  const pages = await getEntries(project.data.legal);
-  return pages.map((page, i) => {
+/**
+ * The legal documents of a Project: pages that keep their own URLs, in the Project's language
+ * where translated and in English otherwise.
+ */
+export async function legalOf(project: Project): Promise<{ title: string; path: string; language: Language }[]> {
+  const [documents, pages] = await Promise.all([getEntries(project.data.legal), getPages()]);
+  return documents.map((page, i) => {
     if (!page) throw new Error(`${project.filePath}: legal document "${project.data.legal[i].id}" is not a page`);
     if (!page.data.legal) throw new Error(`${page.filePath}: a Project's legal document must set legal: true`);
-    return { title: page.data.title, path: pagePathOf(page) };
+    const document = inLanguage(page, project.data.language, pages) ?? page;
+    return { title: document.data.title, path: pagePathOf(document), language: document.data.language };
   });
 }
 
@@ -72,17 +95,12 @@ export async function figuresOf(project: Project) {
 
 /** The metadata shared by the JSON-LD and the Markdown twin front-matter. */
 export function metadataOf(project: Project) {
-  const { name, oneLine, status, version, published, tags } = project.data;
-  const publishedDay = published.toISOString().slice(0, 10);
-  return {
-    title: name,
-    summary: oneLine,
-    published: publishedDay,
-    updated: lastUpdatedOf(project.filePath!, publishedDay),
-    language: ORIGINAL_LANGUAGE,
-    tags,
-    canonical: canonicalOf(project),
-    status,
-    version,
-  };
+  const { name, oneLine, status, version } = project.data;
+  return { ...sharedMetadataOf(project, projectPathOf, { title: name, summary: oneLine }), status, version };
+}
+
+/** The Projects index's shared metadata, dated by the Projects it lists. */
+export function indexMetadataOf(language: Language, projects: Project[]): Metadata {
+  const { title, summary, canonical } = projectsIndexOf(language);
+  return { title, summary, ...listingDatesOf(projects.map(metadataOf)), language, tags: [], canonical };
 }

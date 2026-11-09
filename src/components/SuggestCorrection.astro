@@ -1,5 +1,6 @@
 ---
 import { REPO_URL } from '../../site.config.mjs';
+import { uiAt } from '../lib/ui';
 
 interface Props {
   title: string;
@@ -14,5 +15,5 @@ const href = `${REPO_URL}/issues/new?${params}`;
 ---
 <footer class="content-footer">
   <slot />
-  <p><a href={href}>Suggest a correction</a></p>
+  <p><a href={href}>{uiAt(Astro.url).suggestCorrection}</a></p>
 </footer>

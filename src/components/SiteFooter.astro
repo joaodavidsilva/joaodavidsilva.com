@@ -1,13 +1,23 @@
 ---
-import { FEED_PATH, REPO_URL } from '../../site.config.mjs';
+import { REPO_URL } from '../../site.config.mjs';
+import type { Language } from '../lib/translations';
+import { uiOf } from '../lib/ui';
 
+interface Props {
+  language: Language;
+  /** The feed in the page's language, or the English one. */
+  feed: string;
+}
+
+const { language, feed } = Astro.props;
+const ui = uiOf(language);
 const built = new Date();
 const builtDate = built.toISOString().slice(0, 10);
-const builtLabel = built.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const builtLabel = built.toLocaleDateString(ui.locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 ---
 <footer class="site-footer">
   <ul>
-    <li><a href={FEED_PATH}>RSS/Atom</a></li>
+    <li><a href={feed}>{ui.feed}</a></li>
     <li><a href="/llms.txt">llms.txt</a></li>
     <li><a href="https://github.com/joaodavidsilva" rel="me">GitHub</a></li>
     <li><a href="https://www.linkedin.com/in/joaodavidsilvaa/" rel="me">LinkedIn</a></li>
@@ -15,8 +25,8 @@ const builtLabel = built.toLocaleDateString('en-GB', { day: 'numeric', month: 'l
     <li><a href="mailto:me@joaodavidsilva.com">me@joaodavidsilva.com</a></li>
   </ul>
   <p>
-    Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>,
-    code under the <a href={`${REPO_URL}/blob/main/LICENSE`}>MIT licence</a>.
-    Built <time datetime={builtDate}>{builtLabel}</time>.
+    {ui.licence.content} <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>,
+    {ui.licence.code} <a href={`${REPO_URL}/blob/main/LICENSE`}>{ui.licence.mit}</a>.
+    {ui.licence.built} <time datetime={builtDate}>{builtLabel}</time>.
   </p>
 </footer>

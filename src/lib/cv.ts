@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import PDFDocument from 'pdfkit';
 import { Document, ExternalHyperlink, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
-import { ABOUT_PATH, absoluteUrl, hrefOf, paragraphsOf, periodOf, type Record, type Source } from './record';
+import { ABOUT_PATH, absoluteUrl, hrefOf, paragraphsOf, periodOf, type ProfessionalRecord, type Source } from './record';
 
 // The CV: one document from the full Professional record, never tailored. The PDF and the
 // DOCX render the same model, so they carry the same prose and Claims as the About page.
@@ -29,11 +29,14 @@ interface Section {
 interface Cv {
   name: string;
   headline: string;
-  /** Contact lines: email and site, then profiles elsewhere. */
+  /** Contact lines: the domain email and the site, then LinkedIn. */
   contact: Span[][];
   sections: Section[];
   colophon: string;
 }
+
+// The CV's contact data is limited to the domain email, the site and LinkedIn; other profiles stay on the About page.
+const isLinkedIn = (url: string) => /(^|\.)linkedin\.com$/.test(new URL(url).hostname);
 
 const link = (href: string): Span => ({ text: absoluteUrl(href), url: absoluteUrl(href) });
 
@@ -43,7 +46,7 @@ const sourced = (text: string, source: Source): Entry =>
     ? { text, label: 'Attested', evidence: [{ text: source.attested }] }
     : { text, label: 'Source', evidence: [link(hrefOf(source))] };
 
-function cvOf(record: Record): Cv {
+function cvOf(record: ProfessionalRecord): Cv {
   const prose = (title: string, text: string | undefined) => ({ title, paragraphs: paragraphsOf(text), entries: [] });
   const claims = (title: string, entries: Entry[]) => ({ title, paragraphs: [], entries });
   const sections: Section[] = [
@@ -68,7 +71,7 @@ function cvOf(record: Record): Cv {
     headline: record.headline,
     contact: [
       [...(record.email ? [{ text: record.email, url: `mailto:${record.email}` }] : []), { text: record.url, url: record.url }],
-      record.sameAs.map((url) => ({ text: url, url })),
+      record.sameAs.filter(isLinkedIn).map((url) => ({ text: url, url })),
     ].filter((line) => line.length),
     sections,
     colophon:
@@ -90,7 +93,7 @@ const INK = '#1a1a1a';
 const MUTED = '#555555';
 
 /** The CV as a PDF. */
-export function cvPdf(record: Record): Promise<Uint8Array> {
+export function cvPdf(record: ProfessionalRecord): Promise<Uint8Array> {
   const cv = cvOf(record);
   const doc = new PDFDocument({
     size: 'A4',
@@ -163,7 +166,7 @@ const docxRuns = (spans: Span[], options: { size: number; italics?: boolean; col
   });
 
 /** The CV as a DOCX. */
-export async function cvDocx(record: Record): Promise<Uint8Array> {
+export async function cvDocx(record: ProfessionalRecord): Promise<Uint8Array> {
   const cv = cvOf(record);
   const children = [
     new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun(cv.name)] }),

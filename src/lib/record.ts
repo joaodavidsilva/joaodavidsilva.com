@@ -1,19 +1,30 @@
 import { getCollection } from 'astro:content';
 import { SITE_URL } from '../../site.config.mjs';
-import { getPages, pathOf } from './pages';
-import type { Record, Source } from './record-schema';
+import * as articles from './articles';
+import { lastCommitDayOf } from './git';
+import { getAllKnowledge, pathOf as knowledgePathOf, tagPathOf, tagsOf } from './knowledge';
+import { getAllNow, NOW_PATH } from './now';
+import { getPages, pathOf as pagePathOf } from './pages';
+import * as projects from './projects';
+import { getAllSeries, pathOf as seriesPathOf } from './series';
+import * as studies from './studies';
+import type { ProfessionalRecord, Source } from './record-schema';
+import {
+  assertTranslations, languagesOf, ORIGINAL_LANGUAGE, pathIn, translationsOf as translationsAmong, type Language, type Translatable,
+} from './translations';
+import { uiOf, type Ui } from './ui';
 
-export type { Record, Source };
+export type { ProfessionalRecord, Source };
 
 export const ABOUT_PATH = '/about/';
-export const ABOUT_TITLE = 'About';
+const aboutPathOf = () => ABOUT_PATH;
 
 /** Where the CV is published, by format; generated from the record at build time. */
 export const CV_PATHS = { pdf: '/cv.pdf', docx: '/cv.docx' } as const;
 export type CvFormat = keyof typeof CV_PATHS;
 
 /** The file name a downloaded CV is saved under, e.g. `joao-david-silva-cv.pdf`. */
-export function cvFileName(record: Record, format: CvFormat): string {
+export function cvFileName(record: ProfessionalRecord, format: CvFormat): string {
   const slug = record.name
     .normalize('NFD')
     .replace(/\p{Mn}/gu, '')
@@ -23,12 +34,59 @@ export function cvFileName(record: Record, format: CvFormat): string {
   return `${slug}-cv.${format}`;
 }
 
-/** The Professional record, or undefined when the content set has none. Internal sources must resolve. */
-export async function getRecord(): Promise<Record | undefined> {
-  const [entry] = await getCollection('record');
-  if (!entry) return undefined;
-  const record = entry.data as Record;
-  const paths = new Set([...(await getPages()).map(pathOf), ABOUT_PATH]);
+/** The record entry and its Translations (`<language>/record`), whose internal sources must resolve. */
+async function getEntries(): Promise<(Translatable & { data: ProfessionalRecord })[]> {
+  const entries = (await getCollection('record')) as (Translatable & { data: ProfessionalRecord })[];
+  assertTranslations(entries, { pathOf: aboutPathOf });
+  const paths = await publishedPaths(entries);
+  for (const { data } of entries) assertSources(data, paths);
+  return entries;
+}
+
+/** Every page path the site publishes, in every language: what a Claim's `page` source may point at. */
+async function publishedPaths(records: Translatable[]): Promise<Set<string>> {
+  const [pages, allArticles, allSeries, allStudies, allProjects, knowledge, now] = await Promise.all([
+    getPages(), articles.getAllArticles(), getAllSeries(), studies.getAllStudies(), projects.getAllProjects(),
+    getAllKnowledge(), getAllNow(),
+  ]);
+  const entries = knowledge.map(({ entry }) => entry);
+  const at = (path: string, among: Translatable[]) => languagesOf(among).map((language) => pathIn(path, language));
+  return new Set([
+    ...pages.map(pagePathOf),
+    ...allArticles.map(articles.pathOf),
+    ...allSeries.map(seriesPathOf),
+    ...allStudies.map(studies.pathOf),
+    ...allProjects.map(projects.pathOf),
+    ...knowledge.map(({ entry }) => knowledgePathOf(entry)),
+    ...languagesOf(entries).flatMap((language) =>
+      tagsOf(knowledge.filter(({ entry }) => entry.data.language === language)).map((tag) => tagPathOf(tag, language)),
+    ),
+    ...at('/writing/', [...allArticles, ...allSeries.map(({ entry }) => entry)]),
+    ...at('/research/', allStudies),
+    ...at(projects.PROJECTS_PATH, allProjects),
+    ...at('/knowledge/', entries),
+    ...at(NOW_PATH, now),
+    ...at(ABOUT_PATH, records),
+  ]);
+}
+
+/** The Professional record in `language`, or undefined when the content set has none. */
+export async function getRecord(language: Language = ORIGINAL_LANGUAGE): Promise<ProfessionalRecord | undefined> {
+  return (await getEntries()).find((entry) => entry.data.language === language)?.data;
+}
+
+/** Every Professional record (the Original and its Translations) with its Translations, for the About pages. */
+export async function getAllRecords() {
+  const entries = await getEntries();
+  return entries.map((entry) => ({
+    record: entry.data,
+    translations: translationsAmong(entry, entries, aboutPathOf),
+    /** YYYY-MM-DD of the last commit touching the record file, if it has one. */
+    updated: entry.filePath && lastCommitDayOf(entry.filePath),
+  }));
+}
+
+function assertSources(record: ProfessionalRecord, paths: Set<string>) {
   const refs: { page?: string }[] = [
     ...record.roles, ...record.projects, ...record.achievements, ...record.publications, ...record.contributions,
   ].map((claim) => claim.source);
@@ -38,13 +96,12 @@ export async function getRecord(): Promise<Record | undefined> {
       throw new Error(`record.yaml: source page "${ref.page}" does not exist on the site`);
     }
   }
-  return record;
 }
 
-export const currentRoles = (record: Record) => record.roles.filter((role) => !role.end);
+export const currentRoles = (record: ProfessionalRecord) => record.roles.filter((role) => !role.end);
 
 /** Person JSON-LD, generated from the record alone. */
-export function personOf(record: Record) {
+export function personOf(record: ProfessionalRecord) {
   const [current] = currentRoles(record);
   return {
     '@context': 'https://schema.org',
@@ -73,32 +130,33 @@ export function hrefOf(source: { page: string } | { url: string }): string {
 
 export const absoluteUrl = (href: string) => new URL(href, SITE_URL).href;
 
-function sourceMd(source: Source): string {
-  return 'attested' in source ? `(Attested: ${source.attested})` : `([source](${absoluteUrl(hrefOf(source))}))`;
-}
-
-export const periodOf = (role: Record['roles'][number]) => `${role.start} – ${role.end ?? 'present'}`;
+export const periodOf = (role: ProfessionalRecord['roles'][number], ui: Ui = uiOf(ORIGINAL_LANGUAGE)) =>
+  `${role.start} – ${role.end ?? ui.record.present}`;
 
 /** The About page as Markdown, from the same record as the HTML. */
-export function aboutMarkdown(record: Record): string {
-  const cv = `Download the CV: [PDF](${absoluteUrl(CV_PATHS.pdf)}), [DOCX](${absoluteUrl(CV_PATHS.docx)})`;
-  const out = [`# ${ABOUT_TITLE}`, '', `${record.name}. ${record.headline}`, '', cv, ''];
+export function aboutMarkdown(record: ProfessionalRecord): string {
+  const ui = uiOf(record.language);
+  const words = ui.record;
+  const sourceMd = (source: Source) =>
+    'attested' in source ? `(${words.attested}: ${source.attested})` : `([${words.source}](${absoluteUrl(hrefOf(source))}))`;
+  const cv = `${words.downloadCv} [PDF](${absoluteUrl(CV_PATHS.pdf)}), [DOCX](${absoluteUrl(CV_PATHS.docx)})`;
+  const out = [`${record.name}. ${record.headline}`, '', cv, ''];
   const section = (title: string, lines: string[]) => {
     if (lines.length) out.push(`## ${title}`, '', ...lines, '');
   };
-  section('Interests', paragraphsOf(record.interests).flatMap((p, i) => (i ? ['', p] : [p])));
-  section('Approach to engineering', paragraphsOf(record.approach).flatMap((p, i) => (i ? ['', p] : [p])));
-  section('Roles', record.roles.map((r) => `- ${r.title}, ${r.organisation}, ${periodOf(r)}. ${sourceMd(r.source)}`));
-  section('Projects', record.projects.map((p) => `- ${p.name}: ${p.summary} ${sourceMd(p.source)}`));
+  section(words.interests, paragraphsOf(record.interests).flatMap((p, i) => (i ? ['', p] : [p])));
+  section(words.approach, paragraphsOf(record.approach).flatMap((p, i) => (i ? ['', p] : [p])));
+  section(words.roles, record.roles.map((r) => `- ${r.title}, ${r.organisation}, ${periodOf(r, ui)}. ${sourceMd(r.source)}`));
+  section(words.projects, record.projects.map((p) => `- ${p.name}: ${p.summary} ${sourceMd(p.source)}`));
   section(
-    'Skills',
+    words.skills,
     record.skills.map(
-      (s) => `- ${s.name}, demonstrated in: ${s.demonstrated.map((d) => `<${absoluteUrl(hrefOf(d))}>`).join(', ')}`,
+      (s) => `- ${s.name}, ${words.demonstratedIn} ${s.demonstrated.map((d) => `<${absoluteUrl(hrefOf(d))}>`).join(', ')}`,
     ),
   );
-  section('Achievements', record.achievements.map((a) => `- ${a.text} ${sourceMd(a.source)}`));
-  section('Publications', record.publications.map((p) => `- ${p.title} ${sourceMd(p.source)}`));
-  section('Open-source contributions', record.contributions.map((c) => `- ${c.text} ${sourceMd(c.source)}`));
-  if (record.sameAs.length) section('Elsewhere', record.sameAs.map((url) => `- <${url}>`));
-  return out.join('\n');
+  section(words.achievements, record.achievements.map((a) => `- ${a.text} ${sourceMd(a.source)}`));
+  section(words.publications, record.publications.map((p) => `- ${p.title} ${sourceMd(p.source)}`));
+  section(words.contributions, record.contributions.map((c) => `- ${c.text} ${sourceMd(c.source)}`));
+  if (record.sameAs.length) section(words.elsewhere, record.sameAs.map((url) => `- <${url}>`));
+  return out.join('\n').trimEnd();
 }

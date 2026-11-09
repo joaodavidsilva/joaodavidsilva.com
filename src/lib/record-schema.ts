@@ -1,4 +1,6 @@
 import { z } from 'astro/zod';
+import { SITE_URL } from '../../site.config.mjs';
+import { translatable } from './translations';
 
 // Free text in the record. Phone numbers never belong in the public repository.
 const text = z
@@ -21,14 +23,19 @@ const demonstration = z.union([
   z.strictObject({ url: z.url() }),
 ]);
 
+// The CV publishes the email, so it must be on the site's own domain, never a personal mailbox.
+const domain = new URL(SITE_URL).hostname;
+const domainEmail = z.email().refine((email) => email.endsWith(`@${domain}`), { message: `must be an address @${domain}` });
+
 const month = z.string().regex(/^\d{4}-\d{2}$/, 'a month like 2024-01');
 
 // Strict objects: unknown fields (phone, address, …) fail the build.
 export const recordSchema = z.strictObject({
+  ...translatable,
   name: text,
   headline: text,
   url: z.url(),
-  email: z.email().optional(),
+  email: domainEmail.optional(),
   // João's own prose: opinions, not Claims, so they carry no source. Blank lines separate paragraphs.
   interests: text.optional(),
   approach: text.optional(),
@@ -57,4 +64,4 @@ export const recordSchema = z.strictObject({
 });
 
 export type Source = z.infer<typeof source>;
-export type Record = z.infer<typeof recordSchema>;
+export type ProfessionalRecord = z.infer<typeof recordSchema>;

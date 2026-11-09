@@ -22,6 +22,12 @@ test('the site privacy notice is published', async (t) => {
     assert.match(md, /privacy@joaodavidsilva\.com/);
   });
 
+  await t.test('names the theme choice kept in local storage', () => {
+    const md = site.read('privacy.md');
+    assert.doesNotMatch(md, /stores nothing on your device/);
+    assert.match(md, /theme[^.]*local storage|local storage[^.]*theme/i);
+  });
+
   await t.test('names the Lozza Waitlist, Turnstile and storage on Cloudflare', () => {
     const md = site.read('privacy.md');
     const waitlist = md.match(/\n## [^\n]*Waitlist[^\n]*\n(.*?)(?=\n## |$)/s)?.[1];

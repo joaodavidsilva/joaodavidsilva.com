@@ -2,6 +2,7 @@
 kind: concept
 title: "Agent"
 summary: "A model harnessed with tools, a system prompt and a context window that takes turns with a user: the unit you actually talk to."
+published: 2026-11-09
 category: "AI Engineering"
 tags: ["agents", "fundamentals"]
 related: [model, harness, tool, context-window, turn]

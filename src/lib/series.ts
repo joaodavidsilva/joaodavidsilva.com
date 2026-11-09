@@ -1,52 +1,62 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { SITE_URL } from '../../site.config.mjs';
 import * as articles from './articles';
 import { lastUpdatedOf } from './git';
+import { day } from './metadata';
+import {
+  assertTranslations, inLanguage, isTranslation, languagesOf, locate, originalIdOf, ORIGINAL_LANGUAGE,
+  translationsOf as translationsAmong, type Language, type Translations,
+} from './translations';
 
 type Article = articles.Article;
 type Entry = CollectionEntry<'series'>;
 
-/** A Series and its parts, in order: `parts[i]` is part `i + 1`. */
+/**
+ * A Series in one language and its parts, in order: `parts[i]` is part `i + 1`, in the
+ * Series' language where that Translation exists and its English Original otherwise.
+ */
 export interface Series {
   entry: Entry;
   parts: Article[];
+  translations: Translations;
 }
 
 /** An Article's place in its Series, as shown on the page, in its twin and in JSON-LD. */
 export interface Position {
-  series: { title: string; path: string; twin: string; canonical: string };
+  series: Link & { canonical: string };
   part: number;
   of: number;
   previous?: Link;
   next?: Link;
 }
 
-interface Link {
+/** A link to a Series or a part, in the reader's language or, without that Translation, in English. */
+export interface Link {
   title: string;
   path: string;
   twin: string;
+  language: Language;
 }
 
-const day = (date: Date) => date.toISOString().slice(0, 10);
+/** Where the Series with id `id` is published, in English. */
+const seriesPathOf = (id: string) => `/writing/series/${id}/`;
 
-/** How a Series' status reads on its page and in its twin. */
-export const STATUS_LABELS = { ongoing: 'Ongoing', complete: 'Complete' } as const;
-
-export const pathOf = (series: Series) => `/writing/series/${series.entry.id}/`;
-export const twinPathOf = (series: Series) => `/writing/series/${series.entry.id}.md`;
-export const canonicalOf = (series: Series) => new URL(pathOf(series), SITE_URL).href;
+export const pathOf = (series: Series) => locate(series.entry, seriesPathOf).path;
+export const twinPathOf = (series: Series) => locate(series.entry, seriesPathOf).twin;
+export const canonicalOf = (series: Series) => locate(series.entry, seriesPathOf).canonical;
 
 /**
- * Every Series, newest first, with its parts in order. The build fails when two
- * Articles claim the same part of a Series or when a part is missing, so
- * "Part N of M" always counts parts 1 to M.
+ * Every Series in `language`, newest first, with its parts in order; a Series without a
+ * Translation in `language` stands in as its English Original. The build fails when two
+ * Articles claim the same part of a Series or when a part is missing, so "Part N of M"
+ * always counts parts 1 to M.
  */
-export async function getSeries(): Promise<Series[]> {
-  const [entries, allArticles] = await Promise.all([getCollection('series'), articles.getArticles()]);
-  const byId = new Map(entries.map((entry) => [entry.id, { entry, parts: [] as Article[] }]));
+export async function getSeries(language: Language = ORIGINAL_LANGUAGE): Promise<Series[]> {
+  const [entries, allArticles] = await Promise.all([getCollection('series'), articles.getAllArticles()]);
+  assertTranslations(entries, { pathOf: seriesPathOf, same: ['status'] });
+  const byId = new Map(entries.filter((entry) => !isTranslation(entry)).map((entry) => [entry.id, { entry, parts: [] as Article[] }]));
   for (const article of allArticles) {
     const { series } = article.data;
-    if (!series) continue;
+    if (!series || isTranslation(article)) continue;
     const owner = byId.get(series.id);
     if (!owner) throw new Error(`${article.filePath}: Series "${series.id}" does not exist`);
     owner.parts.push(article);
@@ -62,9 +72,23 @@ export async function getSeries(): Promise<Series[]> {
     const gap = parts.findIndex((article, i) => article.data.part !== i + 1);
     if (gap !== -1) throw new Error(`Series "${entry.id}": part ${gap + 1} is missing`);
   }
-  return [...byId.values()].sort(
-    (a, b) => b.entry.data.published.getTime() - a.entry.data.published.getTime() || a.entry.id.localeCompare(b.entry.id),
-  );
+  return [...byId.values()]
+    .sort((a, b) => b.entry.data.published.getTime() - a.entry.data.published.getTime() || a.entry.id.localeCompare(b.entry.id))
+    .map(({ entry, parts }) => {
+      const version = inLanguage(entry, language, entries) ?? entry;
+      return {
+        entry: version,
+        parts: parts.map((part) => inLanguage(part, language, allArticles) ?? part),
+        translations: translationsAmong(version, entries, seriesPathOf),
+      };
+    });
+}
+
+/** Every Series and Translation, each with its parts in its language. */
+export async function getAllSeries(): Promise<Series[]> {
+  const languages = languagesOf(await getCollection('series'));
+  const all = await Promise.all(languages.map(getSeries));
+  return all.flatMap((series, i) => series.filter(({ entry }) => entry.data.language === languages[i]));
 }
 
 /** The metadata shared by the Series page, its JSON-LD and its Markdown twin. */
@@ -96,19 +120,25 @@ export const partsOf = (series: Series) =>
   }));
 
 const linkOf = (article: Article | undefined): Link | undefined =>
-  article && { title: article.data.title, path: articles.pathOf(article), twin: articles.twinPathOf(article) };
+  article && {
+    title: article.data.title,
+    path: articles.pathOf(article),
+    twin: articles.twinPathOf(article),
+    language: article.data.language,
+  };
 
-/** Where `article` sits in its Series, if it is a part of one. */
+/** Where `article` sits in its Series, if it is a part of one; `allSeries` are the Series in the Article's language. */
 export function positionOf(article: Article, allSeries: Series[]): Position | undefined {
-  const series = allSeries.find(({ entry }) => entry.id === article.data.series?.id);
+  const series = allSeries.find(({ entry }) => originalIdOf(entry) === article.data.series?.id);
   if (!series) return undefined;
-  const i = series.parts.findIndex(({ id }) => id === article.id);
+  const i = series.parts.findIndex((part) => originalIdOf(part) === originalIdOf(article));
   return {
     series: {
       title: series.entry.data.title,
       path: pathOf(series),
       twin: twinPathOf(series),
       canonical: canonicalOf(series),
+      language: series.entry.data.language,
     },
     part: i + 1,
     of: series.parts.length,

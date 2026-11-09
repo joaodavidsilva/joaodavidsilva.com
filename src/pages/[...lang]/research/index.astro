@@ -1,0 +1,55 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Day from '../../../components/Day.astro';
+import { jsonLdBase } from '../../../lib/metadata';
+import { languageParams, languagesOfSection } from '../../../lib/sections';
+import { getStudies, metadataOf, pathOf, researchIndexOf } from '../../../lib/studies';
+import { generatedTranslations, type Language } from '../../../lib/translations';
+import { uiOf } from '../../../lib/ui';
+
+export const getStaticPaths = () => languageParams('research');
+
+const { language } = Astro.props as { language: Language };
+const ui = uiOf(language);
+const index = researchIndexOf(language);
+const studies = (await getStudies(language)).map((study) => ({ path: pathOf(study), ...metadataOf(study) }));
+const translations = generatedTranslations('/research/', await languagesOfSection('research'));
+const jsonLd = {
+  ...jsonLdBase('CollectionPage', {
+    ...index,
+    language,
+    published: studies.at(-1)?.published,
+    updated: studies.map((s) => s.updated).sort().at(-1),
+  }),
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: studies.map((study, i) => ({ '@type': 'ListItem', position: i + 1, url: study.canonical, name: study.title })),
+  },
+};
+---
+<Base title={index.title} description={index.summary} canonical={index.canonical} language={language} twin={index.twin} translations={translations}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <header>
+    <h1>{index.title}</h1>
+    <p class="summary">{index.summary}</p>
+  </header>
+  {studies.length > 0 ? (
+    <ol class="piece-list" reversed>
+      {studies.map(({ path, title, summary, published, status, featured }) => (
+        <li>
+          <article>
+            <h2><a href={path}>{title}</a></h2>
+            <p class="piece-meta">
+              <Day date={published} />
+              <span class="status" data-status={status}>{ui.studyStatus[status]}</span>
+              {featured && <span>{ui.featured}</span>}
+            </p>
+            <p>{summary}</p>
+          </article>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p>{ui.noStudies}</p>
+  )}
+</Base>

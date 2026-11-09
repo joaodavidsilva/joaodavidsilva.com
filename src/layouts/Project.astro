@@ -4,52 +4,39 @@ import Base from './Base.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
 import WaitlistForm from '../components/WaitlistForm.astro';
 import { SITE_URL } from '../../site.config.mjs';
-import {
-  figuresOf,
-  legalOf,
-  linksOf,
-  metadataOf,
-  statusLabel,
-  twinPathOf,
-  type Project,
-} from '../lib/projects';
+import { jsonLdBase } from '../lib/metadata';
+import { figuresOf, legalOf, linksOf, metadataOf, twinPathOf, type Project } from '../lib/projects';
+import { translationJsonLd, type Translations } from '../lib/translations';
+import { uiOf } from '../lib/ui';
 import '../styles/projects.css';
 
 interface Props {
   project: Project;
+  translations: Translations;
 }
 
-const { project } = Astro.props;
+const { project, translations } = Astro.props;
 const meta = metadataOf(project);
-const links = linksOf(project);
+const ui = uiOf(meta.language);
+const links = linksOf(project, ui);
 const legal = await legalOf(project);
 const figures = await figuresOf(project);
 const { software } = project.data;
 const { Content } = await render(project);
 
-const page = {
-  '@context': 'https://schema.org',
-  name: meta.title,
-  headline: meta.title,
-  description: meta.summary,
-  datePublished: meta.published,
-  dateModified: meta.updated,
-  inLanguage: meta.language,
-  keywords: meta.tags,
-  url: meta.canonical,
-};
 // An application is described as one; any other Project as the page about it.
-const jsonLd = software
-  ? {
-      ...page,
-      '@type': 'SoftwareApplication',
-      applicationCategory: software.category,
-      operatingSystem: software.operatingSystems.join(', '),
-      softwareVersion: meta.version,
-      sameAs: links.map((link) => link.url),
-      screenshot: figures.map((figure) => new URL(figure.src, SITE_URL).href),
-    }
-  : { ...page, '@type': 'WebPage' };
+const type = software ? 'SoftwareApplication' : 'WebPage';
+const jsonLd = {
+  ...jsonLdBase(type, meta),
+  ...(software && {
+    applicationCategory: software.category,
+    operatingSystem: software.operatingSystems.join(', '),
+    softwareVersion: meta.version,
+    sameAs: links.map((link) => link.url),
+    screenshot: figures.map((figure) => new URL(figure.src, SITE_URL).href),
+  }),
+  ...translationJsonLd(translations, type),
+};
 ---
 <Base
   title={meta.title}
@@ -57,6 +44,7 @@ const jsonLd = software
   canonical={meta.canonical}
   language={meta.language}
   twin={twinPathOf(project)}
+  translations={translations}
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <article class="project">
@@ -64,11 +52,11 @@ const jsonLd = software
       <h1>{meta.title}</h1>
       <p>{meta.summary}</p>
       <dl class="project-facts">
-        <div><dt>Status</dt> <dd>{statusLabel(meta.status)}</dd></div>
-        {meta.version && <div><dt>Version</dt> <dd>{meta.version}</dd></div>}
+        <div><dt>{ui.status}</dt> <dd>{ui.projectStatus[meta.status]}</dd></div>
+        {meta.version && <div><dt>{ui.version}</dt> <dd>{meta.version}</dd></div>}
       </dl>
       {links.length > 0 && (
-        <ul class="project-links" aria-label="Links">
+        <ul class="project-links" aria-label={ui.links}>
           {links.map((link) => <li><a href={link.url}>{link.label}</a></li>)}
         </ul>
       )}
@@ -83,9 +71,13 @@ const jsonLd = software
     {project.data.waitlist && <WaitlistForm source={project.data.waitlist} />}
     {legal.length > 0 && (
       <section aria-labelledby="legal-documents">
-        <h2 id="legal-documents">Legal documents</h2>
+        <h2 id="legal-documents">{ui.legalDocuments}</h2>
         <ul>
-          {legal.map((doc) => <li><a href={doc.path}>{doc.title}</a></li>)}
+          {legal.map((doc) => (
+            <li>
+              <a href={doc.path} hreflang={doc.language === meta.language ? undefined : doc.language}>{doc.title}</a>{doc.language !== meta.language && ` ${ui.inEnglish}`}
+            </li>
+          ))}
         </ul>
       </section>
     )}

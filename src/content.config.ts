@@ -4,61 +4,54 @@ import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { KNOWLEDGE_CATEGORIES, LANGUAGES, WAITLISTS } from '../site.config.mjs';
 import { recordSchema } from './lib/record-schema';
+import { translatable, withTranslations } from './lib/translations';
 
-type Language = keyof typeof LANGUAGES;
-
-/**
- * Front-matter every translatable entry carries (ADR-0005). A Translation lives under
- * `/<language>/` at its Original's path and records `translatedFrom`, the hash of the
- * Original's revision it was made from (`pnpm translation:hash <original.md>`), quoted.
- * `legal` marks an Original whose Translations must never be outdated.
- */
-const translatable = {
-  language: z.enum(Object.keys(LANGUAGES) as [Language, ...Language[]]).default('en'),
-  translatedFrom: z.string().regex(/^[0-9a-f]{12}$/).optional(),
-  legal: z.boolean().default(false),
-};
+// Every collection is translatable (ADR-0005): a Translation is a file at its Original's path
+// under `<language>/` in the same collection, with `translatable` front-matter.
 
 // JDS_CONTENT_DIR lets the fixture build tests swap in their own content set.
 const contentDir = process.env.JDS_CONTENT_DIR ?? './content';
 
+// Collections are strict: an unknown or misspelt front-matter field fails the build.
 const pages = defineCollection({
   loader: glob({ pattern: '**/*.md', base: `${contentDir}/pages` }),
-  schema: z.object({
+  schema: z.strictObject({
     title: z.string().min(1),
     summary: z.string().min(1),
     published: z.coerce.date(),
     ...translatable,
+    // A legal document: its Translations must never be outdated.
+    legal: z.boolean().default(false),
     tags: z.array(z.string()).default([]),
   }),
 });
 
 // A Project: something João maintains over time. `content/projects/<slug>.md` is `/projects/<slug>/`.
-// Projects are Originals; they have no Translations yet.
 const projects = defineCollection({
-  loader: glob({ pattern: '*.md', base: `${contentDir}/projects` }),
+  loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/projects` }),
   schema: ({ image }) =>
-    z.object({
+    z.strictObject({
       name: z.string().min(1),
       oneLine: z.string().min(1),
       status: z.enum(['active', 'in development', 'paused', 'archived']),
       version: z.string().min(1).optional(),
       published: z.coerce.date(),
+      ...translatable,
       tags: z.array(z.string()).default([]),
       links: z
-        .object({
+        .strictObject({
           site: z.url().optional(),
           repository: z.url().optional(),
-          stores: z.array(z.object({ name: z.string().min(1), url: z.url() })).default([]),
+          stores: z.array(z.strictObject({ name: z.string().min(1), url: z.url() })).default([]),
         })
         .default({ stores: [] }),
       // Present when the Project is an application: its page then carries SoftwareApplication JSON-LD.
       software: z
-        .object({ category: z.string().min(1), operatingSystems: z.array(z.string().min(1)).min(1) })
+        .strictObject({ category: z.string().min(1), operatingSystems: z.array(z.string().min(1)).min(1) })
         .optional(),
       // Screenshots or diagrams, shown on the Project page and linked from its twin.
       figures: z
-        .array(z.object({ src: image(), alt: z.string().min(1), caption: z.string().min(1).optional() }))
+        .array(z.strictObject({ src: image(), alt: z.string().min(1), caption: z.string().min(1).optional() }))
         .default([]),
       // Legal documents are pages, so they keep their own URLs.
       legal: z.array(reference('pages')).default([]),
@@ -68,15 +61,16 @@ const projects = defineCollection({
 });
 
 const knowledge = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: `${contentDir}/knowledge` }),
+  loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/knowledge` }),
   schema: z
-    .object({
+    .strictObject({
       kind: z.enum(['concept', 'guide']),
       title: z.string().min(1),
       summary: z.string().min(1),
+      published: z.coerce.date(),
       category: z.enum(KNOWLEDGE_CATEGORIES as [string, ...string[]]),
       tags: z.array(z.string()).default([]),
-      language: z.enum(['en', 'pt']).default('en'),
+      ...translatable,
       /** Ids of related entries (Concept cross-references). */
       related: z.array(z.string()).default([]),
       /** Name of the Skill in the skills repo that applies this Guide. */
@@ -97,12 +91,12 @@ const postOn = (network: string, hosts: string[]) =>
 // A Series: `series/<slug>.md`, published at `/writing/series/<slug>/`. Its body is the
 // introduction; its parts are the Articles that name it in `series`, ordered by `part`.
 const series = defineCollection({
-  loader: glob({ pattern: '*.md', base: `${contentDir}/series` }),
+  loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/series` }),
   schema: z.strictObject({
     title: z.string().min(1),
     summary: z.string().min(1),
     published: z.coerce.date(),
-    language: z.literal('en').default('en'),
+    ...translatable,
     status: z.enum(['ongoing', 'complete']),
   }),
 });
@@ -110,14 +104,14 @@ const series = defineCollection({
 // One Markdown file per Article: `articles/<slug>.md`, published at `/writing/<slug>/`.
 // Its own folder, `articles/<slug>/`, holds its images and attachments and is
 // published beside it at `/writing/<slug>/`. Strict, so a misspelt field fails the build.
-// Articles are English Originals. A part of a Series names it in `series` with its `part` number.
+// A part of a Series names it in `series` with its `part` number.
 const articles = defineCollection({
-  loader: glob({ pattern: '*.md', base: `${contentDir}/articles` }),
+  loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/articles` }),
   schema: z.strictObject({
     title: z.string().min(1),
     summary: z.string().min(1),
     published: z.coerce.date(),
-    language: z.literal('en').default('en'),
+    ...translatable,
     tags: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
     updated: z.never({ error: '"last updated" comes from git history; remove this field' }).optional(),
@@ -156,15 +150,14 @@ const studyLink = z.union([
 // One Markdown file per Study: `studies/<slug>.md`, published at `/research/<slug>/`, its own
 // folder `studies/<slug>/` beside it. The body carries the required sections (question,
 // hypothesis, method, observations, findings, limitations), checked in src/lib/studies.ts.
-// Studies are English Originals.
 const studies = defineCollection({
-  loader: glob({ pattern: '*.md', base: `${contentDir}/studies` }),
+  loader: glob({ pattern: withTranslations('*.md'), base: `${contentDir}/studies` }),
   schema: z.strictObject({
     title: z.string().min(1),
     summary: z.string().min(1),
     published: z.coerce.date(),
     status: z.enum(['in progress', 'concluded', 'abandoned']),
-    language: z.literal('en').default('en'),
+    ...translatable,
     tags: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
     updated: z.never({ error: '"last updated" comes from git history; remove this field' }).optional(),
@@ -173,19 +166,28 @@ const studies = defineCollection({
   }),
 });
 
-// Now: one dated Markdown entry, `content/now.md`, saying what João is working on.
+// Now: one dated Markdown entry, `content/now.md`, saying what João is working on; its
+// Translations are `content/<language>/now.md`.
 const now = defineCollection({
-  loader: glob({ pattern: 'now.md', base: contentDir }),
-  schema: z.strictObject({ date: z.coerce.date() }),
+  loader: glob({ pattern: withTranslations('now.md'), base: contentDir }),
+  schema: z.strictObject({ date: z.coerce.date(), ...translatable }),
 });
 
 // The Professional record: one YAML file whose single `record` entry is João's verified profile.
-const recordFile = `${contentDir}/record.yaml`;
-const recordLoader = file(recordFile);
+// Its Translations are `content/<language>/record.yaml`, entry `<language>/record`.
 const record = defineCollection({
   loader: {
     name: 'record',
-    load: async (context) => (existsSync(recordFile) ? recordLoader.load(context) : context.store.clear()),
+    load: async (context) => {
+      context.store.clear();
+      for (const prefix of ['', ...Object.keys(LANGUAGES).filter((code) => code !== 'en').map((code) => `${code}/`)]) {
+        const recordFile = `${contentDir}/${prefix}record.yaml`;
+        if (!existsSync(recordFile)) continue;
+        // The file loader clears its store before adding the entry, so it gets one of its own.
+        const store = { clear() {}, set: (entry: { id: string }) => context.store.set({ ...entry, id: `${prefix}${entry.id}` } as never) };
+        await file(recordFile).load({ ...context, store: store as never });
+      }
+    },
   },
   schema: recordSchema,
 });

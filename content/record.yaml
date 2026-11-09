@@ -13,4 +13,4 @@ record:
   projects:
     - name: Facts Memorizer
       summary: A times-tables practice app that keeps every answer on the device.
-      source: { page: /projects/facts-memorizer/privacy/ }
+      source: { page: /projects/facts-memorizer/ }

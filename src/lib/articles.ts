@@ -1,62 +1,61 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { SITE_URL } from '../../site.config.mjs';
-import { lastUpdatedOf } from './git';
+import { day, metadataOf as sharedMetadataOf } from './metadata';
 import { describeFolderFile } from './own-folder';
+import {
+  alternateAt, assertTranslations, locate, originalIdOf, ORIGINAL_LANGUAGE, translationsOf as translationsAmong,
+  type Language,
+} from './translations';
+import { uiOf } from './ui';
 
 export type Article = CollectionEntry<'articles'>;
 
-/** The Writing index: the section listing every Article. */
-export const WRITING = {
-  title: 'Writing',
-  summary: 'Articles: arguments, essays and reflections on engineering beyond implementation.',
-  path: '/writing/',
-  twin: '/writing.md',
-  canonical: new URL('/writing/', SITE_URL).href,
-};
+/** Where the Article with id `id` is published, in English. */
+const articlePathOf = (id: string) => `/writing/${id}/`;
 
-const day = (date: Date) => date.toISOString().slice(0, 10);
+/** The Writing index in `language`: the section listing every Article. */
+export function writingIndexOf(language: Language) {
+  return { ...uiOf(language).writing, ...alternateAt('/writing/', language) };
+}
 
-export const pathOf = (article: Article) => `/writing/${article.id}/`;
-export const twinPathOf = (article: Article) => `/writing/${article.id}.md`;
-export const canonicalOf = (article: Article) => new URL(pathOf(article), SITE_URL).href;
+export const pathOf = (article: Article) => locate(article, articlePathOf).path;
+export const twinPathOf = (article: Article) => locate(article, articlePathOf).twin;
+export const canonicalOf = (article: Article) => locate(article, articlePathOf).canonical;
+export const translationsOf = (article: Article, articles: Article[]) => translationsAmong(article, articles, articlePathOf);
 
-/** Every Article, newest first. */
-export async function getArticles(): Promise<Article[]> {
+/** Every Article and Translation, newest first. */
+export async function getAllArticles(): Promise<Article[]> {
   const articles = await getCollection('articles');
+  assertTranslations(articles, { pathOf: articlePathOf, same: ['featured', 'series', 'part'] });
   for (const article of articles) attachmentsOf(article);
   return articles.sort((a, b) => b.data.published.getTime() - a.data.published.getTime() || a.id.localeCompare(b.id));
 }
 
+/** Every Article in `language`, newest first. */
+export async function getArticles(language: Language = ORIGINAL_LANGUAGE): Promise<Article[]> {
+  return (await getAllArticles()).filter((article) => article.data.language === language);
+}
+
 /** The metadata shared by the page, its JSON-LD, its Markdown twin and the feed. */
 export function metadataOf(article: Article) {
-  const { title, summary, published, language, tags, featured } = article.data;
-  return {
-    title,
-    summary,
-    published: day(published),
-    updated: lastUpdatedOf(article.filePath!, day(published)),
-    language,
-    tags,
-    featured,
-    canonical: canonicalOf(article),
-  };
+  const { title, summary, featured } = article.data;
+  return { ...sharedMetadataOf(article, articlePathOf, { title, summary }), featured };
 }
 
 export interface Attachment {
   title: string;
   file: string;
-  /** Where the file is served: beside the Article, at `/writing/<slug>/<file>`. */
+  /** Where the file is served: beside the Original, at `/writing/<slug>/<file>`. */
   path: string;
   /** "materials.csv, CSV, 32 bytes". */
   description: string;
 }
 
-/** The Article's attachments, from its own folder; a missing file fails the build. */
+/** The Article's attachments, from its Original's own folder; a missing file fails the build. */
 export function attachmentsOf(article: Article): Attachment[] {
   return article.data.attachments.map(({ title, file }) => ({
     title,
     file,
-    path: `${pathOf(article)}${file}`,
+    path: `${articlePathOf(originalIdOf(article))}${file}`,
     description: describeFolderFile(article, file, 'attachment'),
   }));
 }

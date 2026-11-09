@@ -2,6 +2,7 @@
 kind: concept
 title: "Context"
 summary: "The task-relevant information the agent has access to right now, as distinct from the context window and the session."
+published: 2026-11-09
 category: "Context Engineering"
 tags: ["context", "fundamentals"]
 related: [agent, context-window, session, token, harness]

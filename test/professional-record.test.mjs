@@ -48,8 +48,8 @@ test('the About page and Person JSON-LD are generated from the Professional reco
     assert.equal(ld['@type'], 'Person');
     assert.equal(ld.name, 'Fixture Person');
     assert.equal(ld.url, 'https://joaodavidsilva.com/');
-    assert.equal(ld.email, 'mailto:fixture@example.com');
-    assert.deepEqual(ld.sameAs, ['https://github.com/fixture']);
+    assert.equal(ld.email, 'mailto:fixture@joaodavidsilva.com');
+    assert.deepEqual(ld.sameAs, ['https://github.com/fixture', 'https://www.linkedin.com/in/fixture/']);
     assert.equal(ld.jobTitle, 'Staff Fixture Engineer');
     assert.deepEqual(ld.worksFor, { '@type': 'Organization', name: 'Fixture Corp' });
     assert.deepEqual(ld.alumniOf, undefined);
@@ -57,6 +57,15 @@ test('the About page and Person JSON-LD are generated from the Professional reco
     assert.deepEqual(ld.award, ['Won the fixture prize.']);
     assert.equal(ld.telephone, undefined);
     assert.equal(ld.address, undefined);
+  });
+
+  await t.test('a Claim can be sourced to a Project page', () => {
+    assert.match(html, /Fixture App[^<]*<a href="\/projects\/fixture-app\/"/);
+  });
+
+  await t.test('the twin carries the shared front-matter', () => {
+    assert.match(md, /\nupdated: \d{4}-\d{2}-\d{2}\n/);
+    assert.ok(md.includes('\ntags: []\n'), md);
   });
 
   await t.test('llms.txt lists the About page', () => {
@@ -88,6 +97,13 @@ test('a source pointing at a page that does not exist fails the build', () => {
   const site = buildFixture('record-broken-page');
   assert.equal(site.ok, false);
   assert.match(site.output, /\/missing\//);
+});
+
+test('an email outside the site domain fails the build', () => {
+  const site = buildFixture('record-foreign-email');
+  assert.equal(site.ok, false);
+  assert.match(site.output, /email/);
+  assert.match(site.output, /joaodavidsilva\.com/);
 });
 
 test('the record refuses phone numbers and postal addresses', async (t) => {

@@ -1,5 +1,6 @@
 ---
 import type { StudyLink } from '../lib/studies';
+import { uiAt } from '../lib/ui';
 
 interface Props {
   data: StudyLink[];
@@ -8,14 +9,15 @@ interface Props {
 
 // What a Study's evidence can be checked or reproduced with.
 const { data, scripts } = Astro.props;
+const ui = uiAt(Astro.url);
 const groups = [
-  ['Data', data],
-  ['Scripts', scripts],
+  [ui.data, data],
+  [ui.scripts, scripts],
 ] as const;
 ---
 {(data.length > 0 || scripts.length > 0) && (
   <section class="attachments" id="data-and-scripts" aria-labelledby="data-and-scripts-heading">
-    <h2 id="data-and-scripts-heading">Data and scripts</h2>
+    <h2 id="data-and-scripts-heading">{ui.dataAndScripts}</h2>
     {groups.map(([label, links]) => links.length > 0 && (
       <>
         <h3>{label}</h3>

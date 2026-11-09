@@ -28,6 +28,8 @@ test('Knowledge Base entries are published', async (t) => {
       'canonical: https://joaodavidsilva.com/knowledge/context-window/',
     ]) assert.ok(md.includes(`\n${line}\n`), `missing ${line}`);
     assert.match(md, /\nupdated: \d{4}-\d{2}-\d{2}\n/);
+    assert.ok(md.includes('\npublished: 2026-03-04\n'), md);
+    assert.equal(ld.datePublished, '2026-03-04');
     assert.match(md, /The context window body paragraph\./);
     assert.match(
       site.read('llms.txt'),
@@ -58,7 +60,7 @@ test('Knowledge Base entries are published', async (t) => {
     assert.match(ctxSection, /href="\/knowledge\/token-budget\/"/);
     assert.match(index.slice(dev), /href="\/knowledge\/writing-tests-first\/"/);
     assert.doesNotMatch(index, /AI Engineering<\/h2>/, 'empty categories are omitted');
-    assert.match(site.read('knowledge.md'), /\[Context window\]\(\/knowledge\/context-window\/\)/);
+    assert.match(site.read('knowledge.md'), /\[Context window\]\(https:\/\/joaodavidsilva\.com\/knowledge\/context-window\.md\)/);
   });
 
   await t.test('the index filters by tag', () => {
@@ -69,6 +71,33 @@ test('Knowledge Base entries are published', async (t) => {
     assert.doesNotMatch(tokens, /href="\/knowledge\/writing-tests-first\/"/);
     assert.ok(site.has('knowledge/tags/tokens.md'));
   });
+
+  await t.test('the index and tag pages are agent-readable', () => {
+    for (const [html, path, twin] of [
+      ['knowledge/index.html', '/knowledge/', 'knowledge.md'],
+      ['knowledge/tags/tokens/index.html', '/knowledge/tags/tokens/', 'knowledge/tags/tokens.md'],
+    ]) {
+      const ld = JSON.parse(site.read(html).match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+      assert.equal(ld['@type'], 'CollectionPage', html);
+      assert.equal(ld.url, `https://joaodavidsilva.com${path}`);
+      assert.equal(ld.datePublished, '2026-03-04');
+      assert.ok(ld.mainEntity.itemListElement.some((item) => item.url === 'https://joaodavidsilva.com/knowledge/token-budget/'), html);
+      const md = site.read(twin);
+      for (const field of ['title', 'summary', 'published', 'updated', 'tags', 'language', 'canonical']) {
+        assert.match(md, new RegExp(`^---\\n(?:[^]*\\n)?${field}: [^]*\\n---\\n`), `${twin} lacks ${field}`);
+      }
+    }
+    const llms = site.read('llms.txt');
+    assert.ok(llms.includes('(https://joaodavidsilva.com/knowledge.md)'), llms);
+    assert.ok(llms.includes('(https://joaodavidsilva.com/knowledge/tags/tokens.md)'), llms);
+  });
+});
+
+test('an unknown Knowledge front-matter field fails the build', () => {
+  const site = buildFixture('knowledge-unknown-field');
+  assert.equal(site.ok, false);
+  assert.match(site.output, /term\.md/);
+  assert.match(site.output, /tag/);
 });
 
 test('an unknown category fails the build', () => {

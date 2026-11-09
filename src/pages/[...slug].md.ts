@@ -1,7 +1,8 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
-import { getPages, metadataOf, twinPathOf, type Page } from '../lib/pages';
+import { getPages, metadataOf, translationsOf, twinPathOf, type Page } from '../lib/pages';
 import { homeMarkdown } from '../lib/home';
-import { translationsOf, type Translations } from '../lib/translations';
+import { originalIdOf, translationFields, type Translations } from '../lib/translations';
+import { markdownResponse } from '../lib/twin';
 
 export const getStaticPaths = (async () => {
   const pages = await getPages();
@@ -11,24 +12,12 @@ export const getStaticPaths = (async () => {
   }));
 }) satisfies GetStaticPaths;
 
-const yamlString = (value: string) => JSON.stringify(value);
-
 export const GET: APIRoute = async ({ props }) => {
   const { page, translations } = props as { page: Page; translations: Translations };
   const meta = metadataOf(page);
-  const frontMatter = [
-    '---',
-    `title: ${yamlString(meta.title)}`,
-    `summary: ${yamlString(meta.summary)}`,
-    `published: ${meta.published}`,
-    `updated: ${meta.updated}`,
-    `language: ${meta.language}`,
-    `tags: [${meta.tags.map(yamlString).join(', ')}]`,
-    `canonical: ${meta.canonical}`,
-    ...(translations.original ? [`original: ${translations.original.canonical}`, `outdated: ${translations.outdated}`] : []),
-    '---',
-  ].join('\n');
-  return new Response(`${frontMatter}\n\n# ${meta.title}\n\n${(page.body ?? '').trim()}\n${page.id === 'index' ? `\n${await homeMarkdown()}` : ''}`, {
-    headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
-  });
+  return markdownResponse({ ...meta, ...translationFields(translations) }, [
+    `# ${meta.title}`,
+    (page.body ?? '').trim(),
+    originalIdOf(page) === 'index' && (await homeMarkdown(meta.language)),
+  ]);
 };

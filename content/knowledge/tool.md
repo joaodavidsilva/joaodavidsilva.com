@@ -2,6 +2,7 @@
 kind: concept
 title: "Tool"
 summary: "A function the harness exposes for the agent to call, and the only way the agent perceives and acts on its environment."
+published: 2026-11-09
 category: "MCP & Tooling"
 tags: ["tools", "agent loop"]
 related: [harness, agent, tool-call, model, token, context]

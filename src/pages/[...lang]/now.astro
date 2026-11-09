@@ -1,0 +1,35 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import SuggestCorrection from '../../components/SuggestCorrection.astro';
+import { jsonLdBase } from '../../lib/metadata';
+import { dateOf, NOW_PATH, type Now } from '../../lib/now';
+import { nowRoutes } from '../../lib/routes';
+import { alternateAt, translationJsonLd, type Translations } from '../../lib/translations';
+import { uiOf } from '../../lib/ui';
+
+// Exists only when the content set has a Now entry, in each language it is translated into.
+export const getStaticPaths = nowRoutes;
+
+const { now, translations } = Astro.props as { now: Now; translations: Translations };
+const { language } = now.data;
+const page = { ...uiOf(language).now, ...alternateAt(NOW_PATH, language) };
+const ui = uiOf(language);
+const { Content } = await render(now);
+const date = dateOf(now);
+const jsonLd = {
+  ...jsonLdBase('WebPage', { ...page, published: date, updated: date, language }),
+  ...translationJsonLd(translations, 'WebPage'),
+};
+---
+<Base title={page.title} description={page.summary} canonical={page.canonical} language={language} twin={page.twin} translations={translations}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <article>
+    <header>
+      <h1>{page.title}</h1>
+      <p>{ui.updated} <time datetime={date}>{date}</time></p>
+    </header>
+    <Content />
+    <SuggestCorrection title={page.title} canonical={page.canonical} />
+  </article>
+</Base>

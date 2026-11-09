@@ -2,6 +2,7 @@
 kind: concept
 title: "Tool call"
 summary: "The model's output naming a tool and its arguments: structured text that the harness has to read and execute."
+published: 2026-11-09
 category: "MCP & Tooling"
 tags: ["tools", "agent loop"]
 related: [model, tool, harness, turn, agent]

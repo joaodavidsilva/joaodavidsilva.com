@@ -1,0 +1,10 @@
+record:
+  language: pt
+  translatedFrom: "b6581edd582f"
+  name: Fixture Person
+  headline: Engenharia para lá da implementação.
+  url: https://joaodavidsilva.com/
+  projects:
+    - name: Projeto um
+      summary: O primeiro projeto.
+      source: { page: /pt/projects/p1/privacy/ }

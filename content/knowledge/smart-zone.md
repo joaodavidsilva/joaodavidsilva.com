@@ -2,6 +2,7 @@
 kind: concept
 title: "Smart zone"
 summary: "The early, sharp part of a session, before growing context drifts the agent into a sloppier \"dumb zone\"."
+published: 2026-11-09
 category: "Context Engineering"
 tags: ["context", "sessions"]
 related: [session, agent, model, harness, context, token, clearing, compaction, context-window]

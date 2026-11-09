@@ -1,19 +1,24 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { SITE_URL } from '../../site.config.mjs';
+import { day } from './metadata';
+import { assertTranslations, ORIGINAL_LANGUAGE, translationsOf as translationsAmong, type Language } from './translations';
 
 export type Now = CollectionEntry<'now'>;
 
-export const NOW = {
-  title: 'Now',
-  summary: 'What João David Silva is working on now, and when he last said so.',
-  path: '/now/',
-  twin: '/now.md',
-  canonical: new URL('/now/', SITE_URL).href,
-};
+export const NOW_PATH = '/now/';
+const nowPathOf = () => NOW_PATH;
 
-/** The Now entry, or undefined when the content set has none. */
-export async function getNow(): Promise<Now | undefined> {
-  return (await getCollection('now'))[0];
+/** The Now entry and its Translations; none when the content set has no Now. */
+export async function getAllNow(): Promise<Now[]> {
+  const entries = await getCollection('now');
+  assertTranslations(entries, { pathOf: nowPathOf, same: ['date'] });
+  return entries;
 }
 
-export const dateOf = (now: Now) => now.data.date.toISOString().slice(0, 10);
+/** The Now entry in `language`, or undefined when there is none. */
+export async function getNow(language: Language = ORIGINAL_LANGUAGE): Promise<Now | undefined> {
+  return (await getAllNow()).find((now) => now.data.language === language);
+}
+
+export const translationsOf = (now: Now, entries: Now[]) => translationsAmong(now, entries, nowPathOf);
+
+export const dateOf = (now: Now) => day(now.data.date);

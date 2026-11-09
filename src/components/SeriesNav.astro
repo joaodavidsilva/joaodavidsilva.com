@@ -1,19 +1,32 @@
 ---
-import type { Position } from '../lib/series';
+import type { Link, Position } from '../lib/series';
+import { languageOfPath } from '../lib/translations';
+import { uiAt } from '../lib/ui';
 
 interface Props {
   position: Position;
 }
 
-// The previous and next parts of a Series, after the body of a part.
+// The previous and next parts of a Series, after the body of a part; a part without a
+// Translation in the page's language links its English Original, marked as such.
 const { position } = Astro.props;
 const { previous, next } = position;
+const ui = uiAt(Astro.url);
+const language = languageOfPath(Astro.url.pathname);
+const links = [
+  ['previous', 'prev', ui.previous, previous],
+  ['next', 'next', ui.next, next],
+] as const;
+const hreflangOf = (link: Link) => (link.language === language ? undefined : link.language);
 ---
 {(previous || next) && (
-  <nav class="series-nav" aria-label={`Series: ${position.series.title}`}>
+  <nav class="series-nav" aria-label={`${ui.series}: ${position.series.title}`}>
     <ul>
-      {previous && <li class="previous"><a href={previous.path} rel="prev">Previous: {previous.title}</a></li>}
-      {next && <li class="next"><a href={next.path} rel="next">Next: {next.title}</a></li>}
+      {links.map(([kind, rel, label, link]) => link && (
+        <li class={kind}>
+          <a href={link.path} hreflang={hreflangOf(link)} rel={rel}>{label}: {link.title}</a>{hreflangOf(link) && ` ${ui.inEnglish}`}
+        </li>
+      ))}
     </ul>
   </nav>
 )}
