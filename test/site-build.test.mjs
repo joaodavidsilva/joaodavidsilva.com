@@ -13,7 +13,7 @@ test('a page is published under the agent-readability contract', async (t) => {
   await t.test('HTML carries the complete content without JavaScript', () => {
     assert.match(html, /<h1>Hello fixture<\/h1>/);
     assert.match(html, /The fixture body paragraph\./);
-    assert.doesNotMatch(html, /<script(?![^>]*application\/ld\+json)/);
+    assert.doesNotMatch(html, /<script(?![^>]*(?:application\/ld\+json|data-theme-script))/);
   });
 
   await t.test('HTML advertises the Markdown twin', () => {

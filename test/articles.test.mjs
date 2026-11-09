@@ -83,7 +83,7 @@ test('Articles, the Writing index and the feed', async (t) => {
     assert.match(text, /measurement/);
     assert.match(text, /\d+ min read/);
     assert.match(text, /The first light body paragraph\./);
-    assert.doesNotMatch(first, /<script\b(?![^>]*application\/ld\+json)/);
+    assert.doesNotMatch(first, /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script))/);
   });
 
   await t.test('"Last updated" comes from git history, not front-matter', () => {

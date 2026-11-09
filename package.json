@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "test": "node --test --test-concurrency=1 \"test/*.test.mjs\"",
     "ci:build": "sh scripts/ci-build.sh",
+    "translation:hash": "node scripts/original-hash.mjs",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "astro": "7.4.7"
   },
   "devDependencies": {
+    "pagefind": "^1.6.0",
     "sax": "1.6.1",
     "wrangler": "4.158.0"
   }

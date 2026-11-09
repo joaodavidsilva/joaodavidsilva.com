@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import { SITE_URL } from './site.config.mjs';
+import { pagefind } from './src/lib/pagefind.mjs';
 import { fontsourceVariable } from './src/lib/self-hosted-fonts.mjs';
 import { longFormMarkdown } from './src/lib/long-form-markdown.mjs';
 import { linkCheck } from './src/lib/link-check.mjs';
@@ -11,10 +12,11 @@ const subsets = ['latin', 'latin-ext'];
 export default defineConfig({
   site: SITE_URL,
   trailingSlash: 'always',
+  integrations: [longFormMarkdown(), pagefind(), linkCheck()],
   outDir: process.env.JDS_OUT_DIR ?? './dist',
-  integrations: [longFormMarkdown(), linkCheck()],
   markdown: {
-    // Token colours are CSS variables, mapped onto the palette in src/styles/long-form.css.
+    // Token colours are CSS variables, mapped onto palette tokens in src/styles/long-form.css:
+    // restrained, AA on the code surface, and following the System / Light / Dark theme.
     shikiConfig: { theme: 'css-variables' },
   },
   fonts: [

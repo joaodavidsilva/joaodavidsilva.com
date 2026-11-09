@@ -1,0 +1,34 @@
+/* The language switcher, the "Translated by AI" label and the outdated-translation notice. */
+
+.language-switcher ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25em;
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+}
+
+.language-switcher a[aria-current] {
+  color: var(--ink);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.translation-label,
+.outdated-translation {
+  font-family: var(--font-sans);
+  font-size: 0.875em;
+}
+
+.translation-label {
+  color: var(--ink-muted);
+}
+
+.outdated-translation {
+  padding-inline-start: 0.75em;
+  border-inline-start: 3px solid var(--accent);
+  color: var(--ink);
+}

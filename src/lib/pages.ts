@@ -1,6 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { RESERVED_PATHS, SITE_URL } from '../../site.config.mjs';
 import { lastUpdatedOf } from './git';
+import { assertTranslations } from './translations';
 
 export type Page = CollectionEntry<'pages'>;
 
@@ -23,7 +24,7 @@ export function canonicalOf(page: Page): string {
   return new URL(pathOf(page), SITE_URL).href;
 }
 
-/** Every page, after enforcing that none claims a reserved path. */
+/** Every page, after enforcing that none claims a reserved path and every Translation holds. */
 export async function getPages(): Promise<Page[]> {
   const pages = await getCollection('pages');
   for (const page of pages) {
@@ -34,6 +35,7 @@ export async function getPages(): Promise<Page[]> {
       );
     }
   }
+  assertTranslations(pages);
   return pages;
 }
 

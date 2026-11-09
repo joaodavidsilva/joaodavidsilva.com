@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { basename, dirname, resolve } from 'node:path';
 
 /** The day (YYYY-MM-DD, UTC) of the last commit that changed `file`, if it has any. */
-function lastCommitDayOf(file: string): string | undefined {
+export function lastCommitDayOf(file: string): string | undefined {
   const path = resolve(file);
   let committed: string;
   try {
