@@ -2,6 +2,7 @@ node_modules/
 dist/
 .astro/
 test/.out/
+.skills/
 .wrangler/
 .dev.vars*
 .env*

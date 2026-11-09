@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "test": "node --test --test-concurrency=1 \"test/*.test.mjs\"",
     "ci:build": "sh scripts/ci-build.sh",
+    "translation:hash": "node scripts/original-hash.mjs",
     "deploy": "wrangler deploy",
     "waitlist:blocklist": "curl -fsSL https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/main/disposable_email_blocklist.conf -o worker/disposable-domains.txt"
   },
@@ -22,6 +23,7 @@
     "astro": "7.4.7"
   },
   "devDependencies": {
+    "pagefind": "^1.6.0",
     "wrangler": "4.158.0"
   }
 }
