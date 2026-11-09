@@ -5,6 +5,7 @@ import SiteFooter from '../components/SiteFooter.astro';
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
 import TranslationNotice from '../components/TranslationNotice.astro';
 import type { Translations } from '../lib/translations';
+import themeScript from '../lib/theme-script.js?raw';
 import '../styles/global.css';
 import '../styles/chrome.css';
 
@@ -27,6 +28,7 @@ const alternates = translations && translations.versions.length > 1 ? translatio
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline data-theme-script set:html={themeScript} />
     <title>{title} · João David Silva</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />

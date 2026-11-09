@@ -1,7 +1,9 @@
 import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { existsSync } from 'node:fs';
+import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { LANGUAGES } from '../site.config.mjs';
+import { recordSchema } from './lib/record-schema';
 
 type Language = keyof typeof LANGUAGES;
 
@@ -32,4 +34,15 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { pages };
+// The Professional record: one YAML file whose single `record` entry is João's verified profile.
+const recordFile = `${process.env.JDS_CONTENT_DIR ?? './content'}/record.yaml`;
+const recordLoader = file(recordFile);
+const record = defineCollection({
+  loader: {
+    name: 'record',
+    load: async (context) => (existsSync(recordFile) ? recordLoader.load(context) : context.store.clear()),
+  },
+  schema: recordSchema,
+});
+
+export const collections = { pages, record };
