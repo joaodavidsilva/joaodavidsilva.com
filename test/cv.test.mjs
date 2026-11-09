@@ -90,7 +90,7 @@ test('changing the record changes the CV on the next build', async () => {
   const record = join(content, 'record.yaml');
   writeFileSync(record, readFileSync(record, 'utf8').replace('Won the fixture prize.', 'Won the revised prize.'));
 
-  const site = buildContent(content);
+  const site = buildContent('cv-revised', content);
   assert.ok(site.ok, site.output);
   for (const [format, text] of Object.entries(await cvsOf(site))) {
     assert.ok(text.includes('Won the revised prize.'), `${format}: ${text}`);
