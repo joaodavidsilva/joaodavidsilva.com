@@ -1,0 +1,15 @@
+# João's Professional record: the only source for the About page, the CV and the Person JSON-LD.
+# Every Claim needs a source: { page: /path/ }, { url: https://… } or { attested: where the private evidence is kept }.
+# Skills list where they were demonstrated (page or url). No phone numbers or postal addresses, ever.
+record:
+  name: João David Silva
+  headline: Engineering beyond implementation.
+  url: https://joaodavidsilva.com/
+  sameAs:
+    - https://github.com/joaodavidsilva
+    - https://www.linkedin.com/in/joaodavidsilvaa/
+    - https://x.com/joaodavidsilvaa
+  projects:
+    - name: Facts Memorizer
+      summary: A times-tables practice app that keeps every answer on the device.
+      source: { page: /projects/facts-memorizer/privacy/ }

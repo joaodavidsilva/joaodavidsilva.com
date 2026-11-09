@@ -1,0 +1,33 @@
+record:
+  name: Fixture Person
+  headline: Engineering beyond implementation.
+  url: https://joaodavidsilva.com/
+  email: fixture@example.com
+  sameAs:
+    - https://github.com/fixture
+  roles:
+    - title: Staff Fixture Engineer
+      organisation: Fixture Corp
+      start: 2024-01
+      source: { attested: "Employment contract, kept by João" }
+    - title: Junior Fixture Engineer
+      organisation: Old Corp
+      start: 2020-03
+      end: 2023-12
+      source: { url: https://example.com/old-corp-team }
+  projects:
+    - name: Fixture App
+      summary: An app that exists only in tests.
+      source: { page: /hello/ }
+  skills:
+    - name: Fixture Testing
+      demonstrated: []
+  achievements:
+    - text: Won the fixture prize.
+      source: { attested: "Award letter, kept by João" }
+  publications:
+    - title: On fixtures
+      source: { url: https://example.com/on-fixtures }
+  contributions:
+    - text: Fixed a bug in a fixture library.
+      source: { url: https://github.com/fixture/lib/pull/1 }
