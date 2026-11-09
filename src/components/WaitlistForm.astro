@@ -1,0 +1,47 @@
+---
+import { TURNSTILE_SITE_KEY, WAITLISTS, WAITLIST_ENDPOINT } from '../../site.config.mjs';
+import script from '../lib/waitlist-form.js?raw';
+import '../styles/waitlist.css';
+
+interface Props {
+  /** The Waitlist's `source`, a key of WAITLISTS. */
+  source: keyof typeof WAITLISTS;
+}
+
+const { source } = Astro.props;
+const name = WAITLISTS[source];
+---
+<section class="waitlist" id="waitlist" aria-labelledby="waitlist-heading">
+  <h2 id="waitlist-heading">Join the Waitlist</h2>
+  <p>Leave your email address to hear when {name} is available.</p>
+  <form class="waitlist-form" method="post" action={WAITLIST_ENDPOINT} data-waitlist>
+    <input type="hidden" name="source" value={source} />
+    <fieldset disabled>
+      <div class="waitlist-field">
+        <label for="waitlist-email">Email address</label>
+        <input
+          id="waitlist-email"
+          type="email"
+          name="email"
+          required
+          autocomplete="email"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+      </div>
+      <div class="waitlist-consent">
+        <input id="waitlist-consent" type="checkbox" name="consent" value="yes" required />
+        <label for="waitlist-consent">I agree that João David Silva may store my email address to tell me when {name} is available.</label>
+      </div>
+      <p class="waitlist-note">
+        The <a href="/privacy/">privacy notice</a> explains how sign-ups are stored and how to leave the list.
+      </p>
+      <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY}></div>
+      <button type="submit">Join the Waitlist</button>
+    </fieldset>
+    <noscript><p class="waitlist-note">Joining needs JavaScript, which runs the form's bot check.</p></noscript>
+    <p class="waitlist-status" role="status" aria-live="polite"></p>
+  </form>
+</section>
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer data-waitlist></script>
+<script is:inline type="module" data-waitlist set:html={script} />
