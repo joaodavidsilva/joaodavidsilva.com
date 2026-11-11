@@ -45,7 +45,7 @@ This is how I work with coding agents every day, and the process I've open-sourc
 
 The artefacts aren't documentation written once and forgotten. They're the working memory of the product: an ADR gets superseded, a glossary term gets sharper, a spec gets a new constraint. Because they're written down, they survive the trip from the customer to the code, and they don't need a meeting to be passed on.
 
-I lived this on Mind4EDP, EDP's multi-agent assistant, where I built the iOS and Android client. It started as hand-written code and, as the process matured, became a project developed entirely by AI agents. The code was never the part that kept it on track: the written decisions, the shared language and the small, verifiable tickets were.
+I lived this on Mind4EDP, EDP's multi-agent assistant, where I am the lead architect of the iOS and Android app, working in a team. It started as hand-written code and, as the process matured, became a project developed entirely by AI agents. The code was never the part that kept it on track: the written decisions, the shared language and the small, verifiable tickets were.
 
 ## An open question
 

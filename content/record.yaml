@@ -28,12 +28,13 @@ record:
       start: 2025-10
       stack: [Generative AI (multi-agent), Whisper (on-device), React Native, Expo, TypeScript, Python, FastAPI, Angular, Microsoft Entra ID, Google Cloud, Application Insights]
       highlights:
-        - text: Sole developer of Mind4EDP Mobile, the native iOS and Android client of EDP's multi-agent AI assistant, used by more than 13,000 active EDP colleagues.
+        - text: Lead architect of Mind4EDP Mobile, the native iOS and Android client of EDP's multi-agent AI assistant, built with a team and used by more than 13,000 active EDP colleagues.
           source: { attested: "Mind4EDP usage metrics, kept by João" }
         - At parity with the web app, in Portuguese, English and Spanish.
         - Streaming chat with cited sources and a document viewer, an Anonymous Mode whose messages are neither saved nor traced, and on-device Whisper voice input that works offline.
         - Sign-in with Microsoft Entra ID (OAuth2 + PKCE), tokens in Keychain/Keystore, and an encrypted local copy wiped at logout.
         - Feature-sliced architecture enforced by tests and lint, ADRs for every major decision, a shared domain glossary and CI quality and security gates.
+        - Implemented the coding-agent harnesses the team uses for AI-assisted development, adapted from open-source harnesses.
         - Also built SUE Backoffice, a read-only observability app (FastAPI, Angular) for SU Eletricidade's virtual agents.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Senior Mobile Developer
