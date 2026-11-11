@@ -21,25 +21,18 @@ interface Span {
   url?: string;
 }
 
-/** Where Claims can be checked, numbered in order of first citation. */
-interface Reference {
-  number: number;
-  text: string;
-  url?: string;
-}
-
-/** One Claim: its title links to its first source and carries its reference numbers. */
+/** One Claim: its title links to its first source when that is a page of this site. */
 interface Entry {
   title: string;
   /** Names (roles, projects, publications) are set bold; sentences (achievements, contributions) are not. */
   named: boolean;
   url?: string;
-  references: number[];
-  attested: boolean;
   /** Right-aligned on the title line: a period, or the thing's own address. */
   meta?: Span;
-  /** The line under the title: a role's organisation. */
+  /** After the title on the same line: a role's organisation. */
   detail?: string;
+  /** Under the title, in the meta face: the technologies a role used. */
+  stack?: string;
   /** Body text: a project's summary. */
   body?: string;
   /** What was done: a role's highlights, one line each under the detail. */
@@ -53,6 +46,8 @@ interface Section {
   entries: Entry[];
   /** Short Claims (skills) run on as one paragraph instead of one per line. */
   runOn?: boolean;
+  /** A closing line in the meta face, after the entries. */
+  note?: Span[];
 }
 
 interface Cv {
@@ -60,10 +55,9 @@ interface Cv {
   headline: string;
   /** The site, LinkedIn and the domain email: the only contact data a CV carries. */
   contact: Span[];
+  /** Under the contact line; empty when the record lists none. */
+  languages: string;
   sections: Section[];
-  references: Reference[];
-  /** One line closing Sources, only when some Claim is attested. */
-  attestedNote?: string;
   /** Left side of every page's footer; the page number goes on the right. */
   footer: string;
 }
@@ -73,41 +67,42 @@ const isLinkedIn = (url: string) => /(^|\.)linkedin\.com$/.test(new URL(url).hos
 
 const linked = (url: string): Span => ({ text: hostPath(url), url });
 
+// Older roles are listed without highlights, so the CV stays at two pages as the record grows.
+const CV_DETAIL_FROM = '2022-01';
+
 function cvOf(record: ProfessionalRecord): Cv {
-  const references = new Map<string, Reference>();
-  /** The reference for `source`, numbered on first citation; one source cited twice keeps one number. */
-  const cite = (source: Source): Reference => {
-    const key = 'attested' in source ? `attested:${source.attested}` : absoluteUrl(hrefOf(source));
-    let reference = references.get(key);
-    if (!reference) {
-      // Attested Claims rest on private evidence that only João can confirm, so they cite a note, not a link.
-      reference =
-        'attested' in source
-          ? { number: references.size + 1, text: `Attested — ${source.attested}` }
-          : { number: references.size + 1, ...linked(key) };
-      references.set(key, reference);
-    }
-    return reference;
+  // The CV links a Claim's title to its source only when that is a page of this site (a project,
+  // an article). LinkedIn, other external URLs and private evidence stay on the About page, which
+  // lists every Claim's source.
+  const claim = (title: string, sources: Source[], rest: Omit<Entry, 'title' | 'url'>): Entry => {
+    const page = sources.find((source) => 'page' in source);
+    return { title, url: page && 'page' in page ? absoluteUrl(page.page) : undefined, ...rest };
   };
-  const claim = (title: string, sources: Source[], rest: Omit<Entry, 'title' | 'url' | 'references' | 'attested'>): Entry => {
-    const cited = sources.map(cite);
-    return {
-      title,
-      url: cited.find((reference) => reference.url)?.url,
-      references: cited.map((reference) => reference.number),
-      attested: sources.some((source) => 'attested' in source),
-      ...rest,
-    };
-  };
+  const linkedin = record.sameAs.find(isLinkedIn);
 
   const sections: Section[] = [
     { label: 'Profile', paragraphs: [...paragraphsOf(record.interests), ...paragraphsOf(record.approach)], entries: [] },
     {
       label: 'Roles',
       paragraphs: [],
-      entries: record.roles.map((r) =>
-        claim(r.title, [r.source], { named: true, meta: { text: periodOf(r) }, detail: r.organisation, bullets: r.highlights }),
-      ),
+      entries: record.roles.map((r) => {
+        // Roles that ended before CV_DETAIL_FROM keep their title and period only; the About page has the rest.
+        const detailed = !r.end || r.end >= CV_DETAIL_FROM;
+        return {
+          ...claim(r.title, [r.source], {
+            named: true,
+            meta: { text: periodOf(r) },
+            detail: r.organisation,
+            stack: detailed && r.stack.length ? r.stack.join(' · ') : undefined,
+          }),
+          bullets: detailed ? r.highlights.map((h) => (typeof h === 'string' ? h : h.text)) : [],
+        };
+      }),
+      note: [
+        { text: 'Every role in full: ' },
+        linked(absoluteUrl(ABOUT_PATH)),
+        ...(linkedin ? [{ text: ' and ' }, linked(linkedin)] : []),
+      ],
     },
     {
       label: 'Projects',
@@ -126,20 +121,12 @@ function cvOf(record: ProfessionalRecord): Cv {
     {
       label: 'Publications',
       paragraphs: [],
-      entries: record.publications.map((p) =>
-        claim(p.title, [p.source], { named: true, meta: p.url ? linked(p.url) : undefined }),
-      ),
+      entries: record.publications.map((p) => claim(p.title, [p.source], { named: true, meta: p.url ? linked(p.url) : undefined })),
     },
     {
       label: 'Open-source contributions',
       paragraphs: [],
       entries: record.contributions.map((c) => claim(c.text, [c.source], { named: false })),
-    },
-    // A fact about João, not a Claim with a source, so it reads as one plain line.
-    {
-      label: 'Languages',
-      paragraphs: record.languages.length ? [record.languages.join(' · ')] : [],
-      entries: [],
     },
   ]
     .filter((section) => section.paragraphs.length || section.entries.length)
@@ -151,21 +138,17 @@ function cvOf(record: ProfessionalRecord): Cv {
     year: 'numeric',
     timeZone: 'UTC',
   });
-  const cited = [...references.values()];
   return {
     name: record.name,
     headline: record.headline,
     contact: [
       ...(record.location ? [{ text: record.location }] : []),
       linked(record.url),
-      ...record.sameAs.filter(isLinkedIn).map(linked),
+      ...(linkedin ? [linked(linkedin)] : []),
       ...(record.email ? [{ text: record.email, url: `mailto:${record.email}` }] : []),
     ],
+    languages: record.languages.join(' · '),
     sections,
-    references: cited,
-    attestedNote: cited.some((reference) => !reference.url)
-      ? `Attested Claims rest on private evidence that only ${record.name} can confirm.`
-      : undefined,
     footer: `${hostPath(absoluteUrl(ABOUT_PATH))} · generated ${built}`,
   };
 }
@@ -252,14 +235,16 @@ export function cvPdf(record: ProfessionalRecord): Promise<Uint8Array> {
     if (doc.y + height > doc.page.height - doc.page.margins.bottom) doc.addPage();
   };
 
-  /** A Claim's title, reference numbers and attested marker, as runs. */
+  /** A Claim's title and detail, as runs. */
   const titleRuns = (entry: Entry): Run[] => {
     const face = entry.named ? 'serif-semibold' : 'serif';
     return [
       { text: entry.title, url: entry.url, font: face, size: BODY, color: INK },
-      { text: entry.references.join(','), url: entry.url, font: face, size: BODY, color: ACCENT, features: ['sups'] },
-      ...(entry.attested
-        ? [{ text: ' attested', font: 'serif', size: BODY, color: MUTED, features: ['smcp'], characterSpacing: 0.3 } as Run]
+      ...(entry.detail
+        ? [
+            { text: ' · ', font: 'serif', size: BODY, color: MUTED } as Run,
+            { text: entry.detail, font: 'serif-italic', size: BODY, color: MUTED } as Run,
+          ]
         : []),
     ];
   };
@@ -276,21 +261,31 @@ export function cvPdf(record: ProfessionalRecord): Promise<Uint8Array> {
     width,
     0,
   );
+  if (cv.languages) {
+    doc.y += 2;
+    runs([{ text: cv.languages, font: 'sans', size: 8.5, color: MUTED }], left, doc.y, width, 0);
+  }
 
   /** A section label: small capitals in the accent with a hairline under it. */
-  const label = (text: string) => {
-    // Room for the label and a few lines under it, so a label never ends a page alone.
-    ensure(90);
+  const label = (text: string, keep: number) => {
+    // Room for the label and the start of its first entry, so a label never ends a page alone.
+    ensure(keep);
     doc.y += 14;
     // Inter's capital spacing plus a little tracking; more and PDF readers read the label as spaced letters.
-    runs([{ text, font: 'sans-semibold', size: 7.5, color: ACCENT, features: ['cpsp'], characterSpacing: 0.5 }], left, doc.y, width, 0);
+    runs(
+      [{ text, font: 'sans-semibold', size: 7.5, color: ACCENT, features: ['cpsp'], characterSpacing: 0.5 }],
+      left,
+      doc.y,
+      width,
+      0,
+    );
     const y = doc.y + 3;
     doc.moveTo(left, y).lineTo(left + width, y).lineWidth(0.5).strokeColor(RULE).stroke();
     doc.y = y + 9;
   };
 
   for (const section of cv.sections) {
-    label(section.label);
+    label(section.label, section.entries[0]?.body ? 90 : 60);
     for (const paragraph of section.paragraphs) {
       runs([body(paragraph)], left, doc.y, width);
       doc.y += 5;
@@ -305,10 +300,24 @@ export function cvPdf(record: ProfessionalRecord): Promise<Uint8Array> {
       doc.y += 7;
       continue;
     }
+    // Highlights hang from a bullet, so a wrapped line starts under the text, not under the bullet.
+    const INDENT = 12;
     for (const entry of section.entries) {
+      // pdfkit moves a line that ends below the bottom margin to a new page on its own, so the title
+      // counts down to the bottom of its period, and the stack line's real (wrapped) height counts too.
+      doc.font('sans').fontSize(8.5);
+      const periodBottom = SERIF_ASCENT * BODY + doc.currentLineHeight();
+      const stackHeight = entry.stack ? 1 + doc.heightOfString(entry.stack, { width, lineGap: 2 }) : 0;
       doc.font('serif').fontSize(BODY);
       const line = doc.currentLineHeight() + LEADING;
-      ensure(line * (entry.detail ? 2 : 1) + (entry.body ? doc.heightOfString(entry.body, { width, lineGap: LEADING }) : 0));
+      const [first] = entry.bullets ?? [];
+      // The title keeps its stack, its body and its first highlight with it.
+      ensure(
+        Math.max(line, periodBottom) +
+          stackHeight +
+          (entry.body ? 1 + doc.heightOfString(entry.body, { width, lineGap: LEADING }) : 0) +
+          (first ? 2 + doc.heightOfString(first, { width: width - INDENT, lineGap: LEADING }) : 0),
+      );
       const top = doc.y;
       let metaWidth = 0;
       // Tabular figures line the periods up; addresses keep proportional punctuation.
@@ -334,13 +343,14 @@ export function cvPdf(record: ProfessionalRecord): Promise<Uint8Array> {
       }
       doc.x = left;
       doc.y = end;
-      if (entry.detail) runs([{ text: entry.detail, font: 'serif-italic', size: BODY, color: MUTED }], left, doc.y, width);
+      if (entry.stack) {
+        doc.y += 1;
+        runs([{ text: entry.stack, font: 'sans', size: 8.5, color: MUTED }], left, doc.y, width, 2);
+      }
       if (entry.body) {
         doc.y += 1;
         runs([body(entry.body)], left, doc.y, width);
       }
-      // Highlights hang from a bullet, so a wrapped line starts under the text, not under the bullet.
-      const INDENT = 12;
       for (const bullet of entry.bullets ?? []) {
         doc.y += 2;
         doc.font('serif').fontSize(BODY);
@@ -349,23 +359,12 @@ export function cvPdf(record: ProfessionalRecord): Promise<Uint8Array> {
         doc.fillColor(MUTED).text('•', left + 2, top, { lineBreak: false });
         runs([body(bullet)], left + INDENT, top, width - INDENT);
       }
+      doc.y += 5;
+    }
+    if (section.note) {
+      runs(section.note.map((span) => ({ ...span, font: 'sans', size: 8.5, color: MUTED })), left, doc.y, width, 0);
       doc.y += 7;
     }
-  }
-
-  // Sources: every reference, numbered, as host and path, so a printed CV stays traceable.
-  label('SOURCES');
-  const NUMBER = 14;
-  for (const reference of cv.references) {
-    ensure(12);
-    const top = doc.y;
-    doc.font('sans').fontSize(8).fillColor(MUTED);
-    doc.text(String(reference.number), left, top, { width: NUMBER, align: 'right', features: ['tnum'], lineGap: 2.5 });
-    runs([{ text: reference.text, url: reference.url, font: 'sans', size: 8, color: MUTED }], left + NUMBER + 8, top, width - NUMBER - 8, 2.5);
-  }
-  if (cv.attestedNote) {
-    doc.y += 6;
-    runs([{ text: cv.attestedNote, font: 'serif-italic', size: 9, color: MUTED }], left, doc.y, width, 0);
   }
 
   // Footer on every page; the bottom margin is lifted so writing below it does not add a page.
@@ -403,11 +402,12 @@ const docxRuns = (spans: Span[], options: IRunOptions): ParagraphChild[] =>
     return span.url ? new ExternalHyperlink({ link: span.url, children: [run] }) : run;
   });
 
-/** A Claim's title, reference numbers and attested marker. */
+/** A Claim's title and detail. */
 const docxTitle = (entry: Entry): ParagraphChild[] => [
   ...docxRuns([{ text: entry.title, url: entry.url }], { bold: entry.named, color: hex(INK) }),
-  ...docxRuns([{ text: entry.references.join(','), url: entry.url }], { superScript: true, color: hex(ACCENT) }),
-  ...(entry.attested ? [new TextRun({ text: ' attested', smallCaps: true, color: hex(MUTED) })] : []),
+  ...(entry.detail
+    ? [new TextRun({ text: ' · ', color: hex(MUTED) }), new TextRun({ text: entry.detail, italics: true, color: hex(MUTED) })]
+    : []),
 ];
 
 /** The CV as a DOCX. */
@@ -424,8 +424,9 @@ export async function cvDocx(record: ProfessionalRecord): Promise<Uint8Array> {
   const rightTab = [{ type: TabStopType.RIGHT, position: CONTENT_WIDTH }];
 
   const entry = (claim: Entry) => {
-    const last = !claim.detail && !claim.body && !claim.bullets?.length;
+    const last = !claim.stack && !claim.body && !claim.bullets?.length;
     const bullets = claim.bullets ?? [];
+    const more = !!claim.body || bullets.length > 0;
     return [
       new Paragraph({
         keepNext: !last,
@@ -436,14 +437,8 @@ export async function cvDocx(record: ProfessionalRecord): Promise<Uint8Array> {
           ...(claim.meta ? [new TextRun({ text: '\t', ...meta }), ...docxRuns([claim.meta], meta)] : []),
         ],
       }),
-      ...(claim.detail
-        ? [
-            new Paragraph({
-              keepNext: !!claim.body || bullets.length > 0,
-              spacing: { after: claim.body || bullets.length ? 0 : 160 },
-              children: [new TextRun({ text: claim.detail, italics: true, color: hex(MUTED) })],
-            }),
-          ]
+      ...(claim.stack
+        ? [new Paragraph({ keepNext: more, spacing: { before: 20, after: more ? 0 : 160 }, children: [new TextRun({ text: claim.stack, ...meta })] })]
         : []),
       ...(claim.body
         ? [new Paragraph({ spacing: { before: 20, after: bullets.length ? 0 : 160 }, children: [new TextRun(claim.body)] })]
@@ -464,26 +459,15 @@ export async function cvDocx(record: ProfessionalRecord): Promise<Uint8Array> {
     new Paragraph({ children: [new TextRun({ text: cv.name, font: SANS, size: 44, bold: true })] }),
     new Paragraph({ spacing: { before: 40, after: 100 }, children: [new TextRun({ text: cv.headline, size: 25 })] }),
     new Paragraph({ children: docxRuns(joined(cv.contact, ' · '), meta) }),
+    ...(cv.languages ? [new Paragraph({ children: [new TextRun({ text: cv.languages, ...meta })] })] : []),
     ...cv.sections.flatMap((section) => [
       label(section.label),
       ...section.paragraphs.map((paragraph) => new Paragraph({ spacing: { after: 100 }, children: [new TextRun(paragraph)] })),
       ...(section.runOn
         ? [new Paragraph({ children: section.entries.flatMap((claim, i) => [...(i ? [new TextRun(' · ')] : []), ...docxTitle(claim)]) })]
         : section.entries.flatMap(entry)),
+      ...(section.note ? [new Paragraph({ children: docxRuns(section.note, meta) })] : []),
     ]),
-    label('SOURCES'),
-    ...cv.references.map(
-      (reference) =>
-        new Paragraph({
-          tabStops: [{ type: TabStopType.LEFT, position: 360 }],
-          indent: { left: 360, hanging: 360 },
-          spacing: { after: 20 },
-          children: [new TextRun({ text: `${reference.number}\t`, ...meta, size: 16 }), ...docxRuns([reference], { ...meta, size: 16 })],
-        }),
-    ),
-    ...(cv.attestedNote
-      ? [new Paragraph({ spacing: { before: 120 }, children: [new TextRun({ text: cv.attestedNote, size: 18, italics: true, color: hex(MUTED) })] })]
-      : []),
   ];
   const footer = new Footer({
     children: [

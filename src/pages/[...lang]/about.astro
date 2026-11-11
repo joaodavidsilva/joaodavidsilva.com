@@ -45,7 +45,10 @@ const src = (source: Source) =>
       <section><h2>{words.roles}</h2><ul>
         {record.roles.map((r) => (
           <li>{r.title} · {r.organisation} · <span class="period">{periodOf(r, ui)}</span> <Fragment set:html={src(r.source)} />
-            {r.highlights.length > 0 && <ul>{r.highlights.map((h) => <li>{h}</li>)}</ul>}
+            {r.stack.length > 0 && <p class="stack">{words.stack}: {r.stack.join(', ')}</p>}
+            {r.highlights.length > 0 && (
+              <ul>{r.highlights.map((h) => (typeof h === 'string' ? <li>{h}</li> : <li>{h.text} <Fragment set:html={src(h.source)} /></li>))}</ul>
+            )}
           </li>
         ))}
       </ul></section>

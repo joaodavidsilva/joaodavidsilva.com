@@ -16,6 +16,12 @@
   margin-block-start: 0.2em;
 }
 
+.record .stack {
+  margin: 0.2em 0 0;
+  color: var(--ink-muted);
+  font-size: 0.875em;
+}
+
 .record .source-note {
   color: var(--ink-muted);
   font-size: 0.875em;

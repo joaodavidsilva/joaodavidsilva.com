@@ -1,12 +1,19 @@
 # João's Professional record: the only source for the About page, the CV and the Person JSON-LD.
 # Every Claim needs a source: { page: /path/ }, { url: https://… } or { attested: where the private evidence is kept }.
 # Skills list where they were demonstrated (page or url). No phone numbers or postal addresses, ever; location is city and country only.
-# Each role's highlights rest on the role's source, so keep them to what that source shows.
+# Each role's highlights rest on the role's source, so keep them to what that source shows; a highlight that needs other evidence takes its own: { text: …, source: … }.
 # interests and approach are your own prose (opinions, not Claims): add them under `record:` as YAML block text; blank lines separate paragraphs.
 record:
   name: João David Silva
-  headline: Engineering beyond implementation.
+  headline: "Lead AI Engineer: plan comprehensively, build incrementally, evolve continuously."
   url: https://joaodavidsilva.com/
+  email: me@joaodavidsilva.com
+  approach: |
+    AI has changed how we build software, but most teams still organise the work around it as if implementation were the expensive part. It isn't any more. The bottleneck is now everything around the code: endless meetings that wear teams down, decisions that lose their context on the way from the customer to the product, and tickets and documents nobody keeps up to date.
+
+    I want to lead teams that work differently: plan comprehensively, build incrementally, evolve continuously. Better decisions, shorter feedback loops, and engineering artefacts (requirements, decisions, the domain's language) that evolve alongside the product and are shared by people and AI agents alike.
+
+    I've lived it on Mind4EDP, used by more than 13,000 EDP colleagues: the mobile client began as hand-written code and grew into a project developed entirely by AI agents, kept on track by written decisions and small, verifiable tickets. The process is open-sourced as AI Skills, and I write about it at joaodavidsilva.com/writing.
   location: Lisbon, Portugal · remote within the EU
   languages:
     - Portuguese (native)
@@ -19,8 +26,11 @@ record:
     - title: AI Mobile Developer
       organisation: EDP
       start: 2025-10
+      stack: [Generative AI (multi-agent), Whisper (on-device), React Native, Expo, TypeScript, Python, FastAPI, Angular, Microsoft Entra ID, Google Cloud, Application Insights]
       highlights:
-        - Sole developer of Mind4EDP Mobile, the native iOS and Android client of EDP's multi-agent AI assistant, built with React Native, Expo and TypeScript, at parity with the web app in Portuguese, English and Spanish.
+        - text: Sole developer of Mind4EDP Mobile, the native iOS and Android client of EDP's multi-agent AI assistant, used by more than 13,000 active EDP colleagues.
+          source: { attested: "Mind4EDP usage metrics, kept by João" }
+        - At parity with the web app, in Portuguese, English and Spanish.
         - Streaming chat with cited sources and a document viewer, an Anonymous Mode whose messages are neither saved nor traced, and on-device Whisper voice input that works offline.
         - Sign-in with Microsoft Entra ID (OAuth2 + PKCE), tokens in Keychain/Keystore, and an encrypted local copy wiped at logout.
         - Feature-sliced architecture enforced by tests and lint, ADRs for every major decision, a shared domain glossary and CI quality and security gates.
@@ -30,31 +40,33 @@ record:
       organisation: ITSector
       start: 2025-01
       end: 2025-09
+      stack: [React Native, Figma, Azure DevOps, Azure Boards]
       highlights:
-        - Mobile banking app in React Native, built from Figma designs on a custom design system, delivered through Azure DevOps.
+        - Mobile banking app built from Figma designs on a custom design system.
         - Multi-level scroll views, carousels and calendar/agenda screens with real-time availability and dynamic filtering.
         - Faster data-heavy screens through paginated API data, manual profiling and debugging.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Mobile Developer
-      organisation: Anoto
+      organisation: Anoto (freelance)
       start: 2024-10
       end: 2024-12
       highlights:
         - Built the new LivePen app in React Native, digitising handwritten notes from Anoto smartpens in real time, with AI transcription and note sharing.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Mobile Developer
-      organisation: Hantverksdata Sverige AB
+      organisation: Hantverksdata Sverige AB (contract)
       start: 2024-03
       end: 2024-09
       highlights:
         - React Native app for Ordrestyring, field-service software for construction, plumbing and electrical businesses; upgraded React Native on a legacy class-component codebase.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Senior Frontend Developer
-      organisation: LUDO
+      organisation: LUDO (freelance)
       start: 2023-10
       end: 2023-11
       highlights:
-        - React and Next.js interfaces for gaming and blockchain SaaS tools, including a marketplace and in-game rewards.
+        - text: Built the Next.js web dashboard for Ludo, a questing platform for games, acquired by Xsolla.
+          source: { url: https://www.businesswire.com/news/home/20250508807800/en/Xsolla-Acquires-Ludo-to-Advance-Player-Engagement-and-Monetization }
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Lead Technology Developer
       organisation: Reflaunt
@@ -69,8 +81,6 @@ record:
       organisation: Decskill (client Vortal)
       start: 2021-04
       end: 2022-02
-      highlights:
-        - Built the new platform in React, then moved to front-end QA.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Mobile Developer
       organisation: Lynxmind
@@ -95,8 +105,9 @@ record:
       organisation: Bubble Student
       start: 2018-04
       end: 2018-08
+      stack: [React Native, Redux]
       highlights:
-        - Student-housing app (Redux, map search, group chat, payments) and the "B the Smart AI" housing chatbot.
+        - Student-housing app (map search, group chat, payments) and the "B the Smart AI" housing chatbot.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Xamarin Developer
       organisation: HNC.pt
@@ -105,23 +116,21 @@ record:
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
   projects:
     - name: dotore
-      summary: A pure-Rust static analyzer, deterministic auto-fixer and remediation engine for JS/TS, React, Angular, Python and Rust.
+      summary: Pure-Rust static analyzer and deterministic auto-fixer for JS/TS, React, Angular, Python and Rust, with 1,076 rules, a cross-file project graph and a 0–100 Health Score.
       source: { page: /projects/dotore/ }
-    - name: AI Skills
-      summary: Small, composable agent skills for real software engineering with coding agents, not vibe coding.
-      source: { page: /projects/ai-skills/ }
-    - name: BrightBoi
-      summary: A free macOS menu bar app that unlocks the extra brightness of the MacBook Pro's Liquid Retina XDR display, up to 200%.
-      source: { page: /projects/brightboi/ }
-    - name: Markdown Exporter
-      summary: A VS Code extension that turns a hand-picked selection of files and folders into one Markdown document for LLM context.
-      source: { page: /projects/markdown-exporter/ }
-    - name: Lozza
-      summary: A product in development, with a Waitlist for people who want to hear when it is available.
-      source: { page: /projects/lozza/ }
     - name: Facts Memorizer
-      summary: A free times-tables practice app for children, with no accounts, no ads and no data collection.
+      summary: Times-tables app for children, published on the App Store and Google Play; no accounts, no ads, no data collection.
       source: { page: /projects/facts-memorizer/ }
-  achievements:
-    - text: Mind4EDP Mobile is used by about 8,000 active EDP colleagues.
-      source: { attested: "Mind4EDP usage metrics, kept by João" }
+    - name: AI Skills
+      summary: Open-source, composable agent skills for software engineering with coding agents such as Claude Code and Codex.
+      source: { page: /projects/ai-skills/ }
+    - name: Markdown Exporter
+      summary: VS Code extension on the Visual Studio Marketplace that turns a hand-picked selection of files into one token-counted Markdown document for LLM context.
+      source: { page: /projects/markdown-exporter/ }
+    - name: BrightBoi
+      summary: Free macOS menu bar app that unlocks the MacBook Pro XDR display's extra brightness, up to 200%.
+      source: { page: /projects/brightboi/ }
+  publications:
+    - title: AI changed the economics of planning
+      url: https://joaodavidsilva.com/writing/ai-changed-the-economics-of-planning/
+      source: { page: /writing/ai-changed-the-economics-of-planning/ }

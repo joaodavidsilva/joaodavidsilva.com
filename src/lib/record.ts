@@ -96,6 +96,7 @@ function assertSources(record: ProfessionalRecord, pages: Map<string, string>) {
     ...record.roles, ...record.projects, ...record.achievements, ...record.publications, ...record.contributions,
   ].map((claim) => claim.source);
   refs.push(...record.skills.flatMap((skill) => skill.demonstrated));
+  refs.push(...record.roles.flatMap((role) => role.highlights.flatMap((h) => (typeof h === 'string' ? [] : [h.source]))));
   for (const ref of refs) {
     if (ref.page && !pages.has(ref.page)) {
       throw new Error(`record.yaml: source page "${ref.page}" does not exist on the site`);
@@ -168,7 +169,8 @@ export function aboutMarkdown(record: ProfessionalRecord): string {
     words.roles,
     record.roles.flatMap((r) => [
       `- ${r.title}, ${r.organisation}, ${periodOf(r, ui)}. ${sourceMd(r.source)}`,
-      ...r.highlights.map((h) => `  - ${h}`),
+      ...(r.stack.length ? [`  ${words.stack}: ${r.stack.join(', ')}`] : []),
+      ...r.highlights.map((h) => (typeof h === 'string' ? `  - ${h}` : `  - ${h.text} ${sourceMd(h.source)}`)),
     ]),
   );
   section(words.projects, record.projects.map((p) => `- ${p.name}: ${p.summary} ${sourceMd(p.source)}`));

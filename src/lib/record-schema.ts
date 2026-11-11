@@ -55,8 +55,11 @@ export const recordSchema = z.strictObject({
         organisation: text,
         start: month,
         end: month.optional(),
-        // What João did in the role; each line rests on the role's own source.
-        highlights: z.array(text).default([]),
+        // What João did in the role. A plain line rests on the role's source; a line with its own
+        // source (a number the role's source does not show, say) cites it.
+        highlights: z.array(z.union([text, z.strictObject({ text, source })])).default([]),
+        // The technologies used in the role, most relevant first; they rest on the role's source.
+        stack: z.array(text).default([]),
         source,
       }),
     )

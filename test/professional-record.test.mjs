@@ -80,6 +80,10 @@ test('the About page and Person JSON-LD are generated from the Professional reco
     assert.doesNotMatch(html, /2024-01|2020-03/);
   });
 
+  await t.test("a role's stack reads as one labelled line", () => {
+    assert.match(html, /<p class="stack">Stack: Fixture Script, Mock Cloud<\/p>/);
+  });
+
   await t.test('the twin carries the shared front-matter', () => {
     assert.match(md, /\nupdated: \d{4}-\d{2}-\d{2}\n/);
     assert.ok(md.includes('\ntags: []\n'), md);

@@ -22,10 +22,19 @@ record:
       organisation: Old Corp
       start: 2020-03
       end: 2023-12
+      stack: [Fixture Script, Mock Cloud]
       highlights:
         - Shipped the fixture app to both stores.
-        - Cut fixture build times in half.
+        - text: Cut fixture build times in half.
+          source: { attested: "Employment contract, kept by João" }
       source: { url: https://example.com/old-corp-team }
+    - title: Intern Fixture Engineer
+      organisation: Ancient Corp
+      start: 2015-01
+      end: 2015-06
+      highlights:
+        - Ancient highlight.
+      source: { url: https://example.com/ancient-corp }
   projects:
     - name: Fixture App
       summary: An app that exists only in tests.
