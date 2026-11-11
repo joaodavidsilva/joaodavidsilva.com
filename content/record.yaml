@@ -117,16 +117,19 @@ record:
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
   projects:
     - name: dotore
-      summary: Pure-Rust static analyzer and deterministic auto-fixer for JS/TS, React, Angular, Python and Rust, with 1,076 rules, a cross-file project graph and a 0–100 Health Score.
+      summary: Rust static analyzer and auto-fixer for JS/TS, React, Angular, Python and Rust, with 1,076 rules.
       source: { page: /projects/dotore/ }
+    - name: Lozza
+      summary: Native design tool for Mac and iPad with a Skia-based engine. In development, private repository.
+      source: { attested: "Private repository github.com/joaodavidsilva/app-lozza, kept by João" }
     - name: Facts Memorizer
-      summary: Times-tables app for children, published on the App Store and Google Play; no accounts, no ads, no data collection.
+      summary: Times-tables app for children on the App Store and Google Play, with no data collection.
       source: { page: /projects/facts-memorizer/ }
     - name: AI Skills
-      summary: Open-source, composable agent skills for software engineering with coding agents such as Claude Code and Codex.
+      summary: Open-source agent skills for software engineering with coding agents such as Claude Code and Codex.
       source: { page: /projects/ai-skills/ }
     - name: Markdown Exporter
-      summary: VS Code extension on the Visual Studio Marketplace that turns a hand-picked selection of files into one token-counted Markdown document for LLM context.
+      summary: VS Code extension on the Visual Studio Marketplace that turns selected files into one token-counted Markdown document.
       source: { page: /projects/markdown-exporter/ }
     - name: BrightBoi
       summary: Free macOS menu bar app that unlocks the MacBook Pro XDR display's extra brightness, up to 200%.
