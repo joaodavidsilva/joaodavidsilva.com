@@ -19,19 +19,18 @@ export type { ProfessionalRecord, Source };
 export const ABOUT_PATH = '/about/';
 const aboutPathOf = () => ABOUT_PATH;
 
-/** Where the CV is published, by format; generated from the record at build time. */
-export const CV_PATHS = { pdf: '/cv.pdf', docx: '/cv.docx' } as const;
-export type CvFormat = keyof typeof CV_PATHS;
+/** Where the CV is published; generated from the record at build time. */
+export const CV_PATH = '/cv.pdf';
 
 /** The file name a downloaded CV is saved under, e.g. `joao-david-silva-cv.pdf`. */
-export function cvFileName(record: ProfessionalRecord, format: CvFormat): string {
+export function cvFileName(record: ProfessionalRecord): string {
   const slug = record.name
     .normalize('NFD')
     .replace(/\p{Mn}/gu, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
-  return `${slug}-cv.${format}`;
+  return `${slug}-cv.pdf`;
 }
 
 /** The record entry and its Translations (`<language>/record`), whose internal sources must resolve. */
@@ -158,7 +157,7 @@ export function aboutMarkdown(record: ProfessionalRecord): string {
   const words = ui.record;
   const sourceMd = (source: Source) =>
     'attested' in source ? `(${words.attested}: ${source.attested})` : `([${words.source}](${absoluteUrl(hrefOf(source))}))`;
-  const cv = `${words.downloadCv} [PDF](${absoluteUrl(CV_PATHS.pdf)}), [DOCX](${absoluteUrl(CV_PATHS.docx)})`;
+  const cv = `${words.downloadCv} [PDF](${absoluteUrl(CV_PATH)})`;
   const out = [`${record.name}. ${record.headline}`, ...(record.location ? ['', record.location] : []), '', cv, ''];
   const section = (title: string, lines: string[]) => {
     if (lines.length) out.push(`## ${title}`, '', ...lines, '');

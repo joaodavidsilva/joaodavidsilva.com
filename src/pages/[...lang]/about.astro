@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import SuggestCorrection from '../../components/SuggestCorrection.astro';
 import { escapeMarkup as escape } from '../../lib/escape';
 import {
-  ABOUT_PATH, CV_PATHS, cvFileName, hostPath, hrefOf, pageTitles, paragraphsOf, periodOf, personOf, type ProfessionalRecord, type Source,
+  ABOUT_PATH, CV_PATH, cvFileName, hostPath, hrefOf, pageTitles, paragraphsOf, periodOf, personOf, type ProfessionalRecord, type Source,
 } from '../../lib/record';
 import { aboutRoutes } from '../../lib/routes';
 import { alternateAt, type Translations } from '../../lib/translations';
@@ -35,7 +35,7 @@ const src = (source: Source) =>
       <h1>{ui.about}</h1>
       <p>{record.name}. {record.headline}</p>
       {record.location && <p>{record.location}</p>}
-      <p class="cv">{words.downloadCv} <a href={CV_PATHS.pdf} download={cvFileName(record, 'pdf')}>PDF</a>, <a href={CV_PATHS.docx} download={cvFileName(record, 'docx')}>DOCX</a></p>
+      <p class="cv">{words.downloadCv} <a href={CV_PATH} download={cvFileName(record)}>PDF</a></p>
     </header>
     {[[words.interests, record.interests], [words.approach, record.approach]].map(([title, prose]) => {
       const paragraphs = paragraphsOf(prose);

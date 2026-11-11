@@ -1,19 +1,14 @@
 import { readFileSync } from 'node:fs';
 import PDFDocument from 'pdfkit';
 import {
-  BorderStyle, Document, ExternalHyperlink, Footer, Packer, PageNumber, Paragraph, TabStopType, TextRun, type IRunOptions,
-  type ParagraphChild,
-} from 'docx';
-import {
   ABOUT_PATH, absoluteUrl, hostPath, hrefOf, paragraphsOf, periodOf, type ProfessionalRecord, type Source,
 } from './record';
 import { ORIGINAL_LANGUAGE } from './translations';
 import { uiOf } from './ui';
 
-// The CV: one document from the full Professional record, never tailored. The PDF and the
-// DOCX render the same model, so they carry the same prose and Claims as the About page.
-// Every Claim carries a reference number; the Sources section lists where each one can be
-// checked, so a printed CV stays traceable without a source line under every Claim.
+// The CV: one document from the full Professional record, never tailored, so it carries the same
+// prose and Claims as the About page. A Claim that rests on a page of this site links to it; the
+// other sources stay on the About page, which the CV points to.
 
 /** A piece of text, linked when it leads somewhere. */
 interface Span {
@@ -381,129 +376,4 @@ export function cvPdf(record: ProfessionalRecord): Promise<Uint8Array> {
   }
   doc.end();
   return promise;
-}
-
-// ---- DOCX ------------------------------------------------------------------
-
-// Word documents name a font rather than embed one, and recruiters have neither Source Serif 4 nor
-// Inter: Georgia and Arial are on every Windows and Mac install.
-const SERIF = 'Georgia';
-const SANS = 'Arial';
-const hex = (colour: string) => colour.slice(1);
-// Twentieths of a point: A4 with 18 mm margins.
-const TWIPS_PER_MM = 1440 / 25.4;
-const PAGE = { width: 11906, height: 16838, margin: Math.round(18 * TWIPS_PER_MM) };
-const CONTENT_WIDTH = PAGE.width - 2 * PAGE.margin;
-
-/** Runs that link in the text's own colour, never Word's blue underline. */
-const docxRuns = (spans: Span[], options: IRunOptions): ParagraphChild[] =>
-  spans.map((span) => {
-    const run = new TextRun({ ...options, text: span.text });
-    return span.url ? new ExternalHyperlink({ link: span.url, children: [run] }) : run;
-  });
-
-/** A Claim's title and detail. */
-const docxTitle = (entry: Entry): ParagraphChild[] => [
-  ...docxRuns([{ text: entry.title, url: entry.url }], { bold: entry.named, color: hex(INK) }),
-  ...(entry.detail
-    ? [new TextRun({ text: ' · ', color: hex(MUTED) }), new TextRun({ text: entry.detail, italics: true, color: hex(MUTED) })]
-    : []),
-];
-
-/** The CV as a DOCX. */
-export async function cvDocx(record: ProfessionalRecord): Promise<Uint8Array> {
-  const cv = cvOf(record);
-  const label = (text: string) =>
-    new Paragraph({
-      keepNext: true,
-      spacing: { before: 400, after: 160 },
-      border: { bottom: { style: BorderStyle.SINGLE, size: 4, space: 3, color: hex(RULE) } },
-      children: [new TextRun({ text, font: SANS, size: 15, bold: true, color: hex(ACCENT), characterSpacing: 18 })],
-    });
-  const meta = { font: SANS, size: 17, color: hex(MUTED) };
-  const rightTab = [{ type: TabStopType.RIGHT, position: CONTENT_WIDTH }];
-
-  const entry = (claim: Entry) => {
-    const last = !claim.stack && !claim.body && !claim.bullets?.length;
-    const bullets = claim.bullets ?? [];
-    const more = !!claim.body || bullets.length > 0;
-    return [
-      new Paragraph({
-        keepNext: !last,
-        tabStops: rightTab,
-        spacing: { after: last ? 160 : 0 },
-        children: [
-          ...docxTitle(claim),
-          ...(claim.meta ? [new TextRun({ text: '\t', ...meta }), ...docxRuns([claim.meta], meta)] : []),
-        ],
-      }),
-      ...(claim.stack
-        ? [new Paragraph({ keepNext: more, spacing: { before: 20, after: more ? 0 : 160 }, children: [new TextRun({ text: claim.stack, ...meta })] })]
-        : []),
-      ...(claim.body
-        ? [new Paragraph({ spacing: { before: 20, after: bullets.length ? 0 : 160 }, children: [new TextRun(claim.body)] })]
-        : []),
-      ...bullets.map(
-        (bullet, i) =>
-          new Paragraph({
-            tabStops: [{ type: TabStopType.LEFT, position: 240 }],
-            indent: { left: 240, hanging: 240 },
-            spacing: { before: 40, after: i === bullets.length - 1 ? 160 : 0 },
-            children: [new TextRun({ text: '•\t', color: hex(MUTED) }), new TextRun(bullet)],
-          }),
-      ),
-    ];
-  };
-
-  const children = [
-    new Paragraph({ children: [new TextRun({ text: cv.name, font: SANS, size: 44, bold: true })] }),
-    new Paragraph({ spacing: { before: 40, after: 100 }, children: [new TextRun({ text: cv.headline, size: 25 })] }),
-    new Paragraph({ children: docxRuns(joined(cv.contact, ' · '), meta) }),
-    ...(cv.languages ? [new Paragraph({ children: [new TextRun({ text: cv.languages, ...meta })] })] : []),
-    ...cv.sections.flatMap((section) => [
-      label(section.label),
-      ...section.paragraphs.map((paragraph) => new Paragraph({ spacing: { after: 100 }, children: [new TextRun(paragraph)] })),
-      ...(section.runOn
-        ? [new Paragraph({ children: section.entries.flatMap((claim, i) => [...(i ? [new TextRun(' · ')] : []), ...docxTitle(claim)]) })]
-        : section.entries.flatMap(entry)),
-      ...(section.note ? [new Paragraph({ children: docxRuns(section.note, meta) })] : []),
-    ]),
-  ];
-  const footer = new Footer({
-    children: [
-      new Paragraph({
-        tabStops: rightTab,
-        children: [
-          ...docxRuns([{ text: cv.footer, url: absoluteUrl(ABOUT_PATH) }], { ...meta, size: 15 }),
-          new TextRun({ ...meta, size: 15, children: ['\t', PageNumber.CURRENT, ' / ', PageNumber.TOTAL_PAGES] }),
-        ],
-      }),
-    ],
-  });
-  const doc = new Document({
-    creator: cv.name,
-    title: `${cv.name}: CV`,
-    description: cv.headline,
-    styles: {
-      default: {
-        document: {
-          run: { font: SERIF, size: 21, color: hex(INK) },
-          paragraph: { spacing: { line: 288 } },
-        },
-      },
-    },
-    sections: [
-      {
-        properties: {
-          page: {
-            size: { width: PAGE.width, height: PAGE.height },
-            margin: { top: PAGE.margin, right: PAGE.margin, bottom: PAGE.margin + 340, left: PAGE.margin, footer: PAGE.margin - 280 },
-          },
-        },
-        footers: { default: footer },
-        children,
-      },
-    ],
-  });
-  return Packer.toBuffer(doc);
 }
