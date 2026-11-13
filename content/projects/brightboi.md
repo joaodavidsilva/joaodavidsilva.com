@@ -7,7 +7,9 @@ published: 2026-11-09
 tags: [apps, macos]
 links:
   repository: https://github.com/joaodavidsilva/brightboi
-  stores: []
+  stores:
+    - name: Download 1.2.0
+      url: https://github.com/joaodavidsilva/brightboi/releases/latest
 software:
   category: UtilitiesApplication
   operatingSystems: [macOS]
@@ -15,17 +17,26 @@ figures:
   - src: ./brightboi/popover-screenshot.png
     alt: "The BrightBoi popover at 100% in dark mode: a large percentage with an estimate in nits, a slider from 0 to 200% with a hatched Boost section, and Dim, 100% and Max boi buttons"
     caption: The menu bar popover, with the 0–200% slider, a nits estimate and quick-set buttons.
-  - src: ./brightboi/settings-screenshot.png
-    alt: "The BrightBoi Settings window in dark mode: launch at login, auto-brightness, F1/F2 shortcuts, update check, a Boost ceiling slider and the Accessibility permission status"
-    caption: Settings, with F1/F2 or custom shortcuts, the Boost ceiling and live permission status.
   - src: ./brightboi/popover-boost.png
     alt: The popover at 150% with a BOOSTED badge and the slider's amber Boost section filled
     caption: Boost engaged at 150%, about 750 nits.
+  - src: ./brightboi/settings-screenshot.png
+    alt: "The BrightBoi Settings window in dark mode: launch at login, auto-brightness, F1/F2 shortcuts, update check, a Boost ceiling slider and the Accessibility permission status"
+    caption: Settings, with F1/F2 or custom shortcuts, the Boost ceiling and live permission status.
   - src: ./brightboi/hud.png
     alt: The on-screen HUD showing 80% with a segmented level bar
     caption: The on-screen meter shown by the brightness keys, in 5% steps.
 legal: []
+facts:
+  - label: Version
+    value: 1.2.0, released 30 September 2026
+  - label: Needs
+    value: Apple silicon Mac, macOS 14 or later
+  - label: Licence
+    value: MIT, open source
 ---
+
+## Why it exists
 
 MacBook Pros with a Liquid Retina XDR (mini-LED) display can sustain about 1000 nits full-screen, but macOS stops at the 500-nit SDR level. Commercial utilities unlock that range behind paid licences or subscriptions; BrightBoi gives the whole 0–200% range for free, in a native Swift menu bar app. It is open source under the MIT licence.
 

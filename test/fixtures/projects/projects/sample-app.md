@@ -22,6 +22,14 @@ figures:
     caption: How the pieces fit together.
 legal:
   - projects/sample-app/privacy
+facts:
+  - label: Requirements
+    value: "Runs `sample --start`; [documentation](https://sample.example/docs)."
 ---
 
 The project body explains why Sample App exists.
+
+## How it works
+
+- **One input.** The input drives the output.
+- `sample run` executes one practice run.

@@ -23,32 +23,40 @@ const jsonLd = listingJsonLd(indexMetadataOf(language, entries), entries);
 ---
 <Base title={index.title} description={index.summary} canonical={index.canonical} language={language} twin={index.twin} translations={translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <header>
-    <h1>{index.title}</h1>
-    <p class="summary">{index.summary}</p>
-  </header>
-  {entries.length > 0 ? (
-    <>
-      <KnowledgeSearch />
-      {/* The search's results replace this index while a query is present. */}
-      <div data-knowledge-index>
-        {groups.map((group) => (
-          <section class="knowledge-category" aria-labelledby={group.id}>
-            <h2 id={group.id}>{group.category}</h2>
-            <KnowledgeList entries={group.entries} heading="h3" />
-          </section>
-        ))}
-        {tags.length > 0 && (
-          <nav class="knowledge-tags" aria-labelledby="knowledge-tags">
-            <h2 id="knowledge-tags">{ui.tags}</h2>
-            <ul class="tags">
-              {tags.map((tag) => <li><a href={tagPathOf(tag, language)}>{tag}</a></li>)}
-            </ul>
-          </nav>
-        )}
-      </div>
-    </>
-  ) : (
-    <p>{ui.noKnowledge}</p>
-  )}
+  <div class="container index-page knowledge-index">
+    <header class="knowledge-header">
+      <p class="eyebrow">{index.title}</p>
+      <h1 class="page-title">{ui.redesign.knowledge.title}</h1>
+      <p class="lede">{ui.redesign.knowledge.lede}</p>
+    </header>
+    {entries.length > 0 ? (
+      <>
+        <KnowledgeSearch initialCount={ui.redesign.knowledge.summary(entries.length, groups.length)} />
+        {/* The search's results replace this index while a query is present. */}
+        <div data-knowledge-index>
+          {groups.map((group) => (
+            <section class="labelled-row labelled-row--group knowledge-category" aria-labelledby={group.id}>
+              <div class="row-label">
+                <h2 id={group.id}>{group.category}</h2>
+                <p class="entry-count">{ui.redesign.entryCount(group.entries.length)}</p>
+              </div>
+              <div class="row-content">
+                <KnowledgeList entries={group.entries} heading="h3" rows />
+              </div>
+            </section>
+          ))}
+          {tags.length > 0 && (
+            <nav class="labelled-row labelled-row--rule knowledge-tags" aria-labelledby="knowledge-tags">
+              <div class="row-label"><h2 class="eyebrow" id="knowledge-tags">{ui.redesign.knowledge.tags}</h2></div>
+              <ul class="row-content knowledge-tag-list">
+                {tags.map((tag) => <li><a class="pill" href={tagPathOf(tag, language)}>#{tag}</a></li>)}
+              </ul>
+            </nav>
+          )}
+        </div>
+      </>
+    ) : (
+      <p class="knowledge-empty">{ui.noKnowledge}</p>
+    )}
+  </div>
 </Base>

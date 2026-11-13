@@ -22,23 +22,34 @@ export function projectsIndexOf(language: Language) {
   return { ...uiOf(language).projects, ...alternateAt(PROJECTS_PATH, language) };
 }
 
-/** The order Projects are listed in: what is alive first. */
-const STATUS_ORDER: Status[] = ['active', 'in development', 'paused', 'archived'];
+/** The editorial order shared by the Projects index and Home. */
+export const PROJECT_ORDER = ['ai-skills', 'brightboi', 'dotore', 'facts-memorizer', 'lozza', 'markdown-exporter'];
 
 export const pathOf = (project: Project) => locate(project, projectPathOf).path;
 export const twinPathOf = (project: Project) => locate(project, projectPathOf).twin;
 export const canonicalOf = (project: Project) => locate(project, projectPathOf).canonical;
 export const translationsOf = (project: Project, projects: Project[]) => translationsAmong(project, projects, projectPathOf);
 
-/**
- * Every Project and Translation in listing order, after enforcing that no page claims an
- * index or a Project page path.
- */
-export async function getAllProjects(): Promise<Project[]> {
+const STATUS_ORDER: Status[] = ['active', 'in development', 'paused', 'archived'];
+
+function byEditorialOrder(a: Project, b: Project) {
+  const aOrder = PROJECT_ORDER.indexOf(a.id);
+  const bOrder = PROJECT_ORDER.indexOf(b.id);
+  if (aOrder >= 0 || bOrder >= 0) {
+    if (aOrder < 0) return 1;
+    if (bOrder < 0) return -1;
+    return aOrder - bOrder;
+  }
+  return STATUS_ORDER.indexOf(a.data.status) - STATUS_ORDER.indexOf(b.data.status) || a.data.name.localeCompare(b.data.name);
+}
+
+/** Every Original and Translation, including external-only cards, in editorial order. */
+async function readProjects(): Promise<Project[]> {
   const projects = await getCollection('projects');
-  assertTranslations(projects, { pathOf: projectPathOf, same: ['status', 'version', 'links', 'software', 'legal', 'waitlist'] });
+  assertTranslations(projects, { pathOf: projectPathOf, same: ['status', 'version', 'links', 'software', 'legal', 'facts', 'external'] });
+  const internal = projects.filter((project) => !project.data.external);
   const indexes = (Object.keys(LANGUAGES) as Language[]).map((language) => pathIn(PROJECTS_PATH, language));
-  const owned = new Set([...indexes, ...projects.map(pathOf)]);
+  const owned = new Set([...indexes, ...internal.map(pathOf)]);
   for (const page of await getPages()) {
     const path = pagePathOf(page);
     if (owned.has(path)) {
@@ -47,26 +58,52 @@ export async function getAllProjects(): Promise<Project[]> {
       );
     }
   }
-  return projects.sort(
-    (a, b) =>
-      STATUS_ORDER.indexOf(a.data.status) - STATUS_ORDER.indexOf(b.data.status) ||
-      a.data.name.localeCompare(b.data.name),
-  );
+  return projects.sort(byEditorialOrder);
 }
 
-/** Every Project in `language`, in listing order. */
+/** Every Project and Translation that has its own page, in listing order. */
+export async function getAllProjects(): Promise<Project[]> {
+  return (await readProjects()).filter((project) => !project.data.external);
+}
+
+/** Every Project in `language` that has its own page, in listing order. */
 export async function getProjects(language: Language = ORIGINAL_LANGUAGE): Promise<Project[]> {
   return (await getAllProjects()).filter((project) => project.data.language === language);
+}
+
+/** Every index card in `language`, including external-only Projects with no page or twin. */
+export async function getProjectListings(language: Language = ORIGINAL_LANGUAGE): Promise<Project[]> {
+  return (await readProjects()).filter((project) => project.data.language === language);
 }
 
 /** The external links of a Project, labelled in `ui`'s language, in display order. */
 export function linksOf(project: Project, ui: Ui): { label: string; url: string }[] {
   const { site, repository, stores } = project.data.links;
   return [
-    ...(site ? [{ label: ui.website, url: site }] : []),
-    ...(repository ? [{ label: ui.sourceCode, url: repository }] : []),
     ...stores.map(({ name, url }) => ({ label: name, url })),
+    ...(site ? [{ label: ui.website, url: site }] : []),
+    ...(repository ? [{ label: ui.redesign.projects.repository, url: repository }] : []),
   ];
+}
+
+const escapeHtml = (text: string) =>
+  text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+
+/** Render the small inline Markdown vocabulary allowed in Project fact values. */
+export function inlineFactOf(value: string): string {
+  const token = /`([^`\n]+)`|\[([^\]\n]+)\]\(((?:https:\/\/|\/)[^)\s]+)\)|\*([^*\n]+)\*/g;
+  let html = '';
+  let at = 0;
+  for (const match of value.matchAll(token)) {
+    const index = match.index!;
+    html += escapeHtml(value.slice(at, index));
+    const [raw, code, label, url, emphasis] = match;
+    if (code !== undefined) html += `<code>${escapeHtml(code)}</code>`;
+    else if (label !== undefined) html += `<a href="${escapeHtml(url)}">${escapeHtml(label)}</a>`;
+    else html += `<em>${escapeHtml(emphasis)}</em>`;
+    at = index + raw.length;
+  }
+  return html + escapeHtml(value.slice(at));
 }
 
 /**

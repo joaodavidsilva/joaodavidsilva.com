@@ -1,78 +1,154 @@
-/* The Projects index and Project pages. */
+/* Projects index and Project pages, built on the shared redesign primitives. */
 
-.project > header .summary {
-  font-size: 1.15em;
-  color: var(--ink-muted);
+.projects-index > header {
+  margin-block-end: clamp(40px,6vw,72px);
 }
-
-/* A full-page screenshot stays within a screen: scaled down, never cropped. */
-.project > figure img {
-  max-block-size: min(80vh, 48rem);
-  inline-size: auto;
-  object-fit: contain;
+.projects-index .lede {
+  margin-block-start: 20px;
 }
-
 .project-list {
-  list-style: none;
   margin: 0;
   padding: 0;
+  border-block-start: 2px solid var(--ink);
+  list-style: none;
 }
-
-.project-list li {
-  padding-block: 1.25rem;
-  border-block-start: 1px solid var(--rule);
+.project-list > li {
+  gap: 20px 48px;
 }
-
-.project-list h2 {
-  margin: 0 0 0.25em;
-  font-size: 1.25em;
+.project-index-meta {
+  flex: 0 0 220px;
 }
-
-/* Names read like Writing and Research titles: ink, underlined on hover. */
-.project-list h2 a {
+.project-index-meta p {
+  margin: 0;
+}
+.project-index-meta .status {
+  flex-wrap: wrap;
+  line-height: 1.6;
+}
+.project-index-meta .project-tags {
+  margin-block-start: 6px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.project-index-copy h2 {
+  margin: 0 0 8px;
+  font-size: 23px;
+  font-weight: 600;
+}
+.project-index-copy h2 a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
   color: var(--ink);
   text-decoration: none;
 }
-
-.project-list h2 a:hover {
-  text-decoration: underline;
+.project-index-copy h2 a:hover {
+  color: var(--accent);
 }
-
-.project-list p {
+.project-index-copy > p {
+  max-inline-size: 36em;
   margin: 0;
+  color: var(--muted);
 }
 
-.project-facts {
-  color: var(--ink-muted);
-  font-family: var(--font-sans);
-  font-size: 0.875em;
+.project {
+  padding-block: clamp(32px,5vw,64px) clamp(56px,8vw,104px);
 }
-
-dl.project-facts {
+.project > .breadcrumb { margin-block-end: 8px; }
+.project-header {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25em 1.5em;
+  align-items: flex-end;
+  gap: 32px 72px;
 }
-
-dl.project-facts div {
-  display: flex;
-  gap: 0.4em;
+.project-hero {
+  flex: 1 1 480px;
   min-inline-size: 0;
 }
-
-/* A build-tagged version (0.9.0-beta.12+build.…) has no break opportunity of its own. */
-dl.project-facts dd {
+.project-title {
+  margin-block: 0 20px;
+}
+.project-tagline {
+  max-inline-size: 30em;
   margin: 0;
-  color: var(--ink);
+  color: var(--muted);
+  font-size: clamp(20px,2.2vw,25px);
+  line-height: 1.45;
+}
+.project-hero .cta-row { margin-block: 28px 0; }
+.project-header > .facts {
+  flex: 1 1 280px;
+  margin: 0;
+}
+.project-legal a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+}
+.project-screenshots {
+  margin-block-start: clamp(36px,5vw,64px);
+  padding: clamp(20px,4vw,48px);
+  border-radius: 4px;
+}
+.project-screenshots img {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+.project-screenshots figcaption {
+  margin-block-start: 12px;
+  line-height: 1.5;
+}
+.project-intro {
+  max-inline-size: 34em;
+  margin-block: clamp(40px,6vw,64px);
+  font-size: clamp(20px,2.2vw,25px);
+  line-height: 1.45;
+}
+.project-intro > :first-child,
+.project-body .row-content > :first-child {
+  margin-block-start: 0;
+}
+.project-intro > :last-child,
+.project-body .row-content > :last-child {
+  margin-block-end: 0;
+}
+.project-body > .labelled-row,
+.project-body > .labelled-row + .labelled-row {
+  margin-block-start: clamp(40px,6vw,72px);
+  padding-block: 0;
+  border-block-start: 0;
+}
+.project-body > .labelled-row:first-child .row-content {
+  max-inline-size: 34em;
+  font-size: clamp(20px,2.2vw,25px);
+  line-height: 1.45;
+}
+.project-body .row-label {
+  margin: 0;
+}
+.project-body .row-content :is(p,li,dd) {
+  text-wrap: pretty;
+}
+.project-body code,
+.project-facts code {
+  font-size: 0.86em;
   overflow-wrap: anywhere;
 }
-
-.project-links {
+.project > .content-footer {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25em 1.25em;
-  list-style: none;
-  padding: 0;
-  font-family: var(--font-sans);
-  font-size: 0.875em;
+  gap: 0 22px;
+  margin-block-start: 40px;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--rule);
+}
+.project > .content-footer p {
+  margin: 0;
+}
+.project > .content-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
 }

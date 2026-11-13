@@ -7,3 +7,4 @@ test/.out/
 .dev.vars*
 .env*
 .break-ui/
+.redesign-compare/

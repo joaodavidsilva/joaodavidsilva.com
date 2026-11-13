@@ -1,42 +1,45 @@
-// Applies the stored theme before first paint and wires the System / Light / Dark toggle.
+// Applies the stored theme before first paint and wires the System / Light / Dark buttons.
 // Inlined, blocking, into every page's head (src/layouts/Base.astro).
 (() => {
   const root = document.documentElement;
   const KEY = 'theme';
-  const explicit = (t) => t === 'light' || t === 'dark';
-  const apply = (t) => {
-    if (explicit(t)) root.dataset.theme = t;
-    else delete root.dataset.theme;
-  };
+  const explicit = (value) => value === 'light' || value === 'dark';
   let theme = null;
   try {
     theme = localStorage.getItem(KEY);
   } catch {
-    // localStorage can throw (storage disabled, private mode): fall back to the system theme (#11).
+    // Storage may be unavailable: System remains a complete fallback.
   }
-  apply(theme);
+  if (explicit(theme)) root.dataset.theme = theme;
+  else delete root.dataset.theme;
   root.dataset.js = '';
 
-  document.addEventListener('DOMContentLoaded', () => {
+  const sync = () => {
     const current = explicit(theme) ? theme : 'system';
-    for (const radio of document.querySelectorAll('input[name="theme"]')) radio.checked = radio.value === current;
-  });
-
-  document.addEventListener('change', (event) => {
-    const radio = event.target;
-    if (radio.name !== 'theme') return;
-    theme = radio.value;
+    for (const button of document.querySelectorAll('[data-theme-choice]')) {
+      button.setAttribute('aria-pressed', String(button.dataset.themeChoice === current));
+    }
+  };
+  const apply = () => {
+    if (explicit(theme)) root.dataset.theme = theme;
+    else delete root.dataset.theme;
+    sync();
+  };
+  document.addEventListener('DOMContentLoaded', sync);
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-theme-choice]');
+    if (!button) return;
+    theme = button.dataset.themeChoice;
     try {
       if (explicit(theme)) localStorage.setItem(KEY, theme);
       else localStorage.removeItem(KEY);
     } catch {
-      // localStorage can throw (storage disabled, private mode): the choice lasts for this page only (#11).
+      // The choice still applies to this page when storage is unavailable.
     }
-    const update = () => apply(theme);
     if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      document.startViewTransition(update);
+      document.startViewTransition(apply);
     } else {
-      update();
+      apply();
     }
   });
 })();

@@ -92,9 +92,10 @@ export async function getAllRecords() {
 
 function assertSources(record: ProfessionalRecord, pages: Map<string, string>) {
   const refs: { page?: string }[] = [
-    ...record.roles, ...record.projects, ...record.achievements, ...record.publications, ...record.contributions,
+    ...record.roles, ...record.education, ...record.projects, ...record.achievements, ...record.publications, ...record.contributions,
   ].map((claim) => claim.source);
   refs.push(...record.skills.flatMap((skill) => skill.demonstrated));
+  refs.push(...record.skillGroups.flatMap((group) => group.skills.flatMap((skill) => skill.demonstrated)));
   refs.push(...record.roles.flatMap((role) => role.highlights.flatMap((h) => (typeof h === 'string' ? [] : [h.source]))));
   for (const ref of refs) {
     if (ref.page && !pages.has(ref.page)) {
@@ -104,6 +105,27 @@ function assertSources(record: ProfessionalRecord, pages: Map<string, string>) {
 }
 
 export const currentRoles = (record: ProfessionalRecord) => record.roles.filter((role) => !role.end);
+
+/** About/Home statistics derived from role dates and sourced Claims, never separately authored numbers. */
+export function statsOf(record: ProfessionalRecord, now = new Date()) {
+  const first = record.roles.map((role) => role.start).sort()[0];
+  let yearsOfExperience = 0;
+  if (first) {
+    const [year, month] = first.split('-').map(Number);
+    yearsOfExperience = Math.max(0, now.getUTCFullYear() - year - (now.getUTCMonth() + 1 < month ? 1 : 0));
+  }
+  const usage = record.roles.flatMap((role) => role.highlights).find((highlight) =>
+    typeof highlight !== 'string' && 'attested' in highlight.source && /more than [\d,]+/i.test(highlight.text),
+  );
+  const count = typeof usage === 'string' || !usage
+    ? undefined
+    : Number(usage.text.match(/more than ([\d,]+)/i)?.[1].replaceAll(',', ''));
+  return {
+    yearsOfExperience,
+    roleCount: record.roles.length,
+    attestedUsers: Number.isFinite(count) ? count : undefined,
+  };
+}
 
 /** Person JSON-LD, generated from the record alone. */
 export function personOf(record: ProfessionalRecord) {
@@ -120,7 +142,12 @@ export function personOf(record: ProfessionalRecord) {
       jobTitle: current.title,
       worksFor: { '@type': 'Organization', name: current.organisation },
     }),
-    ...(record.skills.length && { knowsAbout: record.skills.map((skill) => skill.name) }),
+    ...((record.skills.length || record.skillGroups.length) && {
+      knowsAbout: [...new Set([
+        ...record.skills.map((skill) => skill.name),
+        ...record.skillGroups.flatMap((group) => group.skills.map((skill) => skill.name)),
+      ])],
+    }),
     ...(record.achievements.length && { award: record.achievements.map((a) => a.text) }),
   };
 }
@@ -158,7 +185,17 @@ export function aboutMarkdown(record: ProfessionalRecord): string {
   const sourceMd = (source: Source) =>
     'attested' in source ? `(${words.attested}: ${source.attested})` : `([${words.source}](${absoluteUrl(hrefOf(source))}))`;
   const cv = `${words.downloadCv} [PDF](${absoluteUrl(CV_PATH)})`;
-  const out = [`${record.name}. ${record.headline}`, ...(record.location ? ['', record.location] : []), '', cv, ''];
+  const stats = statsOf(record);
+  const number = new Intl.NumberFormat(ui.locale);
+  const out = [
+    `${record.name}. ${record.headline}`,
+    ...(record.location ? ['', `${record.location}${record.languages.length ? ` · ${record.languages.join(', ')}` : ''}`] : []),
+    '', cv, '',
+    `- ${number.format(stats.yearsOfExperience)} ${ui.redesign.about.yearsMobile}`,
+    `- ${number.format(stats.roleCount)} ${ui.redesign.about.rolesListed}`,
+    ...(stats.attestedUsers === undefined ? [] : [`- ${number.format(stats.attestedUsers)}+ ${ui.redesign.about.attestedUsers}`]),
+    '',
+  ];
   const section = (title: string, lines: string[]) => {
     if (lines.length) out.push(`## ${title}`, '', ...lines, '');
   };
@@ -172,17 +209,32 @@ export function aboutMarkdown(record: ProfessionalRecord): string {
       ...r.highlights.map((h) => (typeof h === 'string' ? `  - ${h}` : `  - ${h.text} ${sourceMd(h.source)}`)),
     ]),
   );
+  section(ui.redesign.about.education, record.education.map((e) => `- ${e.text} ${sourceMd(e.source)}`));
   section(words.projects, record.projects.map((p) => `- ${p.name}: ${p.summary} ${sourceMd(p.source)}`));
   section(
     words.skills,
-    record.skills.map(
-      (s) => `- ${s.name}, ${words.demonstratedIn} ${s.demonstrated.map((d) => `<${absoluteUrl(hrefOf(d))}>`).join(', ')}`,
-    ),
+    [
+      ...record.skills.map(
+        (s) => `- ${s.name}, ${words.demonstratedIn} ${s.demonstrated.map((d) => `<${absoluteUrl(hrefOf(d))}>`).join(', ')}`,
+      ),
+      ...record.skillGroups.flatMap((group) => [
+        `### ${group.name}`,
+        '',
+        ...group.skills.map(
+          (s) => `- ${s.name}, ${words.demonstratedIn} ${s.demonstrated.map((d) => `<${absoluteUrl(hrefOf(d))}>`).join(', ')}`,
+        ),
+        '',
+      ]),
+    ],
   );
   section(words.achievements, record.achievements.map((a) => `- ${a.text} ${sourceMd(a.source)}`));
   section(words.publications, record.publications.map((p) => `- ${p.title} ${sourceMd(p.source)}`));
   section(words.contributions, record.contributions.map((c) => `- ${c.text} ${sourceMd(c.source)}`));
   section(words.languages, record.languages.map((l) => `- ${l}`));
-  if (record.sameAs.length) section(words.elsewhere, record.sameAs.map((url) => `- <${url}>`));
+  const contact = [
+    ...(record.email ? [`- <mailto:${record.email}>`] : []),
+    ...record.sameAs.map((url) => `- <${url}>`),
+  ];
+  section(ui.redesign.about.contact, contact);
   return out.join('\n').trimEnd();
 }

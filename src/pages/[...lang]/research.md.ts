@@ -3,8 +3,9 @@ import { languageParams } from '../../lib/sections';
 import { getStudies, metadataOf, researchIndexOf, twinPathOf } from '../../lib/studies';
 import { absolute, type Language } from '../../lib/translations';
 import { markdownResponse } from '../../lib/twin';
+import { uiOf } from '../../lib/ui';
 
-export const getStaticPaths = () => languageParams('research');
+export const getStaticPaths = () => languageParams('feed');
 
 /** The Research index's Markdown twin: every Study in its language with its status, newest first. */
 export const GET: APIRoute = async ({ props }) => {
@@ -24,7 +25,9 @@ export const GET: APIRoute = async ({ props }) => {
     [
       `# ${index.title}`,
       index.summary,
-      studies.map(({ title, twin, published, status, summary }) => `- [${title}](${absolute(twin)}) (${published}, ${status}): ${summary}`).join('\n'),
+      studies.length > 0
+        ? studies.map(({ title, twin, published, status, summary }) => `- [${title}](${absolute(twin)}) (${published}, ${status}): ${summary}`).join('\n')
+        : uiOf(language).noStudies,
     ],
   );
 };

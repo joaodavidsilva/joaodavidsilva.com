@@ -2,6 +2,9 @@
 import Base from './Base.astro';
 import Day from '../components/Day.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
+import { AUTHOR } from '../../site.config.mjs';
+import { sectionPathIn } from '../lib/sections';
+import { getRecord } from '../lib/record';
 import type { Language, Translations } from '../lib/translations';
 import { uiOf } from '../lib/ui';
 
@@ -20,41 +23,70 @@ interface Props {
   readingMinutes: number;
   jsonLd: object;
   translations: Translations;
+  section: 'writing' | 'research';
+  /** h2 headings from the rendered Markdown, with the same stable slugs as the body. */
+  headings: { slug: string; text: string }[];
   /** Whether the piece has Corrections: the byline then links to them (`#corrections`). */
   corrected?: boolean;
 }
 
 // The long-form layout for pieces read start to finish (Articles, Studies).
-// Slots: `header` adds to the header, the default slot is the body, `after`
-// holds end matter (attachments, corrections) and `discuss` sits beside
-// "Suggest a correction".
-const { title, summary, canonical, language, twin, published, updated, tags, readingMinutes, jsonLd, translations, corrected = false } = Astro.props;
+// Slots: `header` adds Series or Study metadata, the default slot is the body,
+// `after` holds end matter and `discuss` sits beside the correction/twin links.
+const {
+  title, summary, canonical, language, twin, published, updated, tags, readingMinutes,
+  jsonLd, translations, section, headings, corrected = false,
+} = Astro.props;
 const ui = uiOf(language);
+const kind = section === 'writing' ? ui.article : ui.study;
+const indexPath = await sectionPathIn(section, `/${section}/`, language);
+const aboutPath = (await getRecord())
+  ? await sectionPathIn('about', '/about/', language)
+  : undefined;
 ---
 <Base title={title} description={summary} canonical={canonical} language={language} twin={twin} translations={translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <article class="long-form">
+  <article class="long-form container long-form-page">
     <header class="long-form-header">
+      <p class="breadcrumb"><a href={indexPath}>{ui.sections[section]}</a><span aria-hidden="true">/</span><span>{kind}</span></p>
       <slot name="header" />
-      <h1>{title}</h1>
-      <p class="summary">{summary}</p>
-      <p class="byline">
-        <span>{ui.published} <Day date={published} /></span>
-        {updated !== published && <span>{ui.updated} <Day date={updated} /></span>}
-        <span>{ui.minRead(readingMinutes)}</span>
-        {corrected && <span><a href="#corrections">{ui.corrected}</a></span>}
-      </p>
-      {tags.length > 0 && (
-        <ul class="tags" aria-label={ui.tags}>
-          {tags.map((tag) => <li>{tag}</li>)}
-        </ul>
-      )}
+      <h1 class="article-title">{title}</h1>
+      <p class="article-dek">{summary}</p>
+      <div class="meta-bar">
+        <p class="byline">
+          <span>{AUTHOR.name}</span>
+          <span>{ui.published} <Day date={published} /></span>
+          {updated !== published && <span>{ui.updated} <Day date={updated} /></span>}
+          <span>{ui.minRead(readingMinutes)}</span>
+          {corrected && <span><a href="#corrections">{ui.corrected}</a></span>}
+        </p>
+        {tags.length > 0 && (
+          <ul class="tags" aria-label={ui.tags}>
+            {tags.map((tag) => <li>#{tag}</li>)}
+          </ul>
+        )}
+      </div>
     </header>
-    <div class="long-form-body">
-      <slot />
+    <div class="long-form-layout">
+      <div class="long-form-body prose">
+        <slot />
+        <aside class="author-box" aria-labelledby="author-heading">
+          <p class="eyebrow" id="author-heading">{ui.redesign.writtenBy}</p>
+          <p><strong>{AUTHOR.name}</strong>, {ui.redesign.authorRole}</p>
+          {aboutPath && <p class="author-link"><a href={aboutPath}>{ui.redesign.aboutAuthor} →</a></p>}
+        </aside>
+      </div>
+      {headings.length > 0 && (
+        <nav class="toc" aria-label={ui.redesign.onThisPage}>
+          <p class="eyebrow">{ui.redesign.onThisPage}</p>
+          <ol>
+            {headings.map((heading) => <li><a href={`#${heading.slug}`}>{heading.text}</a></li>)}
+          </ol>
+        </nav>
+      )}
     </div>
-    <slot name="after" />
-    <SuggestCorrection title={title} canonical={canonical}>
+    <div class="long-form-after"><slot name="after" /></div>
+    <SuggestCorrection title={title} canonical={canonical} twin={twin}>
       <slot name="discuss" />
     </SuggestCorrection>
   </article>

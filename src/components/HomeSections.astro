@@ -1,57 +1,144 @@
 ---
-import { render } from 'astro:content';
 import Day from './Day.astro';
-import { homeOf, type Piece } from '../lib/home';
-import type { Language } from '../lib/translations';
+import { homeContentOf } from '../lib/home-content';
+import { homeOf } from '../lib/home';
+import type { Page } from '../lib/pages';
+import { CV_PATH } from '../lib/record';
+import { pathIn } from '../lib/translations';
 import { uiOf } from '../lib/ui';
+import '../styles/home.css';
 
 interface Props {
-  language: Language;
+  page: Page;
 }
 
-// The home page's sections in its language: only what exists in that language is listed.
-// Lists share the index pages' markup and styles: title as a heading, meta line below it.
-const { language } = Astro.props;
+const { page } = Astro.props;
+const language = page.data.language;
 const ui = uiOf(language);
-const { now, featured, recent, active } = await homeOf(language);
-const NowBody = now && (await render(now.entry)).Content;
+const words = ui.redesign.home;
+const content = homeContentOf(page.body, language);
+const home = await homeOf(language);
 ---
-{now && NowBody && (
-  <section id="now" class="home-now">
-    <h2><a href={now.path}>{ui.now.title}</a></h2>
-    <p class="piece-meta"><span>{ui.updated} <Day date={now.date} /></span></p>
-    <NowBody />
+<section id="home-hero" class="home-hero container">
+  <div class="home-hero-heading">
+    {home.hero.eyebrow && <p class="eyebrow">{home.hero.eyebrow}</p>}
+    <h1 class="home-title"><Fragment set:html={content.title} /></h1>
+  </div>
+  <div class="home-hero-details">
+    <div class="home-hero-copy">
+      <p class="home-intro"><Fragment set:html={content.intro} /></p>
+      {home.record && (
+        <div class="cta-row">
+          {home.record.email && <a class="button button--primary" href={`mailto:${home.record.email}`}>{ui.contact}</a>}
+          <a class="button button--secondary" href={CV_PATH}>{ui.redesign.cvPdf}</a>
+        </div>
+      )}
+    </div>
+    <dl class="facts home-facts">
+      {home.hero.now && home.now && (
+        <div><dt>{words.now}</dt><dd><a href={home.now.path}>{home.hero.now}</a></dd></div>
+      )}
+      {home.hero.led && <div><dt>{words.led}</dt><dd>{home.hero.led}</dd></div>}
+      {home.hero.stack && <div><dt>{words.stack}</dt><dd>{home.hero.stack}</dd></div>}
+    </dl>
+  </div>
+</section>
+
+<section id="how-i-work" class="band home-band">
+  <div class="container">
+    <header class="labelled-row labelled-row--home home-band-header">
+      <p class="row-label">01 / {words.howIWork}</p>
+      <h2 class="band-title row-content"><Fragment set:html={content.method.title} /></h2>
+    </header>
+    <ol class="steps">
+      {content.method.steps.map((step) => (
+        <li><h3><Fragment set:html={step.title} /></h3><p><Fragment set:html={step.description} /></p></li>
+      ))}
+    </ol>
+    <p class="home-band-footer"><Fragment set:html={content.method.footer} /></p>
+  </div>
+</section>
+
+<section id="in-practice" class="container section labelled-row labelled-row--home">
+  <p class="row-label">02 / {words.inPractice}</p>
+  <div class="row-content">
+    <h2 class="practice-title"><Fragment set:html={content.practice.title} /></h2>
+    <p><Fragment set:html={content.practice.copy} /></p>
+    <dl class="stats">
+      {home.stats.map((stat) => <div><dd>{stat.value}</dd><dt>{stat.label}</dt></div>)}
+    </dl>
+    <p class="home-stack"><Fragment set:html={content.practice.stack} /></p>
+    <p class="home-meta"><Fragment set:html={content.practice.recordLink} /></p>
+  </div>
+</section>
+
+{home.latest && (
+  <section id="writing" class="container section labelled-row labelled-row--home">
+    <p class="row-label">03 / {words.writing}</p>
+    <article class="row-content home-article">
+      <p class="home-meta">{ui.article} · <Day date={home.latest.published} /> · {ui.minRead(home.latest.minutes)}</p>
+      <h2><a href={home.latest.path}>{home.latest.title}</a></h2>
+      <p class="lede">{home.latest.summary}</p>
+      <p class="home-meta"><a href={home.latest.path}>{words.readArticle} →</a> <a href={pathIn('/research/', language)}>{ui.sections.research} →</a></p>
+    </article>
   </section>
 )}
-{[['featured', ui.featured, featured], ['recent', ui.recent, recent]].map(([id, title, pieces]) =>
-  (pieces as Piece[]).length > 0 && (
-    <section id={id as string}>
-      <h2>{title}</h2>
-      <ul class="piece-list">
-        {(pieces as Piece[]).map((p) => (
-          <li>
-            <article>
-              <h3><a href={p.path}>{p.title}</a></h3>
-              <p class="piece-meta"><span>{p.type}</span> <Day date={p.published} /></p>
-              <p>{p.summary}</p>
-            </article>
-          </li>
-        ))}
-      </ul>
-    </section>
-  ),
-)}
-{active.length > 0 && (
-  <section id="projects">
-    <h2>{ui.activeProjects}</h2>
-    <ul class="piece-list">
-      {active.map((p) => (
-        <li>
-          <h3><a href={p.path}>{p.name}</a></h3>
-          {p.version && <p class="piece-meta">{ui.version} {p.version}</p>}
-          <p>{p.oneLine}</p>
+
+{home.projects.length > 0 && (
+  <section id="projects" class="container section home-index-section">
+    <header class="home-section-header">
+      <div class="home-section-heading">
+        <p class="row-label">04 / {words.projects}</p>
+        <h2 class="section-title"><Fragment set:html={content.projectsTitle} /></h2>
+      </div>
+      <a class="home-meta" href={pathIn('/projects/', language)}>{words.allProjects} →</a>
+    </header>
+    <ul class="cards">
+      {home.projects.map((project) => (
+        <li class="card">
+          <p class="status">
+            <span class:list={['status-dot', { 'status-dot--active': project.status === 'active' }]} aria-hidden="true" />
+            {ui.projectStatus[project.status]}{project.version && ` · v${project.version}`}{project.external && ` · ${ui.redesign.ownSite}`}
+          </p>
+          <h3>{project.path ? <a href={project.path}>{project.name}</a> : project.name}</h3>
+          <p>{project.oneLine}</p>
         </li>
       ))}
     </ul>
+  </section>
+)}
+
+{home.knowledge.length > 0 && (
+  <section id="knowledge" class="container section home-index-section">
+    <header class="home-section-header">
+      <div class="home-section-heading">
+        <p class="row-label">05 / {words.knowledge}</p>
+        <h2 class="section-title"><Fragment set:html={content.knowledgeTitle} /></h2>
+      </div>
+      <a class="home-meta" href={pathIn('/knowledge/', language)}>{words.searchKnowledge} →</a>
+    </header>
+    <ul class="knowledge-cards">
+      {home.knowledge.map((group) => (
+        <li>
+          <p class="entry-count">{ui.redesign.entryCount(group.titles.length)}</p>
+          <h3>{group.category}</h3>
+          <p>{group.titles.join(' · ')}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+{home.contact.length > 0 && home.record?.email && (
+  <section id="contact" class="home-contact">
+    <div class="container labelled-row labelled-row--home">
+      <p class="row-label">{words.contact}</p>
+      <div class="row-content">
+        <a class="home-email" href={`mailto:${home.record.email}`}>{home.record.email}</a>
+        <p class="home-meta home-contact-links">
+          {home.contact.slice(1).map((link) => <a href={link.href}>{link.label}</a>)}
+        </p>
+      </div>
+    </div>
   </section>
 )}

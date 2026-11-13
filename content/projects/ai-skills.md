@@ -6,6 +6,13 @@ published: 2026-11-09
 tags: [ai, agents, developer-tools]
 links:
   repository: https://github.com/joaodavidsilva/skills
+facts:
+  - label: Licence
+    value: MIT, open source
+  - label: Install
+    value: "`npx skills@latest add joaodavidsilva/skills`"
+  - label: Works with
+    value: Claude Code, Codex and other coding agents
 ---
 
 AI Skills is my open-source collection of agent skills: the instructions I use every day with Claude Code, Codex and other coding agents. They are MIT-licensed and install as editable files with `npx skills@latest add joaodavidsilva/skills`.

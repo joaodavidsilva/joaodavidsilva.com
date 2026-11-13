@@ -17,6 +17,8 @@ const { entry, related, skillUrl, published, updated, translations } = item;
 const { title, summary, kind, category, tags, language } = entry.data;
 const ui = uiOf(language);
 const canonical = canonicalOf(entry);
+const twin = twinPathOf(entry);
+const kindLabel = kind === 'concept' ? ui.concept : ui.guide;
 const { Content } = await render(entry);
 const type = kind === 'concept' ? 'DefinedTerm' : 'TechArticle';
 const jsonLd = {
@@ -25,45 +27,54 @@ const jsonLd = {
   ...translationJsonLd(translations, type),
 };
 ---
-<Base title={title} description={summary} canonical={canonical} language={language} twin={twinPathOf(entry)} translations={translations}>
+<Base title={title} description={summary} canonical={canonical} language={language} twin={twin} translations={translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <article class="long-form" data-pagefind-body>
-    <header class="long-form-header">
-      {/* Kind, category and date stay out of the indexed text so excerpts quote the entry; Pagefind still reads the meta. */}
-      <p class="knowledge-kind" data-pagefind-ignore>
-        <span data-pagefind-meta="kind">{kind === 'concept' ? ui.concept : ui.guide}</span>{' · '}<a
-          href={`${pathIn('/knowledge/', language)}#${categoryIdOf(category)}`} data-pagefind-meta="category">{category}</a>
+  <article class="container index-page knowledge-entry" data-pagefind-body>
+    <header class="knowledge-entry-header">
+      <p class="breadcrumb knowledge-breadcrumb" data-pagefind-ignore>
+        <a href={pathIn('/knowledge/', language)}>{ui.knowledge.title}</a><span>/</span><span data-pagefind-meta="kind">{kindLabel}</span>
       </p>
       <h1>{title}</h1>
-      <p class="summary">{summary}</p>
-      <p class="byline" data-pagefind-ignore><span>{ui.lastUpdated} <Day date={updated} /></span></p>
+      <p class="article-dek">{summary}</p>
+      <p class="knowledge-kind meta-bar" data-pagefind-ignore>
+        <a href={`${pathIn('/knowledge/', language)}#${categoryIdOf(category)}`} data-pagefind-meta="category">{category}</a>
+        <span>{ui.lastUpdated} <Day date={updated} /></span>
+      </p>
     </header>
-    <div class="long-form-body">
+    <div class="long-form-body prose knowledge-body">
       <Content />
     </div>
     {skillUrl && (
-      <aside aria-label={ui.skill}>
-        <p>{ui.skillPrompt} <a href={skillUrl}>{ui.skillLink.before}<code>{entry.data.skill}</code>{ui.skillLink.after}</a>.</p>
+      <aside class="labelled-row labelled-row--rule knowledge-skill" aria-label={ui.skill}>
+        <p class="row-label">{ui.skill}</p>
+        <div class="row-content">
+          <p>{ui.skillPrompt} <a href={skillUrl}>{ui.skillLink.before}<code>{entry.data.skill}</code>{ui.skillLink.after}</a>.</p>
+        </div>
       </aside>
     )}
     {related.length > 0 && (
-      <nav class="knowledge-end" aria-labelledby="knowledge-related" data-pagefind-ignore>
-        <h2 id="knowledge-related">{ui.related}</h2>
-        <ul class="knowledge-related">
+      <nav class="labelled-row labelled-row--group knowledge-end" aria-labelledby="knowledge-related" data-pagefind-ignore>
+        <h2 class="row-label" id="knowledge-related">{ui.related}</h2>
+        <ul class="row-content knowledge-related">
           {related.map((target) => (
-            <li><a href={pathOf(target)}>{target.data.title}</a> <span>{target.data.category}</span></li>
+            <li>
+              <a href={pathOf(target)}>{target.data.title}</a>
+              <span>{target.data.kind === 'concept' ? ui.concept : ui.guide} · {target.data.category}</span>
+            </li>
           ))}
         </ul>
       </nav>
     )}
     {tags.length > 0 && (
-      <nav class="knowledge-end" aria-labelledby="knowledge-entry-tags">
-        <h2 id="knowledge-entry-tags">{ui.tags}</h2>
-        <ul class="tags">
-          {tags.map((tag) => <li><a href={tagPathOf(tag, language)}>{tag}</a></li>)}
+      <nav class="labelled-row labelled-row--rule knowledge-end knowledge-entry-tags" aria-labelledby="knowledge-entry-tags">
+        <h2 class="row-label eyebrow" id="knowledge-entry-tags">{ui.tags}</h2>
+        <ul class="row-content knowledge-tag-list">
+          {tags.map((tag) => <li><a class="pill" href={tagPathOf(tag, language)}>#{tag}</a></li>)}
         </ul>
       </nav>
     )}
-    <SuggestCorrection title={title} canonical={canonical} />
+    <SuggestCorrection title={title} canonical={canonical}>
+      <p><a href={twin}>{ui.redesign.readAsMarkdown}</a></p>
+    </SuggestCorrection>
   </article>
 </Base>

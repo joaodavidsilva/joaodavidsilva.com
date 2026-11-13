@@ -1,19 +1,32 @@
 ---
 import Base from '../../../layouts/Base.astro';
-import Day from '../../../components/Day.astro';
+import { dayWithoutYear } from '../../../lib/long-form';
 import { byYear, jsonLdBase } from '../../../lib/metadata';
-import { languageParams, languagesOfSection } from '../../../lib/sections';
+import { languageParams, languagesOfSection, sectionPathIn } from '../../../lib/sections';
 import { getStudies, metadataOf, pathOf, researchIndexOf } from '../../../lib/studies';
 import { generatedTranslations, type Language } from '../../../lib/translations';
 import { uiOf } from '../../../lib/ui';
+import { FEED_PATH } from '../../../../site.config.mjs';
 
-export const getStaticPaths = () => languageParams('research');
+// Research exists even with zero Studies, whenever its linked feed exists.
+export const getStaticPaths = () => languageParams('feed');
 
 const { language } = Astro.props as { language: Language };
 const ui = uiOf(language);
 const index = researchIndexOf(language);
 const studies = (await getStudies(language)).map((study) => ({ path: pathOf(study), ...metadataOf(study) }));
-const translations = generatedTranslations('/research/', await languagesOfSection('research'));
+const translations = generatedTranslations('/research/', await languagesOfSection('feed'));
+const feed = await sectionPathIn('feed', FEED_PATH, language);
+const writing = await sectionPathIn('writing', '/writing/', language);
+const studiesLabel = ui.redesign.research.studies;
+const records = [
+  ui.redesign.research.question,
+  ui.redesign.research.hypothesis,
+  ui.redesign.research.method,
+  ui.redesign.research.observations,
+  ui.redesign.research.findings,
+  ui.redesign.research.limitations,
+];
 const jsonLd = {
   ...jsonLdBase('CollectionPage', {
     ...index,
@@ -29,32 +42,54 @@ const jsonLd = {
 ---
 <Base title={index.title} description={index.summary} canonical={index.canonical} language={language} twin={index.twin} translations={translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <header>
-    <h1>{index.title}</h1>
-    <p class="summary">{index.summary}</p>
-  </header>
-  {studies.length > 0 ? (
-    byYear(studies).map(([year, inYear]) => (
-      <section class="year" aria-labelledby={`year-${year}`}>
-        <h2 id={`year-${year}`}>{year}</h2>
-        <ol class="piece-list" reversed>
-          {inYear.map(({ path, title, summary, published, status, featured }) => (
-            <li>
-              <article>
-                <h3><a href={path}>{title}</a></h3>
-                <p class="piece-meta">
-                  <Day date={published} />
-                  <span class="status" data-status={status}>{ui.studyStatus[status]}</span>
-                  {featured && <span>{ui.featured}</span>}
-                </p>
-                <p>{summary}</p>
-              </article>
-            </li>
+  <div class="index-page container long-form-index">
+    <header>
+      <p class="eyebrow">{index.title}</p>
+      <h1 class="page-title">{ui.redesign.research.title}</h1>
+      <p class="lede">{ui.redesign.research.lede}</p>
+    </header>
+    <section class="labelled-row labelled-row--group" aria-labelledby="studies-heading">
+      <h2 class="row-label" id="studies-heading">{studiesLabel}</h2>
+      {studies.length > 0 ? (
+        <div class="row-content">
+          {byYear(studies).map(([year, inYear]) => (
+            <section class="study-year" aria-labelledby={`study-year-${year}`}>
+              <h3 class="eyebrow" id={`study-year-${year}`}>{year}</h3>
+              <ol class="piece-list study-list" reversed>
+                {inYear.map(({ path, title, summary, published, status, featured, tags }) => (
+                  <li>
+                    <article>
+                      <p class="piece-meta">
+                        <span><time datetime={published}>{dayWithoutYear(published, ui.locale)}</time></span>
+                        <span class="status" data-status={status}>{ui.studyStatus[status]}</span>
+                        {featured && <span>{ui.featured}</span>}
+                      </p>
+                      <h4><a href={path}>{title}</a></h4>
+                      <p class="piece-summary">{summary}</p>
+                      {tags && tags.length > 0 && (
+                        <ul class="tags" aria-label={ui.tags}>
+                          {tags.map((tag) => <li>#{tag}</li>)}
+                        </ul>
+                      )}
+                    </article>
+                  </li>
+                ))}
+              </ol>
+            </section>
           ))}
-        </ol>
-      </section>
-    ))
-  ) : (
-    <p>{ui.noStudies}</p>
-  )}
+        </div>
+      ) : (
+        <p class="row-content empty-state">{ui.noStudies}</p>
+      )}
+    </section>
+    <section class="labelled-row labelled-row--rule" id="study-records" aria-labelledby="study-records-heading">
+      <h2 class="row-label" id="study-records-heading">{ui.redesign.research.records}</h2>
+      <ol class="study-steps row-content">
+        {records.map((label, index) => <li><span aria-hidden="true">{index + 1}</span>{label}</li>)}
+      </ol>
+    </section>
+    <p class="feed-note">
+      {ui.redesign.research.feedBefore}<a href={feed}>{ui.feed}</a>{ui.redesign.research.feedMiddle}<a href={writing}>{ui.sections.writing}</a>{ui.redesign.research.feedAfter}
+    </p>
+  </div>
 </Base>

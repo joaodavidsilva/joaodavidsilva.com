@@ -1,29 +1,17 @@
-/*
- * Base typography and colour: the site's visual foundation.
- * Typographic and journal-like: no gradients, shadows or decorative illustration.
- * Font families (--font-serif, --font-sans, --font-mono) come from the Astro fonts config.
- */
-
+/* Site-wide paper/ink design system. All colour choices follow color-scheme. */
 :root {
-  /* Follows the system setting; light-dark() picks the matching value. */
   color-scheme: light dark;
-
-  /*
-   * Warm off-white paper, near-black ink and one ink-blue accent.
-   * Every text colour reads at WCAG AA or better on every background, in both modes.
-   */
-  --paper: light-dark(#faf8f3, #161513);
-  --surface: light-dark(#f1ede3, #211f1c);
+  --paper: light-dark(#faf8f3, #171512);
   --ink: light-dark(#1d1b18, #ebe7de);
-  --ink-muted: light-dark(#5c574f, #a9a397);
-  --accent: light-dark(#1f4396, #93b1f2);
+  --muted: light-dark(#5c574f, #a9a397);
   --rule: light-dark(#ddd7ca, #35322c);
-
-  /* 18px on a phone growing to 20px on a desktop. */
-  --text-size: clamp(1.125rem, 1.0714rem + 0.238vw, 1.25rem);
-  /* Long-form reading measure: 64ch sets about 65–72 characters of Source Serif 4 prose. */
-  --measure: 64ch;
-  --gutter: 1.25rem;
+  --tint: light-dark(#f1ede3, #221f1b);
+  --tint2: light-dark(#e8e3d6, #2b2722);
+  --band: light-dark(#1d1b18, #0e0d0b);
+  --band-ink: light-dark(#ebe7de, #ebe7de);
+  --band-muted: light-dark(#a9a397, #a9a397);
+  --band-rule: light-dark(#35322c, #35322c);
+  --accent: light-dark(#1f4396, #9db8ff);
 }
 
 *,
@@ -42,34 +30,11 @@ body {
   background-color: var(--paper);
   color: var(--ink);
   font-family: var(--font-serif);
-  font-size: var(--text-size);
+  font-size: 19px;
   line-height: 1.6;
   font-kerning: normal;
   font-variant-ligatures: common-ligatures;
   overflow-wrap: break-word;
-}
-
-body > header,
-main,
-body > footer {
-  inline-size: min(100% - 2 * var(--gutter), var(--measure));
-  margin-inline: auto;
-}
-
-main {
-  padding-block: 2rem 4rem;
-}
-
-/* Interface text is set in Inter; children only, so the `ch` measure above stays in body metrics. */
-body > header > *,
-body > footer > *,
-nav {
-  font-family: var(--font-sans);
-  font-size: 0.875em;
-}
-
-body > header {
-  padding-block: 1.5rem 0;
 }
 
 h1,
@@ -78,37 +43,30 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-sans);
-  font-weight: 650;
+  font-family: var(--font-serif);
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.01em;
+  overflow-wrap: normal;
   text-wrap: balance;
   margin-block: 2em 0.6em;
 }
 
-/* Scales down on phones so a long title leaves room for its summary; titles are never truncated. */
 h1 {
-  font-size: clamp(1.6em, 1.2em + 2.5vw, 2.1em);
-  letter-spacing: -0.02em;
+  font-size: clamp(38px, 6.4vw, 80px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
   margin-block-start: 0.5em;
-  /* Hyphenation follows each page's `<html lang>`. */
   hyphens: auto;
   hyphenate-limit-chars: 10 4 4;
 }
 
-h2 {
-  font-size: 1.5em;
-}
-
-h3 {
-  font-size: 1.25em;
-}
-
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.25em; }
 h4,
 h5,
-h6 {
-  font-size: 1em;
-}
+h6 { font-size: 1em; }
 
 p,
 ul,
@@ -134,43 +92,37 @@ a {
   text-underline-offset: 0.18em;
 }
 
-a:hover {
-  text-decoration-thickness: 0.12em;
-}
+a:hover { text-decoration-thickness: 0.12em; }
 
 :focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
 em,
 i,
-cite {
-  font-style: italic;
-}
-
+cite { font-style: italic; }
 strong,
-b {
-  font-weight: 650;
-}
+b { font-weight: 650; }
 
 small,
 figcaption,
 time {
-  font-family: var(--font-sans);
-  font-size: 0.875em;
+  font-family: var(--font-mono);
+  font-size: 13px;
 }
 
 figcaption {
   margin-block-start: 0.5em;
-  color: var(--ink-muted);
+  color: var(--muted);
 }
 
 blockquote {
   margin-inline: 0;
   padding-inline-start: 1em;
   border-inline-start: 3px solid var(--rule);
-  color: var(--ink-muted);
+  color: var(--muted);
 }
 
 hr {
@@ -184,17 +136,18 @@ kbd,
 samp,
 pre {
   font-family: var(--font-mono);
-  font-size: 0.85em;
+  font-size: 0.86em;
 }
 
 :not(pre) > code {
-  background-color: var(--surface);
+  background-color: var(--tint);
   padding: 0.1em 0.3em;
   border-radius: 3px;
+  overflow-wrap: anywhere;
 }
 
 pre {
-  background-color: var(--surface);
+  background-color: var(--tint);
   padding: 1em 1.25em;
   border-radius: 4px;
   line-height: 1.5;
@@ -202,9 +155,7 @@ pre {
   overflow-wrap: normal;
 }
 
-pre code {
-  font-size: inherit;
-}
+pre code { font-size: inherit; }
 
 img,
 svg,
@@ -213,10 +164,6 @@ video {
   block-size: auto;
 }
 
-/*
- * A tall image (a full-page screenshot) never fills more than most of a screen: its box keeps
- * the width its attributes reserve, and the picture is fitted inside it, flush with the text.
- */
 main img,
 main video {
   max-block-size: min(80svh, 48rem);
@@ -224,26 +171,18 @@ main video {
   object-position: left center;
 }
 
-/*
- * Tables are set in Inter, a size down, cells top-aligned. Markdown wraps each in a
- * focusable scroll region (src/lib/long-form-markdown.mjs): a wide table scrolls
- * inside the column instead of widening the page.
- */
 .table-scroll {
   max-inline-size: 100%;
   margin-block: 0 1.25em;
   overflow-x: auto;
-  scrollbar-color: var(--ink-muted) var(--surface);
+  scrollbar-color: var(--muted) var(--tint);
 }
-
-.table-scroll > table {
-  margin-block: 0;
-}
+.table-scroll > table { margin-block: 0; }
 
 table {
   border-collapse: collapse;
-  font-family: var(--font-sans);
-  font-size: 0.875em;
+  font-family: var(--font-mono);
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -254,12 +193,12 @@ td {
   text-align: start;
   vertical-align: top;
 }
-
 th {
-  font-weight: 650;
-  border-block-end-color: var(--ink-muted);
+  font-weight: 600;
+  border-block-end-color: var(--muted);
 }
+:is(th, td):first-child { padding-inline-start: 0; }
 
-:is(th, td):first-child {
-  padding-inline-start: 0;
+@media (max-width: 640px) {
+  body { font-size: 17px; }
 }

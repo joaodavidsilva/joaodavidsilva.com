@@ -68,7 +68,7 @@ test('Studies, the Research index and Discussed-in backlinks', async (t) => {
   const tabsMain = mainOf(site.read('research/tabs-and-focus/index.html'));
 
   await t.test('a Study renders its sections in order and its status without JavaScript', () => {
-    assert.match(sleepMain, /<h1>Sleep and recall<\/h1>/);
+    assert.match(sleepMain, /<h1 class="article-title">Sleep and recall<\/h1>/);
     const text = textOf(sleepMain);
     assert.match(text, /Does a night's sleep improve recall of multiplication facts\?/);
     assert.match(sleepMain, /<time datetime="2026-03-10">10 March 2026<\/time>/);
@@ -77,7 +77,24 @@ test('Studies, the Research index and Discussed-in backlinks', async (t) => {
     const sections = ['question', 'hypothesis', 'method', 'observations', 'findings', 'limitations'];
     assert.deepEqual(headings.filter((id) => sections.includes(id)), sections);
     assert.match(text, /Sleep and recall limitations paragraph\./);
-    assert.doesNotMatch(sleep, /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script))/);
+    assert.doesNotMatch(sleep, /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script|data-menu-script))/);
+  });
+
+  await t.test('a Study uses the Research breadcrumb, six-section TOC and visible Markdown twin', () => {
+    const breadcrumb = sleepMain.match(/<p class="breadcrumb">(.*?)<\/p>/s)?.[1];
+    assert.deepEqual(linksIn(breadcrumb ?? '').map((l) => [l.text, l.href]), [['Research', '/research/']]);
+    assert.match(textOf(breadcrumb ?? ''), /Research \/ Study/);
+    const toc = sleepMain.match(/<nav\b[^>]*class="toc"[^>]*aria-label="On this page"[^>]*>(.*?)<\/nav>/s)?.[1];
+    assert.ok(toc, 'no Study TOC');
+    assert.deepEqual(linksIn(toc).map((l) => [l.text, l.href]), [
+      ['Question', '#question'],
+      ['Hypothesis', '#hypothesis'],
+      ['Method', '#method'],
+      ['Observations', '#observations'],
+      ['Findings', '#findings'],
+      ['Limitations', '#limitations'],
+    ]);
+    assert.ok(linksIn(sleepMain).some((l) => l.text === 'Read as Markdown' && l.href === '/research/sleep-and-recall.md'));
   });
 
   await t.test('a Study links its data and scripts', () => {
@@ -174,11 +191,14 @@ test('Studies, the Research index and Discussed-in backlinks', async (t) => {
     assert.equal(linksIn(sleepMain).at(-1).text, 'Suggest a correction');
   });
 
-  await t.test('the Research index lists every Study with its status, abandoned ones included', () => {
+  await t.test('the Research index lists every Study with its status and explains the six recorded sections', () => {
     const index = site.read('research/index.html');
     const main = mainOf(index);
-    assert.match(main, /<h1>Research<\/h1>/);
-    const items = [...main.matchAll(/<li>(.*?)<\/li>/gs)].map(([, item]) => ({
+    assert.match(main, /<p class="eyebrow">Research<\/p>/);
+    assert.match(main, /<h1 class="page-title">The record of each investigation\.<\/h1>/);
+    const list = main.match(/<ol class="piece-list study-list[^>]*>(.*?)<\/ol>/s)?.[1];
+    assert.ok(list, 'no Studies list');
+    const items = [...list.matchAll(/<li><article>(.*?)<\/article><\/li>/gs)].map(([, item]) => ({
       link: linksIn(item)[0],
       text: textOf(item),
     }));
@@ -194,6 +214,16 @@ test('Studies, the Research index and Discussed-in backlinks', async (t) => {
     assert.match(items[1].text, /Concluded/);
     assert.match(items[2].text, /Abandoned/);
     assert.match(items[2].text, /Do fewer open browser tabs help focus\?/);
+    const records = sectionOf(main, 'study-records');
+    assert.ok(records, 'no What a Study records section');
+    assert.match(records, /<h2[^>]*>What a Study records<\/h2>/);
+    const steps = records.match(/<ol[^>]*>(.*?)<\/ol>/s)?.[1];
+    assert.equal((steps?.match(/<li>/g) ?? []).length, 6);
+    for (const label of ['Question', 'Hypothesis', 'Method', 'Observations', 'Findings', 'Limitations']) {
+      assert.match(textOf(steps ?? ''), new RegExp(label));
+    }
+    assert.ok(linksIn(main).some((l) => l.text === 'RSS/Atom' && l.href === '/feed.xml'));
+    assert.ok(linksIn(main).some((l) => l.text === 'Writing' && l.href === '/writing/'));
     assert.match(index, /<link rel="alternate" type="text\/markdown" href="\/research\.md">/);
     const ld = jsonLdOf(index);
     assert.equal(ld['@type'], 'CollectionPage');
@@ -211,7 +241,7 @@ test('Studies, the Research index and Discussed-in backlinks', async (t) => {
   });
 
   await t.test('abandoned Studies stay published', () => {
-    assert.match(tabsMain, /<h1>Tabs and focus<\/h1>/);
+    assert.match(tabsMain, /<h1 class="article-title">Tabs and focus<\/h1>/);
     assert.match(textOf(tabsMain), /Status: Abandoned/);
     assert.match(textOf(tabsMain), /Abandoned: the measure of focus was not reliable\./);
     assert.ok(twinOf(site.read('research/tabs-and-focus.md')).lines.includes('status: abandoned'));
@@ -240,6 +270,25 @@ test('Studies, the Research index and Discussed-in backlinks', async (t) => {
     assert.match(llms, new RegExp(`^- \\[Tabs and focus\\]\\(${SITE}/research/tabs-and-focus\\.md\\): .+ \\(abandoned\\)$`, 'm'));
     assert.match(llms, new RegExp(`^- \\[Longer context\\]\\(${SITE}/research/longer-context\\.md\\): .+ \\(in progress\\)$`, 'm'));
   });
+});
+
+test('Research and its Markdown twin exist with zero Studies', () => {
+  const site = buildFixture('articles');
+  assert.ok(site.ok, site.output);
+  const main = mainOf(site.read('research/index.html'));
+  assert.match(textOf(main), /No Studies yet\./);
+  assert.doesNotMatch(main, /class="piece-list study-list/);
+  const records = sectionOf(main, 'study-records');
+  assert.ok(records, 'no Study records explainer');
+  assert.equal((records.match(/<li>/g) ?? []).length, 6);
+  for (const label of ['Question', 'Hypothesis', 'Method', 'Observations', 'Findings', 'Limitations']) {
+    assert.match(textOf(records), new RegExp(label));
+  }
+  assert.ok(linksIn(main).some((l) => l.text === 'RSS/Atom' && l.href === '/feed.xml'));
+  const { lines, body } = twinOf(site.read('research.md'));
+  assert.ok(lines.includes(`canonical: ${SITE}/research/`));
+  assert.match(body, /No Studies yet\./);
+  assert.match(site.read('llms.txt'), new RegExp(`^- \\[Research\\]\\(${SITE}/research\\.md\\): .+$`, 'm'));
 });
 
 test('a Study missing a required section fails the build', () => {

@@ -31,15 +31,6 @@ export default defineConfig({
     },
     {
       provider: selfHosted,
-      name: 'Inter',
-      cssVariable: '--font-sans',
-      styles: ['normal'],
-      subsets,
-      display: 'swap',
-      fallbacks: ['sans-serif'],
-    },
-    {
-      provider: selfHosted,
       name: 'JetBrains Mono',
       cssVariable: '--font-mono',
       styles: ['normal'],

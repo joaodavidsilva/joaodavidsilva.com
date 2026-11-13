@@ -87,12 +87,12 @@ test('Translations', async (t) => {
   });
 
   await t.test('the translation chrome is one block: the language links, then a single note', () => {
-    const chrome = es.match(/<div class="translation-chrome">(.*?)<\/div>/s)?.[1];
+    const chrome = es.match(/<div class="translation-chrome[^"]*">(.*?)<\/div>/s)?.[1];
     assert.ok(chrome, 'no translation chrome');
     assert.match(chrome, /^\s*<nav\b[^>]*class="language-switcher"[^>]*>.*<\/nav>\s*<p\b[^>]*class="translation-note"[^>]*>[^]*<\/p>\s*$/s);
     assert.equal(es.match(/class="translation-note/g).length, 1);
     assert.doesNotMatch(pt, /class="translation-note/, 'an up-to-date Portuguese Translation needs no note');
-    assert.match(pt, /<div class="translation-chrome">/);
+    assert.match(pt, /<div class="translation-chrome[^"]*">/);
     assert.doesNotMatch(site.read('solo/index.html'), /translation-chrome/);
   });
 
@@ -129,7 +129,7 @@ test('Translations', async (t) => {
     const entries = llms.split('\n').filter((line) => line.startsWith('- '));
     assert.deepEqual(
       entries.map((line) => line.match(/^- \[([^\]]+)\]/)[1]),
-      ['Guide fixture', 'Solo fixture', 'Terms fixture'],
+      ['Guide fixture', 'Solo fixture', 'Terms fixture', 'Research'],
     );
     const guide = entries.find((line) => line.startsWith('- [Guide fixture]'));
     assert.ok(guide.includes(`(${SITE}/guide.md)`), guide);

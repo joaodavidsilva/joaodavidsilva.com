@@ -20,7 +20,7 @@ const decode = (text) =>
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
 
-const textOf = (html) => decode(html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+const textOf = (html) => decode(html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1').trim());
 const mainOf = (html) => html.match(/<main\b[^>]*>(.*)<\/main>/s)[1];
 const jsonLdOf = (html) => JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
 
@@ -75,7 +75,7 @@ test('Articles, the Writing index and the feed', async (t) => {
   const firstMain = mainOf(first);
 
   await t.test('an Article renders its title, summary, date, tags and body without JavaScript', () => {
-    assert.match(firstMain, /<h1>First light<\/h1>/);
+    assert.match(firstMain, /<h1 class="article-title">First light<\/h1>/);
     const text = textOf(firstMain);
     assert.match(text, /What the first working prototype taught about measuring twice\./);
     assert.match(firstMain, /<time datetime="2026-02-01">1 February 2026<\/time>/);
@@ -83,7 +83,45 @@ test('Articles, the Writing index and the feed', async (t) => {
     assert.match(text, /measurement/);
     assert.match(text, /\d+ min read/);
     assert.match(text, /The first light body paragraph\./);
-    assert.doesNotMatch(first, /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script))/);
+    assert.doesNotMatch(first, /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script|data-menu-script))/);
+  });
+
+  await t.test('an Article has a breadcrumb, dek, author metadata, a generated TOC and visible twin link', () => {
+    const breadcrumb = firstMain.match(/<p class="breadcrumb">(.*?)<\/p>/s)?.[1];
+    assert.ok(breadcrumb, 'no Article breadcrumb');
+    assert.deepEqual(linksIn(breadcrumb).map((l) => [l.text, l.href]), [['Writing', '/writing/']]);
+    assert.match(textOf(breadcrumb), /Writing \/ Article/);
+    assert.match(firstMain, /<h1 class="article-title">First light<\/h1>/);
+    assert.match(firstMain, /<p class="article-dek">What the first working prototype taught about measuring twice\.<\/p>/);
+    const meta = firstMain.match(/<div class="meta-bar">(.*?)<\/div>/s)?.[1];
+    assert.ok(meta, 'no Article meta bar');
+    assert.match(textOf(meta), /João David Silva/);
+    assert.match(textOf(meta), /Published 1 February 2026/);
+    assert.match(textOf(meta), /1 min read/);
+    assert.match(textOf(meta), /#prototyping #measurement/);
+
+    const toc = firstMain.match(/<nav\b[^>]*class="toc"[^>]*aria-label="On this page"[^>]*>(.*?)<\/nav>/s)?.[1];
+    assert.ok(toc, 'no On this page navigation');
+    assert.deepEqual(linksIn(toc).map((l) => [l.text, l.href]), [['Measuring twice', '#measuring-twice']]);
+    assert.match(toc, /<ol>/);
+    assert.match(firstMain, /<h2 id="measuring-twice">/);
+
+    const author = firstMain.match(/<aside class="author-box"[^>]*>(.*?)<\/aside>/s)?.[1];
+    assert.ok(author, 'no author box');
+    assert.match(textOf(author), /Written by João David Silva, Lead AI Engineer/);
+    assert.ok(linksIn(author).some((l) => l.text === 'About the author →' && l.href === '/about/'));
+    assert.ok(linksIn(firstMain).some((l) => l.text === 'Read as Markdown' && l.href === '/writing/first-light.md'));
+  });
+
+  await t.test('the Article TOC responds at the required breakpoints and the introduction has a pull line', () => {
+    const rules = nestedRulesOf(stylesheetsOf(site, first));
+    const rule = (selector, context) => rules.find((r) =>
+      r.prelude.replace(/\s+/g, '') === selector && (!context || r.context.includes(context)));
+    assert.ok(rule('.toc')?.declarations.some(([p, v]) => p === 'position' && v === 'sticky'));
+    assert.ok(rule('.toc', '@media(width<=940px)')?.declarations.some(([p, v]) => p === 'position' && v === 'static'));
+    assert.ok(rule('.toc', '@media(width<=640px)')?.declarations.some(([p, v]) => p === 'display' && v === 'none'));
+    const pull = rule('.prose>p:has(+h2:first-of-type)');
+    assert.ok(pull?.declarations.some(([p, v]) => p === 'font-size' && v === 'clamp(26px,3vw,34px)'));
   });
 
   await t.test('"Last updated" comes from git history, not front-matter', () => {
@@ -193,11 +231,13 @@ test('Articles, the Writing index and the feed', async (t) => {
     assert.equal(linksIn(mainOf(second)).at(-1).text, 'Suggest a correction');
   });
 
-  await t.test('the Writing index lists Articles newest first', () => {
+  await t.test('the Writing index groups Articles by year, newest first, with reading metadata and tags', () => {
     const index = site.read('writing/index.html');
     const main = mainOf(index);
+    assert.match(main, /<p class="eyebrow">Writing<\/p>/);
+    assert.match(main, /<h1 class="page-title">Arguments, essays and reflections\.<\/h1>/);
+    assert.match(textOf(main), /Articles on engineering beyond implementation\. Newest first\./);
     assert.match(main, /<h2[^>]*>2026<\/h2>/);
-    assert.match(main, /<h1>Writing<\/h1>/);
     const titles = linksIn(main)
       .filter((l) => l.href.startsWith('/writing/'))
       .map((l) => [l.text, l.href]);
@@ -206,7 +246,13 @@ test('Articles, the Writing index and the feed', async (t) => {
       ['First light', '/writing/first-light/'],
     ]);
     assert.match(textOf(main), /Revisiting the prototype a month later\./);
-    assert.match(main, /<time datetime="2026-02-20">20 February 2026<\/time>/);
+    assert.match(main, /<time datetime="2026-02-20">20 February<\/time>/);
+    assert.match(main, /<time datetime="2026-02-01">1 February<\/time>/);
+    assert.match(textOf(main), /20 February · 1 min read/);
+    assert.match(textOf(main), /#prototyping #measurement/);
+    const feed = linksIn(main).find((l) => l.text === 'RSS/Atom');
+    assert.equal(feed?.href, '/feed.xml');
+    assert.match(textOf(main), /New pieces arrive by RSS\/Atom\./);
     assert.match(index, /<link rel="alternate" type="text\/markdown" href="\/writing\.md">/);
     const ld = jsonLdOf(index);
     assert.equal(ld.url, `${SITE}/writing/`);
@@ -266,11 +312,11 @@ test('Articles, the Writing index and the feed', async (t) => {
         .filter(([p]) => p.startsWith('--astro-code-')),
     );
     for (const name of used) {
-      const expected = name === '--astro-code-background' ? ['var(--surface)'] : ['var(--ink)', 'var(--ink-muted)', 'var(--accent)'];
+      const expected = name === '--astro-code-background' ? ['var(--tint)'] : ['var(--ink)', 'var(--muted)', 'var(--accent)'];
       assert.ok(expected.includes(custom.get(name)), `${name} is ${custom.get(name)}`);
     }
     assert.equal(custom.get('--astro-code-token-keyword'), 'var(--accent)');
-    assert.equal(custom.get('--astro-code-token-comment'), 'var(--ink-muted)');
+    assert.equal(custom.get('--astro-code-token-comment'), 'var(--muted)');
   });
 
   await t.test('figures, footnotes and callouts render as semantic HTML', () => {

@@ -19,8 +19,7 @@ const meta = metadataOf(page);
 const ui = uiOf(meta.language);
 const { Content } = await render(page);
 const jsonLd = { ...jsonLdBase('WebPage', meta), ...translationJsonLd(translations, 'WebPage') };
-// The home page is not a dated document: its title is the site name the header already
-// shows, so it is kept for screen readers only, and it has no date or correction link.
+// The home page is not a dated document and has no correction link; generic pages keep both.
 const home = originalIdOf(page) === 'index';
 ---
 <Base
@@ -32,14 +31,17 @@ const home = originalIdOf(page) === 'index';
   translations={translations}
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <article>
-    <header class="long-form-header">
-      <h1 class:list={{ 'sr-only': home }}>{meta.title}</h1>
-      <p class="summary">{meta.summary}</p>
-      {!home && <p class="byline"><span>{ui.published} <Day date={meta.published} /></span></p>}
-    </header>
-    <Content />
-    {home && <HomeSections language={meta.language} />}
-    {!home && <SuggestCorrection title={meta.title} canonical={meta.canonical} />}
+  <article class:list={{ 'home-page': home }}>
+    {home ? <HomeSections page={page} /> : (
+      <>
+        <header class="long-form-header">
+          <h1>{meta.title}</h1>
+          <p class="summary">{meta.summary}</p>
+          <p class="byline"><span>{ui.published} <Day date={meta.published} /></span></p>
+        </header>
+        <Content />
+        <SuggestCorrection title={meta.title} canonical={meta.canonical} />
+      </>
+    )}
   </article>
 </Base>

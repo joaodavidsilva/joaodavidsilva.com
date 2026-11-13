@@ -3,7 +3,8 @@ import Base from '../../layouts/Base.astro';
 import SuggestCorrection from '../../components/SuggestCorrection.astro';
 import { escapeMarkup as escape } from '../../lib/escape';
 import {
-  ABOUT_PATH, CV_PATH, cvFileName, hostPath, hrefOf, pageTitles, paragraphsOf, periodOf, personOf, type ProfessionalRecord, type Source,
+  ABOUT_PATH, CV_PATH, cvFileName, hostPath, hrefOf, pageTitles, paragraphsOf, periodOf, personOf, statsOf,
+  type ProfessionalRecord, type Source,
 } from '../../lib/record';
 import { aboutRoutes } from '../../lib/routes';
 import { alternateAt, type Translations } from '../../lib/translations';
@@ -17,79 +18,166 @@ const { record, translations } = Astro.props as { record: ProfessionalRecord; tr
 const { language } = record;
 const ui = uiOf(language);
 const words = ui.record;
+const about = ui.redesign.about;
 const page = alternateAt(ABOUT_PATH, language);
 const person = personOf(record);
 const titles = await pageTitles();
-// One Claim's source, as a trailing note; attested Claims are labelled so readers know only João can confirm them.
+const stats = statsOf(record);
+const number = new Intl.NumberFormat(ui.locale);
+const [headlineLead, ...headlineRest] = record.headline.split(':');
+// A public Claim gets a source link. An attested Claim gets only a badge: a public role source
+// beside it would falsely imply that the private evidence is publicly verifiable.
 const src = (source: Source) =>
-  `<span class="source-note">${
-    'attested' in source
-      ? `(<span class="attested">${words.attested}</span>: ${escape(source.attested)})`
-      : `(<a href="${escape(hrefOf(source))}">${words.source}</a>)`
-  }</span>`;
+  'attested' in source
+    ? `<span class="attested-badge">${words.attested}</span>`
+    : `<span class="source-note">(<a href="${escape(hrefOf(source))}">${words.source}</a>)</span>`;
+const demonstration = (source: { page: string } | { url: string }) =>
+  'page' in source ? (titles.get(source.page) ?? source.page) : hostPath(source.url);
 ---
 <Base title={ui.about} description={`${record.name}. ${record.headline}`} canonical={page.canonical} language={language} twin={page.twin} translations={translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(person)} />
-  <article class="record">
-    <header>
-      <h1>{ui.about}</h1>
-      <p>{record.name}. {record.headline}</p>
-      {record.location && <p>{record.location}</p>}
-      <p class="cv">{words.downloadCv} <a href={CV_PATH} download={cvFileName(record)}>PDF</a></p>
+  <article class="record index-page container">
+    <header class="record-hero">
+      <p class="eyebrow">{ui.about} / {about.professionalRecord}</p>
+      <h1 class="page-title">{record.name}</h1>
+      <p class="record-headline">
+        {headlineRest.length ? <><strong>{headlineLead}.</strong> {headlineRest.join(':')}</> : record.headline}
+      </p>
+      <p class="record-meta">
+        {record.location}{record.languages.length > 0 && ` · ${record.languages.join(', ')}`}
+      </p>
+      <div class="cta-row">
+        {record.email && <a class="button button--primary" href={`mailto:${record.email}`}>{ui.contact}</a>}
+        <a class="button button--secondary" href={CV_PATH} download={cvFileName(record)}>{ui.redesign.cvPdf}</a>
+      </div>
+      <dl class="stats record-stats">
+        <div><dd>{number.format(stats.yearsOfExperience)}</dd><dt>{about.yearsMobile}</dt></div>
+        <div><dd>{number.format(stats.roleCount)}</dd><dt>{about.rolesListed}</dt></div>
+        {stats.attestedUsers !== undefined && <div><dd>{number.format(stats.attestedUsers)}+</dd><dt>{about.attestedUsers}</dt></div>}
+      </dl>
     </header>
-    {[[words.interests, record.interests], [words.approach, record.approach]].map(([title, prose]) => {
+
+    {[[words.interests, record.interests], [words.approach, record.approach]].map(([title, prose], index) => {
       const paragraphs = paragraphsOf(prose);
-      return paragraphs.length > 0 && <section><h2>{title}</h2>{paragraphs.map((p) => <p>{p}</p>)}</section>;
+      return paragraphs.length > 0 && (
+        <section class:list={['section', 'labelled-row', { 'labelled-row--group': index === 0 }]}>
+          <h2 class="row-label">{title}</h2>
+          <div class="row-content record-prose">{paragraphs.map((p) => <p>{p}</p>)}</div>
+        </section>
+      );
     })}
+
     {record.roles.length > 0 && (
-      <section><h2>{words.roles}</h2><ul>
-        {record.roles.map((r) => (
-          <li>{r.title} · {r.organisation} · <span class="period">{periodOf(r, ui)}</span> <Fragment set:html={src(r.source)} />
-            {r.stack.length > 0 && <p class="stack">{words.stack}: {r.stack.join(', ')}</p>}
-            {r.highlights.length > 0 && (
-              <ul>{r.highlights.map((h) => (typeof h === 'string' ? <li>{h}</li> : <li>{h.text} <Fragment set:html={src(h.source)} /></li>))}</ul>
-            )}
-          </li>
-        ))}
-      </ul></section>
+      <section class="section record-experience" aria-labelledby="record-experience">
+        <h2 class="eyebrow" id="record-experience">{about.experience}</h2>
+        <ol class="record-roles">
+          {record.roles.map((role) => (
+            <li class="record-role">
+              <p class="record-role-period">{periodOf(role, ui)}</p>
+              <div class="record-role-content">
+                <h3>{role.title} · {role.organisation}</h3>
+                {role.stack.length > 0 && <p class="record-stack">{words.stack}: {role.stack.join(' · ')}</p>}
+                {role.highlights.length > 0 && (
+                  <ul class="record-highlights">
+                    {role.highlights.map((highlight) => (
+                      <li>{typeof highlight === 'string' ? highlight : <>{highlight.text} <Fragment set:html={src(highlight.source)} /></>}</li>
+                    ))}
+                  </ul>
+                )}
+                <p class="record-source"><Fragment set:html={src(role.source)} /></p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
     )}
+
+    {record.education.length > 0 && (
+      <section class="section labelled-row labelled-row--group">
+        <h2 class="row-label">{about.education}</h2>
+        <div class="row-content">
+          <ul class="record-education">
+            {record.education.map((entry) => <li>{entry.text} <Fragment set:html={src(entry.source)} /></li>)}
+          </ul>
+        </div>
+      </section>
+    )}
+
     {record.projects.length > 0 && (
-      <section><h2>{words.projects}</h2><ul>
-        {record.projects.map((p) => <li>{p.url ? <a href={p.url}>{p.name}</a> : p.name}: {p.summary} <Fragment set:html={src(p.source)} /></li>)}
-      </ul></section>
+      <section class="section labelled-row labelled-row--group">
+        <h2 class="row-label">{words.projects}</h2>
+        <div class="row-content">
+          <ul class="record-projects">
+            {record.projects.map((project) => (
+              <li>
+                <h3>{project.url ? <a href={project.url}>{project.name}</a> : project.name}</h3>
+                <p>{project.summary}</p>
+                <Fragment set:html={src(project.source)} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
     )}
-    {record.skills.length > 0 && (
-      <section><h2>{words.skills}</h2><ul>
-        {record.skills.map((s) => (
-          <li>{s.name}, {words.demonstratedIn} {s.demonstrated.map((d, i) => (
-            <>{i > 0 && ', '}<a href={hrefOf(d)}>{'page' in d ? (titles.get(d.page) ?? d.page) : hostPath(d.url)}</a></>
-          ))}</li>
-        ))}
-      </ul></section>
+
+    {(record.skills.length > 0 || record.skillGroups.length > 0) && (
+      <section class="section labelled-row labelled-row--group">
+        <h2 class="row-label">{words.skills}</h2>
+        <div class="row-content record-skills">
+          {record.skills.length > 0 && (
+            <ul class="record-ungrouped-skills">
+              {record.skills.map((skill) => (
+                <li>{skill.name}, {words.demonstratedIn} {skill.demonstrated.map((source, index) => (
+                  <>{index > 0 && ', '}<a href={hrefOf(source)}>{demonstration(source)}</a></>
+                ))}</li>
+              ))}
+            </ul>
+          )}
+          {record.skillGroups.map((group) => (
+            <section class="record-skill-group">
+              <h3>{group.name}</h3>
+              <p>
+                {group.skills.map((skill, skillIndex) => (
+                  <>
+                    {skillIndex > 0 && ', '}
+                    <span class="record-skill">
+                      {skill.name}{' '}
+                      <span class="record-demonstrated">({skill.demonstrated.map((source, index) => (
+                        <>{index > 0 && ' · '}<a href={hrefOf(source)} title={words.demonstratedIn}>{demonstration(source)}</a></>
+                      ))})</span>
+                    </span>
+                  </>
+                ))}
+              </p>
+            </section>
+          ))}
+        </div>
+      </section>
     )}
+
     {record.achievements.length > 0 && (
-      <section><h2>{words.achievements}</h2><ul>
-        {record.achievements.map((a) => <li>{a.text} <Fragment set:html={src(a.source)} /></li>)}
-      </ul></section>
+      <section class="section labelled-row"><h2 class="row-label">{words.achievements}</h2><div class="row-content"><ul>
+        {record.achievements.map((achievement) => <li>{achievement.text} <Fragment set:html={src(achievement.source)} /></li>)}
+      </ul></div></section>
     )}
     {record.publications.length > 0 && (
-      <section><h2>{words.publications}</h2><ul>
-        {record.publications.map((p) => <li>{p.url ? <a href={p.url}>{p.title}</a> : p.title} <Fragment set:html={src(p.source)} /></li>)}
-      </ul></section>
+      <section class="section labelled-row"><h2 class="row-label">{words.publications}</h2><div class="row-content"><ul>
+        {record.publications.map((publication) => <li>{publication.url ? <a href={publication.url}>{publication.title}</a> : publication.title} <Fragment set:html={src(publication.source)} /></li>)}
+      </ul></div></section>
     )}
     {record.contributions.length > 0 && (
-      <section><h2>{words.contributions}</h2><ul>
-        {record.contributions.map((c) => <li>{c.text} <Fragment set:html={src(c.source)} /></li>)}
-      </ul></section>
+      <section class="section labelled-row"><h2 class="row-label">{words.contributions}</h2><div class="row-content"><ul>
+        {record.contributions.map((contribution) => <li>{contribution.text} <Fragment set:html={src(contribution.source)} /></li>)}
+      </ul></div></section>
     )}
-    {record.languages.length > 0 && (
-      <section><h2>{words.languages}</h2><ul>{record.languages.map((l) => <li>{l}</li>)}</ul></section>
-    )}
-    {record.sameAs.length > 0 && (
-      <section><h2>{words.elsewhere}</h2><ul>
-        {record.sameAs.map((url) => <li><a href={url} rel="me">{hostPath(url)}</a></li>)}
-      </ul></section>
-    )}
-    <SuggestCorrection title={ui.about} canonical={page.canonical} />
+
+    <section class="section labelled-row labelled-row--group record-contact">
+      <h2 class="row-label">{about.contact}</h2>
+      <div class="row-content">
+        {record.email && <a href={`mailto:${record.email}`}>{record.email}</a>}
+        {record.sameAs.map((url) => <a href={url} rel="me">{hostPath(url)}</a>)}
+      </div>
+    </section>
+    <div class="record-correction"><SuggestCorrection title={ui.about} canonical={page.canonical} /></div>
   </article>
 </Base>

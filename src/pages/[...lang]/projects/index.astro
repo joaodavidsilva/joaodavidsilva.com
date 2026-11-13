@@ -1,7 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import { collectionJsonLd } from '../../../lib/metadata';
-import { canonicalOf, getProjects, indexMetadataOf, pathOf, projectsIndexOf } from '../../../lib/projects';
+import { canonicalOf, getProjectListings, indexMetadataOf, pathOf, projectsIndexOf } from '../../../lib/projects';
 import { languageParams, languagesOfSection } from '../../../lib/sections';
 import { generatedTranslations, type Language } from '../../../lib/translations';
 import { uiOf } from '../../../lib/ui';
@@ -12,32 +12,42 @@ export const getStaticPaths = () => languageParams('projects');
 const { language } = Astro.props as { language: Language };
 const ui = uiOf(language);
 const index = projectsIndexOf(language);
-const projects = await getProjects(language);
+const projects = await getProjectListings(language);
+const internal = projects.filter((project) => !project.data.external);
 const translations = generatedTranslations('/projects/', await languagesOfSection('projects'));
 const jsonLd = collectionJsonLd(
   indexMetadataOf(language, projects),
-  projects.map((project) => ({ name: project.data.name, url: canonicalOf(project) })),
+  internal.map((project) => ({ name: project.data.name, url: canonicalOf(project) })),
 );
 ---
 <Base title={index.title} description={index.summary} canonical={index.canonical} language={language} twin={index.twin} translations={translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <header>
-    <h1>{index.title}</h1>
-    <p class="summary">{index.summary}</p>
-  </header>
-  {projects.length > 0 ? (
-    <ul class="project-list">
-      {projects.map((project) => (
-        <li>
-          <h2><a href={pathOf(project)}>{project.data.name}</a></h2>
-          <p class="project-facts">
-            {ui.projectStatus[project.data.status]}{project.data.version && <> · {ui.version} {project.data.version}</>}
-          </p>
-          <p>{project.data.oneLine}</p>
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <p>{ui.noProjects}</p>
-  )}
+  <div class="index-page container projects-index">
+    <header>
+      <p class="eyebrow">{index.title}</p>
+      <h1 class="page-title">{ui.redesign.projects.title}</h1>
+      <p class="lede">{ui.redesign.projects.lede(projects.length)}</p>
+    </header>
+    {projects.length > 0 ? (
+      <ul class="project-list">
+        {projects.map((project) => (
+          <li class="labelled-row">
+            <div class="project-index-meta">
+              <p class="status">
+                <span class:list={['status-dot', project.data.status === 'active' && 'status-dot--active']} aria-hidden="true"></span>
+                {ui.projectStatus[project.data.status]}{project.data.version && <> · v{project.data.version}</>}{project.data.external && <> · {ui.redesign.ownSite}</>}
+              </p>
+              <p class="project-tags">{project.data.external ? 'external' : project.data.tags.map((tag) => `#${tag}`).join(' ')}</p>
+            </div>
+            <div class="row-content project-index-copy">
+              <h2>{project.data.external ? project.data.name : <a href={pathOf(project)}>{project.data.name} →</a>}</h2>
+              <p>{project.data.oneLine}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>{ui.noProjects}</p>
+    )}
+  </div>
 </Base>

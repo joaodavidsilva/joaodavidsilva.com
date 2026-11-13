@@ -5,8 +5,6 @@ import { buildFixture } from './build.mjs';
 import { stylesheetsOf, nestedRulesOf } from './css.mjs';
 
 const FILES = ['index.html', 'writing/sample/index.html'];
-
-/** The inline theme script of a page's head. */
 function themeScriptOf(html) {
   const head = html.match(/<head>(.*?)<\/head>/s)[1];
   const match = head.match(/<script\b([^>]*)>(.*?)<\/script>/s);
@@ -17,39 +15,33 @@ function themeScriptOf(html) {
   return match[2];
 }
 
-/** Runs the theme script against a stubbed page; returns handles to inspect it. */
 function runTheme(source, { stored = null, reducedMotion = false, viewTransitions = true } = {}) {
   const storage = new Map(stored === null ? [] : [['theme', stored]]);
   const listeners = {};
-  const radios = ['system', 'light', 'dark'].map((value) => ({ name: 'theme', value, checked: false }));
+  const buttons = ['system', 'light', 'dark'].map((value) => ({
+    dataset: { themeChoice: value },
+    attributes: { 'aria-pressed': 'false' },
+    setAttribute(name, val) { this.attributes[name] = String(val); },
+    closest(selector) { return selector === '[data-theme-choice]' ? this : null; },
+  }));
   const transitions = [];
   const document = {
     documentElement: { dataset: {} },
     addEventListener: (type, fn) => (listeners[type] ??= []).push(fn),
-    querySelectorAll: () => radios,
+    querySelectorAll: (selector) => selector === '[data-theme-choice]' ? buttons : [],
     ...(viewTransitions && { startViewTransition: (fn) => (transitions.push(fn), fn()) }),
   };
   const context = {
     document,
-    localStorage: {
-      getItem: (k) => storage.get(k) ?? null,
-      setItem: (k, v) => storage.set(k, String(v)),
-      removeItem: (k) => storage.delete(k),
-    },
+    localStorage: { getItem: (k) => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, String(v)), removeItem: (k) => storage.delete(k) },
     matchMedia: (query) => ({ matches: query.includes('reduce') && reducedMotion }),
   };
   vm.runInNewContext(source, context);
   const fire = (type, event = {}) => (listeners[type] ?? []).forEach((fn) => fn(event));
   return {
-    root: document.documentElement,
-    storage,
-    radios,
-    transitions,
+    root: document.documentElement, storage, buttons, transitions,
     loaded: () => fire('DOMContentLoaded'),
-    choose: (value) => {
-      for (const r of radios) r.checked = r.value === value;
-      fire('change', { target: radios.find((r) => r.value === value) });
-    },
+    choose: (value) => fire('click', { target: buttons.find((button) => button.dataset.themeChoice === value) }),
   };
 }
 
@@ -58,28 +50,20 @@ test('theme toggle', async (t) => {
   assert.ok(site.ok, site.output);
   const pages = FILES.map((file) => ({ file, html: site.read(file) }));
   const rules = nestedRulesOf(stylesheetsOf(site, pages[0].html));
-  const declared = (match, property) =>
-    rules.filter((r) => match(r) && r.declarations.some(([p]) => p === property)).map((r) => [r, Object.fromEntries(r.declarations)[property]]);
+  const declared = (match, property) => rules.filter((r) => match(r) && r.declarations.some(([p]) => p === property)).map((r) => [r, Object.fromEntries(r.declarations)[property]]);
 
-  await t.test('the footer offers System, Light and Dark as text radios', () => {
+  await t.test('the footer offers an accessible System, Light and Dark button group', () => {
     for (const { file, html } of pages) {
       const footer = html.match(/<footer class="site-footer">(.*?)<\/footer>/s)?.[1];
       assert.ok(footer, `${file}: no site footer`);
-      const toggle = footer.match(/<fieldset class="theme-toggle"[^>]*>(.*?)<\/fieldset>/s)?.[1];
-      assert.ok(toggle, `${file}: no theme toggle in the footer`);
-      assert.match(toggle, /<legend[^>]*>Theme<\/legend>/);
-      const options = [...toggle.matchAll(/<label[^>]*>\s*<input([^>]*)>\s*([^<]+?)\s*<\/label>/g)].map(([, attrs, text]) => [
-        attrs.match(/name="([^"]+)"/)?.[1],
-        attrs.match(/value="([^"]+)"/)?.[1],
-        attrs.match(/type="([^"]+)"/)?.[1],
-        text,
-      ]);
-      assert.deepEqual(options, [
-        ['theme', 'system', 'radio', 'System'],
-        ['theme', 'light', 'radio', 'Light'],
-        ['theme', 'dark', 'radio', 'Dark'],
-      ]);
-      assert.doesNotMatch(toggle, /\son\w+=/, `${file}: inline event handler`);
+      const group = footer.match(/<div class="theme-toggle"([^>]*)>(.*?)<\/div>/s);
+      assert.ok(group, `${file}: no theme group`);
+      assert.match(group[1], /role="group"/);
+      assert.match(group[1], /aria-label="Theme"/);
+      const options = [...group[2].matchAll(/<button\b([^>]*)>([^<]+)<\/button>/g)].map(([, attrs, text]) => [attrs.match(/data-theme-choice="([^"]+)"/)?.[1], attrs.match(/type="([^"]+)"/)?.[1], text]);
+      assert.deepEqual(options, [['system', 'button', 'System'], ['light', 'button', 'Light'], ['dark', 'button', 'Dark']]);
+      assert.equal([...group[2].matchAll(/aria-pressed=/g)].length, 3);
+      assert.doesNotMatch(group[2], /\son\w+=/);
     }
   });
 
@@ -93,36 +77,32 @@ test('theme toggle', async (t) => {
     }
   });
 
-  await t.test('the toggle reflects and persists the choice', () => {
+  await t.test('aria-pressed reflects the choice and the existing storage key persists it', () => {
     const source = themeScriptOf(pages[0].html);
     const page = runTheme(source, { stored: 'dark' });
     page.loaded();
-    assert.deepEqual(page.radios.filter((r) => r.checked).map((r) => r.value), ['dark']);
+    assert.deepEqual(page.buttons.filter((b) => b.attributes['aria-pressed'] === 'true').map((b) => b.dataset.themeChoice), ['dark']);
     page.choose('light');
     assert.equal(page.root.dataset.theme, 'light');
     assert.equal(page.storage.get('theme'), 'light');
-    // The next page (or visit) starts from the stored choice.
+    assert.deepEqual(page.buttons.filter((b) => b.attributes['aria-pressed'] === 'true').map((b) => b.dataset.themeChoice), ['light']);
     assert.equal(runTheme(source, { stored: page.storage.get('theme') }).root.dataset.theme, 'light');
     page.choose('system');
     assert.equal(page.root.dataset.theme, undefined);
     assert.equal(page.storage.has('theme'), false);
-    const fresh = runTheme(source);
-    fresh.loaded();
-    assert.deepEqual(fresh.radios.filter((r) => r.checked).map((r) => r.value), ['system']);
+    assert.deepEqual(page.buttons.filter((b) => b.attributes['aria-pressed'] === 'true').map((b) => b.dataset.themeChoice), ['system']);
   });
 
-  await t.test('switching cross-fades via View Transitions; reduced motion or no support switches instantly', () => {
+  await t.test('switching cross-fades unless reduced motion is requested or View Transitions are unsupported', () => {
     const source = themeScriptOf(pages[0].html);
     const animated = runTheme(source);
     animated.choose('dark');
     assert.equal(animated.transitions.length, 1);
     assert.equal(animated.root.dataset.theme, 'dark');
-
     const reduced = runTheme(source, { reducedMotion: true });
     reduced.choose('dark');
     assert.equal(reduced.transitions.length, 0);
     assert.equal(reduced.root.dataset.theme, 'dark');
-
     const unsupported = runTheme(source, { viewTransitions: false });
     unsupported.choose('dark');
     assert.equal(unsupported.root.dataset.theme, 'dark');
@@ -132,30 +112,35 @@ test('theme toggle', async (t) => {
     const hidden = declared((r) => r.prelude === '.theme-toggle' && !r.context.length, 'display');
     assert.deepEqual(hidden.map(([, v]) => v), ['none']);
     const shown = declared((r) => /\[data-js\][^,]*\.theme-toggle/.test(r.prelude), 'display');
-    assert.ok(shown.length && shown.every(([, v]) => v !== 'none'), 'the script does not reveal the toggle');
+    assert.ok(shown.length && shown.every(([, v]) => v !== 'none'));
     const page = runTheme(themeScriptOf(pages[0].html));
-    assert.ok('js' in page.root.dataset, 'the script does not mark JavaScript as available');
-    // System default: :root follows the OS; only an explicit choice overrides it.
+    assert.ok('js' in page.root.dataset);
     assert.ok(declared((r) => r.prelude === ':root', 'color-scheme').some(([, v]) => v === 'light dark'));
     for (const theme of ['light', 'dark']) {
       const scheme = declared((r) => r.prelude.replace(/\s/g, '').includes(`[data-theme=${theme}]`), 'color-scheme');
-      assert.deepEqual(scheme.map(([, v]) => v), [theme], `no color-scheme override for ${theme}`);
+      assert.deepEqual(scheme.map(([, v]) => v), [theme]);
     }
   });
 
-  await t.test('code is highlighted in colours that follow the theme', () => {
+  await t.test('code highlighting colours follow the theme', () => {
     const html = site.read('writing/sample/index.html');
     const pre = html.match(/<pre\b[^>]*class="[^"]*astro-code[^"]*"[^>]*>.*?<\/pre>/s)?.[0];
     assert.ok(pre, 'no highlighted code block');
     const colours = [...pre.matchAll(/(?:^|[;"\s])(?:background-)?color:\s*([^;"]+)/g)].map((m) => m[1].trim());
-    assert.ok(colours.length > 2, 'no highlighted tokens');
-    // Each colour is a Shiki variable set to a light-dark() palette token, so it follows color-scheme.
-    const root = (property) => declared((r) => r.prelude === ':root', property).at(-1)?.[1];
+    assert.ok(colours.length > 2);
+    const root = (property) => {
+      let value = declared((r) => r.prelude === ':root', property).at(-1)?.[1];
+      for (let depth = 0; depth < 10; depth++) {
+        const alias = value?.match(/^var\((--[\w-]+)\)$/)?.[1];
+        if (!alias) return value;
+        value = declared((r) => r.prelude === ':root', alias).at(-1)?.[1];
+      }
+      return value;
+    };
     for (const colour of colours) {
       const variable = colour.match(/^var\((--astro-code-[\w-]+)\)$/)?.[1];
       assert.ok(variable, `hard-coded colour ${colour}`);
-      const token = root(variable)?.match(/^var\((--[\w-]+)\)$/)?.[1];
-      assert.match(root(token) ?? '', /^light-dark\(/, `${variable} does not follow the theme`);
+      assert.match(root(variable) ?? '', /^light-dark\(/, `${variable} does not follow the theme`);
     }
   });
 });

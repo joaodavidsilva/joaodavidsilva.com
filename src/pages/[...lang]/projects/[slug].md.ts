@@ -16,11 +16,10 @@ export const GET: APIRoute<{ project: Project; translations: Translations }> = a
   return markdownResponse({ ...meta, ...translationFields(translations) }, [
     `# ${meta.title}`,
     meta.summary,
-    `${ui.status}: ${meta.status}${meta.version ? `. ${ui.version}: ${meta.version}` : ''}.`,
+    `${ui.status}: ${meta.status}${meta.version && !project.data.facts.some((fact) => fact.label === ui.version) ? `. ${ui.version}: ${meta.version}` : ''}.`,
+    ...project.data.facts.map((fact) => `${fact.label}: ${fact.value}`),
     (project.body ?? '').trim(),
     figures.map((figure) => `![${figure.alt}](${figure.src})${figure.caption ? `\n\n${figure.caption}` : ''}`).join('\n\n'),
-    project.data.waitlist &&
-      `## Waitlist\n\nJoin the Waitlist with the form at ${meta.canonical}#waitlist (in a browser: a Turnstile bot check guards it).`,
     links.length > 0 && `## ${ui.links}\n\n${links.map((link) => `- [${link.label}](${link.url})`).join('\n')}`,
     legal.length > 0 && `## ${ui.legalDocuments}\n\n${legal.map((doc) => `- [${doc.title}](${absolute(twinOf(doc.path))})`).join('\n')}`,
   ]);

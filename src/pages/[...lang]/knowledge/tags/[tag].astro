@@ -16,9 +16,14 @@ const jsonLd = listingJsonLd(meta, entries);
 ---
 <Base title={meta.title} description={meta.summary} canonical={meta.canonical} language={language} twin={twinOf(tagPathOf(tag, language))}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <header>
-    <h1>{ui.tagged(tag)}</h1>
-    <p><a href={pathIn('/knowledge/', language)}>{ui.allEntries}</a></p>
-  </header>
-  <KnowledgeList entries={entries} heading="h2" withCategory />
+  <div class="container index-page knowledge-tag-page">
+    <header class="knowledge-header">
+      <p class="eyebrow">{ui.knowledge.title}</p>
+      <h1 class="page-title">{ui.tagged(tag)}</h1>
+      <p class="lede">{meta.summary}</p>
+      <p class="knowledge-tag-count">{ui.redesign.entryCount(entries.length)}</p>
+      <p class="knowledge-back"><a href={pathIn('/knowledge/', language)}>{ui.allEntries}</a></p>
+    </header>
+    <KnowledgeList entries={entries} heading="h2" withCategory />
+  </div>
 </Base>

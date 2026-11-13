@@ -1,0 +1,6 @@
+record:
+  name: Fixture Person
+  headline: Engineering beyond implementation.
+  url: https://joaodavidsilva.com/
+  education:
+    - text: Fixture BSc, Example University — starting 2028.

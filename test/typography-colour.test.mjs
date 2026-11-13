@@ -1,45 +1,49 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildFixture } from './build.mjs';
-import { stylesheetsOf } from './css.mjs';
+import { stylesheetsOf, nestedRulesOf } from './css.mjs';
 import { SITE_URL } from '../site.config.mjs';
 
-/** The rules of a stylesheet as { selectors, declarations: [property, value][] }. */
+function splitSelectors(prelude) {
+  const selectors = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < prelude.length; index++) {
+    const char = prelude[index];
+    if (char === '(') depth++;
+    else if (char === ')') depth--;
+    else if (char === ',' && depth === 0) {
+      selectors.push(prelude.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  selectors.push(prelude.slice(start).trim());
+  return selectors;
+}
 function rulesOf(css) {
-  return [...css.replace(/\/\*.*?\*\//gs, '').matchAll(/([^{}]+){([^{}]*)}/g)].map(([, selector, body]) => ({
-    selectors: selector.split(',').map((s) => s.trim()),
-    declarations: body
-      .split(';')
-      .map((d) => d.split(/:(.*)/s).map((part) => part?.trim()))
-      .filter(([property, value]) => property && value),
+  return nestedRulesOf(css).map((rule) => ({
+    selectors: splitSelectors(rule.prelude),
+    declarations: rule.declarations,
+    context: rule.context,
   }));
 }
-
-/** Expands var() references using the custom properties declared in the stylesheet. */
 function resolve(rules, value) {
   const custom = new Map(rules.flatMap((r) => r.declarations).filter(([p]) => p.startsWith('--')));
   let resolved = value;
-  for (let depth = 0; depth < 10 && /var\(/.test(resolved); depth++) {
-    resolved = resolved.replace(/var\((--[\w-]+)\)/g, (ref, name) => custom.get(name) ?? ref);
-  }
+  for (let depth = 0; depth < 10 && /var\(/.test(resolved); depth++) resolved = resolved.replace(/var\((--[\w-]+)(?:,[^)]+)?\)/g, (ref, name) => custom.get(name) ?? ref);
   return resolved;
 }
-
-/** The last value `selector` declares for `property`, with var() references expanded. */
 function declared(rules, selector, property) {
-  const values = rules
-    .filter((r) => r.selectors.includes(selector))
-    .flatMap((r) => r.declarations.filter(([p]) => p === property).map(([, v]) => v));
+  const normalize = (value) => value.replace(/\s*([>+~])\s*/g, '$1');
+  const values = rules.filter((r) => r.context.length === 0 && r.selectors.some((candidate) => normalize(candidate) === normalize(selector))).flatMap((r) => r.declarations.filter(([p]) => p === property).map(([, v]) => v));
   return values.length ? resolve(rules, values.at(-1)) : undefined;
 }
-
-/** The [light, dark] colours of a `light-dark(#rrggbb, #rrggbb)` value, or null. */
 function lightDark(value) {
-  const pair = value.match(/^light-dark\(\s*(#[0-9a-f]{6})\s*,\s*(#[0-9a-f]{6})\s*\)$/i);
+  const single = value?.match(/^(#[0-9a-f]{6})$/i);
+  if (single) return [single[1], single[1]];
+  const pair = value?.match(/^light-dark\(\s*(#[0-9a-f]{6})\s*,\s*(#[0-9a-f]{6})\s*\)$/i);
   return pair ? [pair[1], pair[2]] : null;
 }
-
-/** WCAG 2 contrast ratio between two #rrggbb colours. */
 function contrast(a, b) {
   const luminance = (hex) => {
     const [r, g, bl] = [1, 3, 5].map((i) => {
@@ -51,16 +55,9 @@ function contrast(a, b) {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 }
+const KEYWORDS = new Set(['inherit', 'currentcolor', 'transparent', 'initial', 'unset', 'none']);
 
-/** A CSS length in rem or px as px, assuming the default 16px root size. */
-function px(length) {
-  const [, n, unit] = length.trim().match(/^([\d.]+)(rem|px)$/);
-  return unit === 'rem' ? Number(n) * 16 : Number(n);
-}
-
-const KEYWORDS = new Set(['inherit', 'currentcolor', 'transparent', 'initial', 'unset']);
-
-test('base typography and colour', async (t) => {
+test('redesign typography, palette and shared primitives', async (t) => {
   const site = buildFixture('basic');
   assert.ok(site.ok, site.output);
   const html = site.read('hello/index.html');
@@ -69,79 +66,111 @@ test('base typography and colour', async (t) => {
   const fontFaces = rules.filter((r) => r.selectors.includes('@font-face'));
   const faceValue = (face, property) => face.declarations.find(([p]) => p === property)?.[1] ?? '';
 
-  await t.test('fonts load from the site origin only', () => {
-    for (const family of ['Source Serif 4', 'Inter', 'JetBrains Mono']) {
+  await t.test('Source Serif 4 and JetBrains Mono are self-hosted; Inter is no longer loaded', () => {
+    for (const family of ['Source Serif 4', 'JetBrains Mono']) {
       const declares = new RegExp(`^["']?${family}[-"']`);
       assert.ok(fontFaces.some((face) => declares.test(faceValue(face, 'font-family'))), `no @font-face for ${family}`);
     }
+    assert.ok(!fontFaces.some((face) => /^["']?Inter[-"]/.test(faceValue(face, 'font-family'))));
     for (const face of fontFaces) {
+      assert.equal(faceValue(face, 'font-display'), 'swap');
       for (const [, url] of faceValue(face, 'src').matchAll(/url\(["']?([^"')]+)["']?\)/g)) {
         assert.ok(url.startsWith('/') && !url.startsWith('//'), `font ${url} is not same-origin`);
         assert.ok(site.has(url.slice(1)), `font ${url} is not in the build`);
       }
     }
     assert.doesNotMatch(css, /@import|url\(["']?(https?:)?\/\//);
-    for (const [, origin] of html.matchAll(/<link[^>]*href="((?:https?:)?\/\/[^"/]+)/g)) {
-      assert.equal(new URL(origin, SITE_URL).origin, SITE_URL, `third-party request to ${origin}`);
-    }
+    for (const [, origin] of html.matchAll(/<link[^>]*href="((?:https?:)?\/\/[^"/]+)/g)) assert.equal(new URL(origin, SITE_URL).origin, SITE_URL);
   });
 
-  await t.test('text renders immediately while fonts load', () => {
-    assert.ok(fontFaces.length > 0);
-    for (const face of fontFaces) assert.equal(faceValue(face, 'font-display'), 'swap');
-  });
-
-  await t.test('body is set in Source Serif 4, headings in Inter, code in JetBrains Mono', () => {
+  await t.test('body and headings use Source Serif 4; UI and code use JetBrains Mono', () => {
     assert.match(declared(rules, 'body', 'font-family') ?? '', /^"?Source Serif 4-/);
-    assert.match(declared(rules, 'h1', 'font-family') ?? '', /^"?Inter-/);
+    assert.match(declared(rules, 'h1', 'font-family') ?? '', /^"?Source Serif 4-/);
     assert.match(declared(rules, 'code', 'font-family') ?? '', /^"?JetBrains Mono-/);
+    assert.match(declared(rules, '.site-nav', 'font-family') ?? '', /^"?JetBrains Mono-/);
   });
 
-  // Every text colour must read against every background, so any pairing the
-  // site produces meets WCAG AA (4.5:1 for body text) in both modes.
-  const colours = rules.flatMap((r) =>
-    r.declarations
-      .filter(([p]) => ['color', 'background-color', 'background'].includes(p))
-      .filter(([, v]) => !KEYWORDS.has(v.toLowerCase()))
-      .map(([property, value]) => ({ property, value, pair: lightDark(resolve(rules, value)) })),
-  );
-
-  await t.test('light and dark palettes follow the system setting', () => {
+  await t.test('the exact mockup tokens use the light-dark cascade', () => {
+    const tokens = {
+      '--paper': ['#faf8f3', '#171512'], '--ink': ['#1d1b18', '#ebe7de'], '--muted': ['#5c574f', '#a9a397'],
+      '--rule': ['#ddd7ca', '#35322c'], '--tint': ['#f1ede3', '#221f1b'], '--tint2': ['#e8e3d6', '#2b2722'],
+      '--band': ['#1d1b18', '#0e0d0b'], '--band-ink': ['#ebe7de', '#ebe7de'],
+      '--band-muted': ['#a9a397', '#a9a397'], '--band-rule': ['#35322c', '#35322c'], '--accent': ['#1f4396', '#9db8ff'],
+    };
     assert.equal(declared(rules, ':root', 'color-scheme'), 'light dark');
-    assert.ok(lightDark(declared(rules, 'body', 'color') ?? ''), 'body sets a light-dark() text colour');
-    assert.ok(lightDark(declared(rules, 'body', 'background-color') ?? ''), 'body sets a light-dark() background');
-    for (const { property, value, pair } of colours) {
-      assert.ok(pair, `${property}: ${value} does not resolve to a light-dark() pair`);
+    for (const [token, expected] of Object.entries(tokens)) assert.deepEqual(lightDark(declared(rules, ':root', token)), expected, token);
+  });
+
+  const colours = rules.flatMap((r) => r.declarations.filter(([p]) => ['color', 'background-color', 'background'].includes(p)).filter(([, v]) => !KEYWORDS.has(v.toLowerCase())).map(([property, value]) => ({ property, value, pair: lightDark(resolve(rules, value)) })));
+  await t.test('inverted bands keep headings and labels in their band colours', () => {
+    assert.equal(declared(rules, '.band :is(h1,h2,h3,h4,h5,h6)', 'color'), '#ebe7de');
+    assert.equal(declared(rules, '.band :is(.eyebrow,.row-label,.status)', 'color'), '#a9a397');
+  });
+
+  await t.test('all declared text and surface colours have light and dark values', () => {
+    for (const { property, value, pair } of colours) assert.ok(pair, `${property}: ${value} does not resolve to light-dark()`);
+  });
+
+  await t.test('every designed foreground/background pairing meets WCAG AA in both modes', () => {
+    const pairings = [
+      ['--paper', '--ink'], ['--paper', '--muted'], ['--paper', '--accent'],
+      ['--tint', '--ink'], ['--tint', '--muted'], ['--tint', '--accent'],
+      ['--tint2', '--ink'], ['--tint2', '--muted'], ['--tint2', '--accent'],
+      ['--band', '--band-ink'], ['--band', '--band-muted'],
+      ['--ink', '--paper'], ['--accent', '--paper'],
+    ];
+    for (const [background, text] of pairings) {
+      const bg = lightDark(declared(rules, ':root', background));
+      const fg = lightDark(declared(rules, ':root', text));
+      for (const [mode, i] of [['light', 0], ['dark', 1]]) assert.ok(contrast(bg[i], fg[i]) >= 4.5, `${mode}: ${text} on ${background} is ${contrast(bg[i], fg[i]).toFixed(2)}:1`);
     }
   });
 
-  await t.test('every text/background pairing meets WCAG AA in both modes', () => {
-    const texts = colours.filter((c) => c.property === 'color');
-    const backgrounds = colours.filter((c) => c.property !== 'color');
-    assert.ok(texts.length && backgrounds.length);
-    for (const [mode, i] of [['light', 0], ['dark', 1]]) {
-      for (const text of texts) {
-        for (const background of backgrounds) {
-          const ratio = contrast(text.pair[i], background.pair[i]);
-          assert.ok(ratio >= 4.5, `${mode}: ${text.value} on ${background.value} is ${ratio.toFixed(2)}:1`);
-        }
-      }
-    }
-  });
-
-  await t.test('body text keeps a long-form measure at 18–20px and wraps on a phone', () => {
+  await t.test('body is 19px and 17px on small screens, with wrapping and balanced headings', () => {
     assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1"/);
-    const size = declared(rules, 'body', 'font-size');
-    const [, min, max] = size.match(/^clamp\(([^,]+),[^,]+,([^,]+)\)$/);
-    assert.ok(px(min) >= 18 && px(max) <= 20, `body size ${size} is outside 18–20px`);
-    // The measure is in `ch`; real characters per line are checked in a browser at release.
-    const width = declared(rules, 'main', 'inline-size');
-    const [, ch] = width.match(/^min\(100% - [^,]+,\s*(\d+)ch\)$/);
-    assert.ok(Number(ch) >= 60 && Number(ch) <= 72, `measure ${width} is outside the target`);
+    assert.equal(declared(rules, 'body', 'font-size'), '19px');
+    assert.match(css, /@media\s*\(width<=640px\)\s*\{[^{}]*body\s*\{[^}]*font-size:\s*17px/s);
     assert.match(declared(rules, 'body', 'overflow-wrap') ?? '', /break-word|anywhere/);
+    assert.equal(declared(rules, 'p', 'text-wrap'), 'pretty');
+    assert.equal(declared(rules, 'h1', 'text-wrap'), 'balance');
   });
 
-  await t.test('no gradients or shadows', () => {
+  await t.test('the shared container and labelled rows expose the 1120/220/180px contracts', () => {
+    assert.equal(declared(rules, '.container', 'max-inline-size'), '1120px');
+    assert.equal(declared(rules, '.container', 'padding-inline'), 'clamp(20px,5vw,56px)');
+    assert.equal(declared(rules, '.labelled-row > .row-label', 'flex'), '0 0 220px');
+    assert.equal(declared(rules, '.labelled-row--home > .row-label', 'flex'), '0 0 180px');
+    assert.equal(declared(rules, '.labelled-row > .row-content', 'flex'), '480px');
+  });
+
+  await t.test('shared CTA, stats, cards and definition-row primitives carry accessible sizing', () => {
+    for (const selector of ['.card a', '.definition-rows a']) assert.equal(declared(rules, selector, 'min-block-size'), '44px', selector);
+    assert.equal(declared(rules, '.button', 'min-block-size'), '50px');
+    assert.equal(declared(rules, '.button', 'border-radius'), '4px');
+    assert.equal(declared(rules, '.stats', 'border-block-start'), '2px solid light-dark(#1d1b18,#ebe7de)');
+    assert.equal(declared(rules, '.card', 'border-block-start'), '1px solid light-dark(#1d1b18,#ebe7de)');
+    assert.equal(declared(rules, '.definition-rows > div', 'border-block-end'), '1px solid light-dark(#ddd7ca,#35322c)');
+    assert.match(css, /@media\s*\(width<=820px\)/);
+    assert.match(css, /@media\s*\(width<=640px\)/);
+    assert.match(css, /124px/);
+  });
+
+  await t.test('the shared long-form measure and TOC breakpoints are available to page slices', () => {
+    assert.equal(declared(rules, '.prose', 'max-inline-size'), '66ch');
+    assert.equal(declared(rules, '.toc', 'position'), 'sticky');
+    assert.match(css, /@media\s*\(width<=940px\)\s*\{[^{}]*\.toc\s*\{[^}]*position:\s*static/s);
+    assert.match(css, /@media\s*\(width<=640px\)\s*\{(?:[^{}]|\{[^{}]*\})*\.toc\s*\{[^}]*display:\s*none/s);
+  });
+
+  await t.test('shared display styles preserve the mockup type scale', () => {
+    assert.equal(declared(rules, '.home-title', 'font-size'), 'clamp(38px,min(12.4vw,5vw + 40px),116px)');
+    assert.equal(Number(declared(rules, '.home-title', 'line-height')), 0.96);
+    assert.equal(declared(rules, '.home-intro', 'font-size'), 'clamp(20px,2.2vw,26px)');
+    assert.equal(declared(rules, '.band-title', 'font-size'), 'clamp(30px,4.2vw,50px)');
+    assert.equal(declared(rules, '.pull-line', 'font-size'), 'clamp(26px,3vw,34px)');
+  });
+
+  await t.test('no gradients or shadows are introduced', () => {
     assert.doesNotMatch(css, /gradient\(|box-shadow|text-shadow|drop-shadow/);
   });
 });

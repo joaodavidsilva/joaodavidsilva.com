@@ -46,13 +46,13 @@ test('a Series and its parts', async (t) => {
   const seriesMain = mainOf(series);
 
   await t.test('the Series page shows its title, introduction and status', () => {
-    assert.match(seriesMain, /<h1>The doghouse build<\/h1>/);
+    assert.match(seriesMain, /<h1 class="article-title">The doghouse build<\/h1>/);
     const text = textOf(seriesMain);
     assert.match(text, /Building a doghouse from a sketch to a roof, one weekend at a time\./);
     assert.match(text, /The doghouse introduction paragraph: why a doghouse, and what each part covers\./);
     assert.match(text, /Ongoing/);
     assert.match(textOf(mainOf(site.read('writing/series/workbench/index.html'))), /Complete/);
-    assert.doesNotMatch(series, /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script))/);
+    assert.doesNotMatch(series, /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script|data-menu-script))/);
   });
 
   await t.test('the Series page lists its parts in order', () => {
@@ -71,7 +71,11 @@ test('a Series and its parts', async (t) => {
   });
 
   await t.test('the Series page advertises its twin and describes itself in JSON-LD', () => {
+    const breadcrumb = seriesMain.match(/<p class="breadcrumb">(.*?)<\/p>/s)?.[1];
+    assert.deepEqual(linksIn(breadcrumb ?? '').map((l) => [l.text, l.href]), [['Writing', '/writing/']]);
+    assert.match(textOf(breadcrumb ?? ''), /Writing \/ Series/);
     assert.match(series, /<link rel="alternate" type="text\/markdown" href="\/writing\/series\/doghouse\.md">/);
+    assert.ok(linksIn(seriesMain).some((l) => l.text === 'Read as Markdown' && l.href === '/writing/series/doghouse.md'));
     const ld = jsonLdOf(series);
     assert.equal(ld['@type'], 'CreativeWorkSeries');
     assert.equal(ld.name, 'The doghouse build');

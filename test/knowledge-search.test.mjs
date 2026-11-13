@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { buildFixture } from './build.mjs';
 
 const SEARCH_SCRIPT = /<script\b[^>]*data-knowledge-search/;
-const ANY_SCRIPT = /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script))/;
+const ANY_SCRIPT = /<script\b(?![^>]*(?:application\/ld\+json|data-theme-script|data-menu-script|data-knowledge-search))/;
 
 /** Serves the built site so Pagefind's client can fetch its index as in a browser. */
 async function serve(dir) {
@@ -41,6 +41,9 @@ test('the Knowledge Base is searchable', async (t) => {
       assert.equal(budget.meta.category, 'Context Engineering', 'results carry the category');
       assert.ok(!urls.some((u) => !u.startsWith('/knowledge/') || u.startsWith('/knowledge/tags/') || u === '/knowledge/'),
         `only entries are indexed: ${urls.join(', ')}`);
+      const tagged = await pagefind.search('testing');
+      const taggedUrls = await Promise.all(tagged.results.map(async (result) => (await result.data()).url.replace(origin, '')));
+      assert.ok(taggedUrls.includes('/knowledge/writing-tests-first/'), `entry tags remain searchable: ${taggedUrls.join(', ')}`);
     } finally {
       server.close();
     }
@@ -49,14 +52,20 @@ test('the Knowledge Base is searchable', async (t) => {
   await t.test('only the Knowledge index loads the search script', () => {
     const index = site.read('knowledge/index.html');
     assert.match(index, SEARCH_SCRIPT);
+    assert.doesNotMatch(index, ANY_SCRIPT, 'Knowledge index has no unexpected scripts');
     for (const path of ['knowledge/context-window/index.html', 'knowledge/tags/tokens/index.html']) {
-      assert.doesNotMatch(site.read(path), ANY_SCRIPT, path);
+      const html = site.read(path);
+      assert.doesNotMatch(html, SEARCH_SCRIPT, path);
+      assert.doesNotMatch(html, ANY_SCRIPT, path);
     }
   });
 
   await t.test('without JavaScript the search form stays hidden and the index lists everything', () => {
     const index = site.read('knowledge/index.html');
     assert.match(index, /<form\b[^>]*role="search"[^>]*hidden/);
+    assert.match(index, /<span>Search the Knowledge Base<\/span>/);
+    assert.match(index, /placeholder="context, session, tool…"/);
+    assert.match(index, />3 entries in 2 categories<\/p>/);
     for (const id of ['context-window', 'token-budget', 'writing-tests-first']) {
       assert.match(index, new RegExp(`href="/knowledge/${id}/"`));
     }

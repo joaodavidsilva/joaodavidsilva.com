@@ -1,127 +1,255 @@
-/*
- * The Knowledge Base: the index (search, categories, tags), tag pages and an entry's
- * header and end matter. Lists reuse `.piece-list` / `.piece-meta` from long-form.css.
- * Colours are palette tokens only, so every pairing keeps its contrast in both modes.
- */
+/* Knowledge Base index, search results, entry chrome and end matter. */
 
-/* Search: a full-width labelled field; at least 16px so iOS does not zoom on focus. */
-.knowledge-search {
-  margin-block: 0 2rem;
-  font-family: var(--font-sans);
+.knowledge-header {
+  margin-block-end: clamp(32px,4vw,48px);
+}
+.knowledge-header .eyebrow { margin: 0; }
+.knowledge-header .page-title {
+  max-inline-size: 12em;
+  margin-block: 12px 20px;
+}
+.knowledge-header .lede { margin: 0; }
+.knowledge-empty {
+  padding-block: 24px;
+  border-block-start: 2px solid var(--ink);
+  font-size: clamp(22px,2.6vw,30px);
 }
 
-.knowledge-search label {
-  display: block;
-  margin-block-end: 0.375rem;
-  font-size: 0.875em;
-  font-weight: 650;
+/* Pagefind enhances this field; without JavaScript the complete semantic index remains. */
+.knowledge-search { margin: 0; }
+.knowledge-search label,
+.knowledge-search label > span { display: block; }
+.knowledge-search label > span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-
 .knowledge-search input {
   display: block;
   inline-size: 100%;
-  min-block-size: 2.75rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--ink-muted);
+  min-inline-size: 0;
+  min-block-size: 60px;
+  margin-block-start: 10px;
+  padding: 10px 16px;
+  border: 2px solid var(--ink);
   border-radius: 4px;
   background-color: var(--paper);
   color: var(--ink);
-  font: inherit;
-  font-size: max(1rem, 1em);
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.4;
 }
-
+.knowledge-search input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
 .knowledge-search-status {
-  margin-block: 0.75rem 0;
-  font-size: 0.875em;
-  color: var(--ink-muted);
+  min-block-size: 1.6em;
+  margin-block: 10px 32px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
 }
-
-.knowledge-search-status:empty {
-  margin-block-start: 0;
-}
-
 .knowledge-search-more {
-  min-block-size: 2.75rem;
-  margin-block-start: 2rem;
-  padding: 0.5rem 1.25rem;
+  min-block-size: 50px;
+  margin-block-start: 24px;
+  padding: 10px 22px;
   border: 1px solid var(--ink);
   border-radius: 4px;
-  background-color: var(--surface);
+  background-color: var(--paper);
   color: var(--ink);
-  font-family: var(--font-sans);
-  font-size: 0.875em;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
+.knowledge-search-more:hover { background-color: var(--tint); }
 
-/* Matched words in a result's excerpt: weight, not a highlighter colour. */
+/* Search and tag-page results retain each entry's kind, category and real Pagefind excerpt. */
+.knowledge-list { margin: 0; }
+.knowledge-list > li {
+  padding-block: 20px;
+  border-block-start: 1px solid var(--rule);
+}
+.knowledge-list li + li { margin: 0; }
+.knowledge-list :is(h2,h3) {
+  margin: 0;
+  font-size: 22px;
+}
+.knowledge-list a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.knowledge-list a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.knowledge-list .piece-meta {
+  margin-block: 2px 6px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.knowledge-list li > p:last-child {
+  max-inline-size: 66ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+}
 .knowledge-list mark {
   background: none;
   color: inherit;
   font-weight: 650;
 }
 
-/* Entry lists: title, then kind (and category where the list mixes them), then summary. */
-.knowledge-list li + li {
-  margin-block-start: 1.5rem;
+/* Populated categories keep their existing anchors and derive their visible counts. */
+.knowledge-category.labelled-row--group { border-block-start: 2px solid var(--ink); }
+.knowledge-category .row-label h2 {
+  margin: 0;
+  font-size: 22px;
 }
-
-.knowledge-list h2,
-.knowledge-list h3 {
-  font-size: 1.25em;
-  margin-block: 0 0.25em;
+.knowledge-category .entry-count {
+  margin-block: 4px 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
+.knowledge-definition { margin: 0; }
+.knowledge-definition > div { padding-block: 8px 14px; }
+.knowledge-definition > div:first-child {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+.knowledge-definition dt { font-size: 17px; }
+.knowledge-definition dd { overflow-wrap: anywhere; }
 
-.knowledge-list h3 a {
-  color: var(--ink);
+.knowledge-tags.labelled-row { border-block-start: 1px solid var(--rule); }
+.knowledge-tags .row-label h2 { margin: 12px 0 0; }
+.knowledge-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.knowledge-tag-list .pill {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  text-align: start;
   text-decoration: none;
+  white-space: normal;
 }
+.knowledge-tag-list .pill:hover { background-color: var(--tint2); }
 
-.knowledge-list h3 a:hover {
-  text-decoration: underline;
+/* Entry chrome keeps Pagefind's hooks while matching the long-form redesign. */
+.knowledge-entry-header h1 {
+  max-inline-size: 14em;
+  margin-block: 12px 20px;
 }
-
-.knowledge-category + .knowledge-category {
-  margin-block-start: 3rem;
-}
-
-/* The index's tags: an inline #tag row after the categories, in the body's size, not `nav`'s. */
-.knowledge-tags {
-  margin-block-start: 3rem;
-  font-family: inherit;
-  font-size: inherit;
-}
-
-/* An entry's kind and category above its title. */
+.knowledge-entry-header .article-dek { margin-block-end: 24px; }
+.knowledge-breadcrumb { margin: 0; }
 .knowledge-kind {
-  margin-block-end: 0.5em;
-  font-family: var(--font-sans);
-  font-size: 0.875em;
-  color: var(--ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.knowledge-kind a,
+.knowledge-kind > span {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+}
+.knowledge-body { margin-block-start: 32px; }
+
+.knowledge-skill.labelled-row { margin-block-start: 48px; }
+.knowledge-skill p { margin: 0; }
+.knowledge-skill a {
+  display: inline-flex;
+  align-items: center;
+  max-inline-size: 100%;
+  min-block-size: 44px;
+  overflow-wrap: anywhere;
 }
 
-/* End matter: related entries, beside their category, then tags. */
-.knowledge-end {
-  margin-block-start: 3rem;
-  font-family: inherit;
-  font-size: 0.95em;
-}
-
-.knowledge-end + .knowledge-end {
-  margin-block-start: 1.5rem;
-}
-
-.knowledge-end h2 {
-  font-size: 1em;
-  margin-block: 0 0.5em;
-}
-
+.knowledge-end.labelled-row { margin-block-start: 48px; }
+.knowledge-end + .knowledge-end { margin-block-start: 0; }
+.knowledge-end h2.row-label { margin: 0; }
 .knowledge-related {
-  padding-inline-start: 1.25em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.knowledge-related li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 20px;
+  padding-block: 8px;
+  border-block-start: 1px solid var(--rule);
+}
+.knowledge-related li:first-child { border-block-start: 0; }
+.knowledge-related a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+}
+.knowledge-related span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.knowledge-entry-tags.labelled-row { border-block-start: 1px solid var(--rule); }
+.knowledge-entry .content-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin-block-start: 48px;
+  padding-block: 20px;
+  border-block-start: 1px solid var(--rule);
+}
+.knowledge-entry .content-footer p { margin: 0; }
+.knowledge-entry .content-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
 }
 
-.knowledge-related span {
-  font-family: var(--font-sans);
-  font-size: 0.875em;
-  color: var(--ink-muted);
+/* Tag pages use the same result rows and retain their CollectionPage metadata. */
+.knowledge-tag-page .page-title {
+  max-inline-size: 15em;
+  overflow-wrap: anywhere;
+}
+.knowledge-tag-count {
+  margin-block: 24px 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.knowledge-back { margin-block: 8px 0; }
+.knowledge-back a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .knowledge-search input { font-size: 20px; }
+  .knowledge-category { display: block; }
+  .knowledge-category .row-label { margin-block-end: 20px; }
+  .knowledge-tags { display: block; }
+  .knowledge-tags .row-label { margin-block-end: 12px; }
+  .knowledge-tags .row-label h2 { margin-block-start: 0; }
 }

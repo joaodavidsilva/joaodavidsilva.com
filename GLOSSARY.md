@@ -68,10 +68,6 @@ _Avoid_: Portfolio item, product, work
 The site's own page about a project: what it is, why it exists and the engineering decisions behind it, linking out to the project's own site, repository or store listings. It may also host the project's legal documents.
 _Avoid_: Project site, landing page, portfolio entry
 
-**Waitlist**:
-The people who explicitly consented to be told when Lozza becomes available.
-_Avoid_: Newsletter, mailing list, subscribers, leads
-
 ### Professional profile
 
 **Professional record**:
@@ -83,5 +79,5 @@ One statement in the professional record, always traceable to a source. A claim 
 _Avoid_: Fact, bullet, achievement line
 
 **CV**:
-The document produced from the full verified professional record, offered for download in PDF and DOCX. There is exactly one; it is never tailored to a job description.
+The document produced from the full verified professional record, offered for download in PDF. There is exactly one; it is never tailored to a job description.
 _Avoid_: Standard CV, dynamic CV, tailored CV

@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildFixture, buildFixtureWithHistory, buildSite } from './build.mjs';
+import { nestedRulesOf, stylesheetsOf } from './css.mjs';
 
 const SITE = 'https://joaodavidsilva.com';
 
 const jsonLdOf = (html) => JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
-const textOf = (html) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+const textOf = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/\s+([,.;:!?])/g, '$1');
 
 test('Projects: index and Project page', async (t) => {
   // "Last updated" comes from git history: the Project page was last committed on 5 April.
@@ -14,15 +15,23 @@ test('Projects: index and Project page', async (t) => {
   const index = site.read('projects/index.html');
   const page = site.read('projects/sample-app/index.html');
 
-  await t.test('the Projects index lists Projects with status and one line', () => {
+  await t.test('the Projects index lists status, version, tags and one line', () => {
     const text = textOf(index);
-    assert.match(text, /Sample App .*Active.*A sample app that practises one thing well\./);
-    assert.match(text, /Sample Library .*Paused.*A small library, resting for now\./);
-    assert.match(text, /2\.3\.1/);
-    assert.match(index, /<a href="\/projects\/sample-app\/">Sample App<\/a>/);
-    assert.match(index, /<a href="\/projects\/sample-library\/">Sample Library<\/a>/);
+    assert.match(text, /What I maintain over time\./);
+    assert.match(text, /2 projects, with the status and latest version of each\./);
+    assert.match(text, /Sample App/);
+    assert.match(text, /Active · v2\.3\.1/);
+    assert.match(text, /#apps #testing/);
+    assert.match(text, /A sample app that practises one thing well\./);
+    assert.match(text, /Sample Library/);
+    assert.match(text, /Paused/);
+    assert.match(text, /A small library, resting for now\./);
+    assert.match(index, /<span class="status-dot status-dot--active" aria-hidden="true"><\/span>Active/);
+    assert.match(index, /<a href="\/projects\/sample-app\/">Sample App →<\/a>/);
+    assert.match(index, /<a href="\/projects\/sample-library\/">Sample Library →<\/a>/);
     assert.ok(index.indexOf('Sample App') < index.indexOf('Sample Library'), 'active Projects come first');
-    assert.match(index, /<p class="summary">What João David Silva maintains/, 'the index summary is muted like Writing and Research');
+    assert.match(index, /<p class="eyebrow">Projects<\/p>/);
+    assert.match(index, /<h1 class="page-title">What I maintain over time\.<\/h1>/);
   });
 
   await t.test('the Projects index is agent-readable', () => {
@@ -43,21 +52,30 @@ test('Projects: index and Project page', async (t) => {
     assert.match(md, /- \[Sample Library\]\(https:\/\/joaodavidsilva\.com\/projects\/sample-library\.md\) \(paused\): A small library, resting for now\./);
   });
 
-  await t.test('a Project page renders its status, version and body', () => {
-    assert.match(page, /<h1>Sample App<\/h1>/);
+  await t.test('a Project page renders its breadcrumb, facts and labelled Markdown body', () => {
+    assert.match(page, /<nav class="breadcrumb" aria-label="Projects">.*?<a href="\/projects\/">Projects<\/a>.*?<span>Sample App<\/span>.*?<\/nav>/s);
+    assert.match(page, /<h1 class="project-title">Sample App<\/h1>/);
     const text = textOf(page);
     assert.match(text, /A sample app that practises one thing well\./);
     assert.match(text, /Status Active/);
     assert.match(text, /Version 2\.3\.1/);
+    assert.match(text, /Requirements Runs sample --start; documentation\./);
+    assert.match(page, /<dd>Runs <code>sample --start<\/code>; <a href="https:\/\/sample\.example\/docs">documentation<\/a>\.<\/dd>/);
+    assert.match(page, /<section class="labelled-row"><h2[^>]*class="row-label">How it works<\/h2><div class="row-content"><dl class="definition-rows">/);
+    assert.match(page, /<div><dt><strong>One input\.<\/strong><\/dt><dd>The input drives the output\.<\/dd><\/div>/);
+    assert.match(page, /<div><dt><code>sample run<\/code><\/dt><dd>executes one practice run\.<\/dd><\/div>/);
     assert.match(text, /The project body explains why Sample App exists\./);
-    assert.doesNotMatch(page, /<script(?![^>]*(?:application\/ld\+json|data-theme-script))/);
+    assert.match(page, /<footer class="content-footer">.*Read as Markdown.*All projects.*Suggest a correction.*<\/footer>/s);
+    assert.match(page, /<a href="\/projects\/sample-app\.md">Read as Markdown<\/a>/);
+    assert.match(page, /<a href="\/projects\/">All projects<\/a>/);
+    assert.doesNotMatch(page, /<script(?![^>]*(?:application\/ld\+json|data-theme-script|data-menu-script))/);
   });
 
-  await t.test('a Project page renders its external links', () => {
-    assert.match(page, /<a href="https:\/\/sample\.example\/">Website<\/a>/);
-    assert.match(page, /<a href="https:\/\/github\.com\/example\/sample-app">Source code<\/a>/);
-    assert.match(page, /<a href="https:\/\/apps\.apple\.com\/app\/id123">App Store<\/a>/);
-    assert.match(page, /<a href="https:\/\/play\.google\.com\/store\/apps\/details\?id=example\.sample">Google Play<\/a>/);
+  await t.test('a Project page renders its external links as CTA buttons', () => {
+    assert.match(page, /<a class="button button--primary" href="https:\/\/apps\.apple\.com\/app\/id123">App Store ↗<\/a>/);
+    assert.match(page, /<a class="button button--secondary" href="https:\/\/play\.google\.com\/store\/apps\/details\?id=example\.sample">Google Play ↗<\/a>/);
+    assert.match(page, /<a class="button button--secondary" href="https:\/\/sample\.example\/">Website ↗<\/a>/);
+    assert.match(page, /<a class="button button--secondary" href="https:\/\/github\.com\/example\/sample-app">Repository ↗<\/a>/);
   });
 
   await t.test('a Project page renders its legal documents at their own URLs', () => {
@@ -66,8 +84,10 @@ test('Projects: index and Project page', async (t) => {
     assert.ok(site.has('projects/sample-app/privacy.md'));
   });
 
-  await t.test('a Project page renders its figures', () => {
-    const figure = page.match(/<figure>.*?<\/figure>/s)?.[0];
+  await t.test('a Project page renders its figures in the dark four-shot band', () => {
+    const band = page.match(/<div class="project-screenshots band"><div class="screenshots">.*?<\/div><\/div>/s)?.[0];
+    assert.ok(band, 'no screenshot band');
+    const figure = band.match(/<figure>.*?<\/figure>/s)?.[0];
     assert.ok(figure, 'no figure');
     assert.match(figure, /alt="Architecture diagram of Sample App"/);
     assert.match(figure, /width="\d+" height="\d+"/);
@@ -90,10 +110,11 @@ test('Projects: index and Project page', async (t) => {
       'version: "2.3.1"',
     ]) assert.ok(md.includes(`\n${line}\n`), `missing ${line}`);
     assert.match(md, /- \[Website\]\(https:\/\/sample\.example\/\)/);
-    assert.match(md, /- \[Source code\]\(https:\/\/github\.com\/example\/sample-app\)/);
+    assert.match(md, /- \[Repository\]\(https:\/\/github\.com\/example\/sample-app\)/);
     assert.match(md, /- \[Google Play\]\(https:\/\/play\.google\.com\/store\/apps\/details\?id=example\.sample\)/);
     assert.match(md, /- \[Sample App privacy policy\]\(https:\/\/joaodavidsilva\.com\/projects\/sample-app\/privacy\.md\)/);
     assert.match(md, /The project body explains why Sample App exists\./);
+    assert.match(md, /Requirements: Runs `sample --start`; \[documentation\]\(https:\/\/sample\.example\/docs\)\./);
     const image = md.match(/!\[Architecture diagram of Sample App\]\(\/([^)]+)\)/);
     assert.ok(image, 'twin lacks the figure');
     assert.ok(site.has(image[1]), 'twin figure is not in the build');
@@ -112,10 +133,10 @@ test('Projects: index and Project page', async (t) => {
     assert.equal(ld.dateModified, '2026-04-05');
     assert.equal(ld.inLanguage, 'en');
     assert.deepEqual(ld.sameAs, [
-      'https://sample.example/',
-      'https://github.com/example/sample-app',
       'https://apps.apple.com/app/id123',
       'https://play.google.com/store/apps/details?id=example.sample',
+      'https://sample.example/',
+      'https://github.com/example/sample-app',
     ]);
     assert.match(ld.screenshot[0], /^https:\/\/joaodavidsilva\.com\/.+/);
   });
@@ -188,7 +209,7 @@ test('Facts Memorizer: its legal documents keep their URLs', async (t) => {
   });
 
   await t.test('the Projects index lists it', () => {
-    assert.match(site.read('projects/index.html'), /<a href="\/projects\/facts-memorizer\/">Facts Memorizer<\/a>/);
+    assert.match(site.read('projects/index.html'), /<a href="\/projects\/facts-memorizer\/">Facts Memorizer →<\/a>/);
   });
 });
 
@@ -199,11 +220,17 @@ test('brightboi: Project page with screenshots, repository and latest release', 
   assert.match(html, /href="https:\/\/github\.com\/joaodavidsilva\/brightboi"/);
   assert.match(html, /href="https:\/\/github\.com\/joaodavidsilva\/brightboi\/releases\/latest"/);
   assert.ok((html.match(/<figure>\s*<img /g) ?? []).length >= 4, 'expected the four README screenshots');
+  const cssRules = nestedRulesOf(stylesheetsOf(site, html));
+  const desktopShots = cssRules.find((rule) => rule.prelude === '.screenshots' && rule.context.length === 0);
+  assert.ok(desktopShots?.declarations.some(([property, value]) => property === 'grid-template-columns' && value === 'repeat(4,minmax(0,1fr))'));
+  const mobileShots = cssRules.find((rule) => rule.prelude === '.screenshots' && rule.context.includes('@media(width<=820px)'));
+  assert.ok(mobileShots?.declarations.some(([property, value]) => property === 'grid-template-columns' && value === 'repeat(2,minmax(0,1fr))'));
+  assert.ok(html.indexOf('popover-boost') < html.indexOf('settings-screenshot'), 'Boost shot precedes Settings');
   const ld = jsonLdOf(html);
   assert.equal(ld['@type'], 'SoftwareApplication');
   assert.equal(ld.screenshot.length, 4);
   assert.ok(site.has('projects/brightboi.md'));
-  assert.match(site.read('projects/index.html'), /<a href="\/projects\/brightboi\/">BrightBoi<\/a>/);
+  assert.match(site.read('projects/index.html'), /<a href="\/projects\/brightboi\/">BrightBoi →<\/a>/);
 });
 
 test('Markdown Exporter: Project page links its repository and extension listing', () => {
@@ -214,7 +241,7 @@ test('Markdown Exporter: Project page links its repository and extension listing
   assert.match(html, /href="https:\/\/marketplace\.visualstudio\.com\/items\?itemName=joaodavidsilva\.markdown-exporter"/);
   assert.equal(jsonLdOf(html)['@type'], 'SoftwareApplication');
   assert.ok(site.has('projects/markdown-exporter.md'));
-  assert.match(site.read('projects/index.html'), /<a href="\/projects\/markdown-exporter\/">Markdown Exporter<\/a>/);
+  assert.match(site.read('projects/index.html'), /<a href="\/projects\/markdown-exporter\/">Markdown Exporter →<\/a>/);
 });
 
 test('dotore and AI Skills: Project pages link their own homes', () => {
@@ -227,8 +254,31 @@ test('dotore and AI Skills: Project pages link their own homes', () => {
   assert.match(skills, /href="https:\/\/github\.com\/joaodavidsilva\/skills"/);
   const index = site.read('projects/index.html');
   for (const [slug, name] of [['dotore', 'dotore'], ['ai-skills', 'AI Skills']]) {
-    assert.match(index, new RegExp(`<a href="/projects/${slug}/">${name}</a>`));
+    assert.match(index, new RegExp(`<a href="/projects/${slug}/">${name} →</a>`));
   }
+});
+
+test('Lozza is an unlinked own-site card and the Waitlist UI is gone', () => {
+  const site = buildSite();
+  assert.ok(site.ok, site.output);
+  const index = site.read('projects/index.html');
+  const names = [...index.matchAll(/<h2>(?:<a[^>]*>)?([A-Za-z ]+)/g)].map((match) => match[1].trim());
+  assert.deepEqual(names, ['AI Skills', 'BrightBoi', 'dotore', 'Facts Memorizer', 'Lozza', 'Markdown Exporter']);
+  assert.match(index, /In development · own site/);
+  assert.match(index, /Native design tool for Mac and iPad, in development\./);
+  assert.match(index, /<h2>Lozza<\/h2>/);
+  assert.doesNotMatch(index, /href="[^"]*"[^>]*>Lozza/);
+  assert.doesNotMatch(index, /href="\/projects\/lozza\/?"/);
+  assert.equal(site.has('projects/lozza/index.html'), false);
+  assert.equal(site.has('projects/lozza.md'), false);
+  const markdown = site.read('projects.md');
+  assert.match(markdown, /- Lozza \(in development, own site\): Native design tool for Mac and iPad, in development\./);
+  assert.doesNotMatch(markdown, /\[Lozza\]/);
+  const llms = site.read('llms.txt');
+  assert.doesNotMatch(llms, /projects\/lozza/);
+  const privacy = site.read('privacy/index.html');
+  assert.doesNotMatch(privacy, /Lozza Waitlist|data-waitlist|cf-turnstile|challenges\.cloudflare\.com/);
+  assert.doesNotMatch(site.read('projects/facts-memorizer/index.html'), /data-waitlist|cf-turnstile|challenges\.cloudflare\.com/);
 });
 
 test('an unknown Project front-matter field fails the build', () => {

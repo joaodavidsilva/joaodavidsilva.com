@@ -1,5 +1,6 @@
 ---
 import { REPO_URL } from '../../site.config.mjs';
+import { getPages, pathOf } from '../lib/pages';
 import type { Language } from '../lib/translations';
 import { uiOf } from '../lib/ui';
 
@@ -11,28 +12,39 @@ interface Props {
 
 const { language, feed } = Astro.props;
 const ui = uiOf(language);
+const pages = await getPages();
+const privacy = pages.find((page) => pathOf(page) === (language === 'en' ? '/privacy/' : `/${language}/privacy/`))
+  ?? pages.find((page) => pathOf(page) === '/privacy/');
 const built = new Date();
 const builtDate = built.toISOString().slice(0, 10);
 const builtLabel = built.toLocaleDateString(ui.locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 ---
 <footer class="site-footer">
-  <ul>
-    <li><a href={feed}>{ui.feed}</a></li>
-    <li><a href="/llms.txt">llms.txt</a></li>
-    <li><a href="https://github.com/joaodavidsilva" rel="me">GitHub</a></li>
-    <li><a href="https://www.linkedin.com/in/joaodavidsilvaa/" rel="me">LinkedIn</a></li>
-    <li><a href="https://x.com/joaodavidsilvaa" rel="me">X</a></li>
-    <li><a href="mailto:me@joaodavidsilva.com">me@joaodavidsilva.com</a></li>
-  </ul>
-  <p>
-    {ui.licence.content} <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>,{' '}
-    {ui.licence.code} <a href={`${REPO_URL}/blob/main/LICENSE`}>{ui.licence.mit}</a>.{' '}
-    {ui.licence.built} <time datetime={builtDate}>{builtLabel}</time>.
-  </p>
-  <fieldset class="theme-toggle">
-    <legend>{ui.theme}</legend>
-    {(['system', 'light', 'dark'] as const).map((value) => (
-      <label><input type="radio" name="theme" value={value} checked={value === 'system'} /> {ui.themes[value]}</label>
-    ))}
-  </fieldset>
+  <div class="site-footer-inner container">
+    <div class="footer-identity">
+      <p class="footer-name">João David Silva</p>
+      <p>
+        {ui.licence.content} <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>,{' '}
+        {ui.licence.code} <a href={`${REPO_URL}/blob/main/LICENSE`}>{ui.licence.mit}</a>.{' '}
+        {ui.licence.built} <time datetime={builtDate}>{builtLabel}</time>.
+      </p>
+    </div>
+    <nav class="footer-nav" aria-label={ui.footerLabel}>
+      <ul>
+        <li><a href={feed}>{ui.feed}</a></li>
+        <li><a href="/llms.txt">llms.txt</a></li>
+        {privacy && <li><a href={pathOf(privacy)}>{ui.privacy}</a></li>}
+        <li><a href="https://github.com/joaodavidsilva" rel="me">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/joaodavidsilvaa/" rel="me">LinkedIn</a></li>
+        <li><a href="https://x.com/joaodavidsilvaa" rel="me">X</a></li>
+        <li><a href="mailto:me@joaodavidsilva.com">{ui.email}</a></li>
+      </ul>
+    </nav>
+    <div class="theme-toggle" role="group" aria-label={ui.theme}>
+      <span class="theme-label" aria-hidden="true">{ui.theme}</span>
+      {(['system', 'light', 'dark'] as const).map((value) => (
+        <button type="button" data-theme-choice={value} aria-pressed={value === 'system' ? 'true' : 'false'}>{ui.themes[value]}</button>
+      ))}
+    </div>
+  </div>
 </footer>

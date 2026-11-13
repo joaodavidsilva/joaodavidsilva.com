@@ -17,6 +17,9 @@ record:
     - title: Staff Fixture Engineer
       organisation: Fixture Corp
       start: 2024-01
+      highlights:
+        - text: Supported more than 1,200 fixture users.
+          source: { attested: "Usage metrics, kept by João" }
       source: { attested: "Employment contract, kept by João" }
     - title: Junior Fixture Engineer
       organisation: Old Corp
@@ -35,6 +38,11 @@ record:
       highlights:
         - Ancient highlight.
       source: { url: https://example.com/ancient-corp }
+  education:
+    - text: Self-taught fixture engineer.
+      source: { attested: "Personal history, kept by João" }
+    - text: Fixture BSc, Example University — starting 2028.
+      source: { url: https://example.com/fixture-degree }
   projects:
     - name: Fixture App
       summary: An app that exists only in tests.
@@ -48,6 +56,13 @@ record:
       demonstrated:
         - { page: /hello/ }
         - { url: https://github.com/fixture/tests }
+  skillGroups:
+    - name: Engineering
+      skills:
+        - name: Grouped Testing
+          demonstrated:
+            - { page: /hello/ }
+            - { url: https://github.com/fixture/tests }
   achievements:
     - text: Won the fixture prize.
       source: { attested: "Award letter, kept by João" }

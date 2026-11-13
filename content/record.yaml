@@ -43,64 +43,89 @@ record:
       end: 2025-09
       stack: [React Native, Figma, Azure DevOps, Azure Boards]
       highlights:
-        - Mobile banking app built from Figma designs on a custom design system.
-        - Multi-level scroll views, carousels and calendar/agenda screens with real-time availability and dynamic filtering.
-        - Faster data-heavy screens through paginated API data, manual profiling and debugging.
+        - Worked on a mobile banking app in React Native, implementing features from Figma designs, with Azure DevOps for delivery.
+        - Built complex multi-level scroll views and horizontal carousels on a custom design system.
+        - Handled paginated API data and improved load times of data-heavy screens through manual profiling and debugging.
+        - Contributed calendar and agenda interfaces for in-app event management, with real-time availability and dynamic filtering.
+        - Wrote unit tests; took part in sprint planning and task management in Azure Boards with cross-functional teams.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Mobile Developer
       organisation: Anoto (freelance)
       start: 2024-10
       end: 2024-12
+      stack: [React Native]
       highlights:
-        - Built the new LivePen app in React Native, digitising handwritten notes from Anoto smartpens in real time, with AI transcription and note sharing.
+        - Designed, developed and maintained the new LivePen mobile app in React Native, integrating with Anoto smartpens to digitise handwritten notes in real time.
+        - Implemented AI-powered transcription and note sharing.
+        - Delivered real-time synchronisation between Anoto pens and the Livescribe app; improved performance with more efficient data handling and fewer synchronisation delays.
+        - Worked with cross-functional teams on performance and iOS/Android compatibility.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Mobile Developer
       organisation: Hantverksdata Sverige AB (contract)
       start: 2024-03
       end: 2024-09
+      stack: [React Native]
       highlights:
-        - React Native app for Ordrestyring, field-service software for construction, plumbing and electrical businesses; upgraded React Native on a legacy class-component codebase.
+        - Developed the React Native app for Ordrestyring, Hantverksdata's product for administrative and operational tasks of craft businesses (construction, plumbing, electrical), improving performance and usability for field workers.
+        - Customised the product for the needs of different craft industries, for both small and large businesses.
+        - Upgraded the React Native version of a legacy codebase built mostly with class components.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Senior Frontend Developer
       organisation: LUDO (freelance)
       start: 2023-10
       end: 2023-11
+      stack: [Next.js, React]
       highlights:
-        - text: Built the Next.js web dashboard for Ludo, a questing platform for games, acquired by Xsolla.
+        - text: Built the Next.js web dashboard for Ludo, a questing platform for games, later acquired by Xsolla (May 2025).
           source: { url: https://www.businesswire.com/news/home/20250508807800/en/Xsolla-Acquires-Ludo-to-Advance-Player-Engagement-and-Monetization }
+        - Built responsive web interfaces in React and Next.js for SaaS tools in the gaming and blockchain space.
+        - Developed features for Daily Discord Bots, a Marketplace and In-Game Rewards systems; connected the frontend to REST APIs and blockchain-based services.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Lead Technology Developer
       organisation: Reflaunt
       start: 2022-03
       end: 2023-09
+      stack: [React, MobX, CI/CD, cloud infrastructure]
       highlights:
         - Led a cross-functional team of developers, designers and Scrum Masters.
-        - Resale e-commerce platforms for luxury brands such as Prada and Balenciaga.
-        - Led cloud infrastructure and CI/CD, cutting deployment times by 40% and onboarding clients without growing the team.
+        - Developed e-commerce platforms for luxury brands such as Prada and Balenciaga, focused on sustainable shopping and resale, with MobX for state management.
+        - Led cloud infrastructure and CI/CD pipelines, cutting deployment times by 40% and enabling client onboarding without growing the development team.
+        - Worked with product, design and marketing teams to deliver against business goals.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Frontend Developer
       organisation: Decskill (client Vortal)
       start: 2021-04
       end: 2022-02
+      stack: [React]
+      highlights:
+        - Hired to build the new platform in React; later moved into the QA team for front-end testing and bug hunting.
+        - Identified and resolved UI issues, checked design consistency, and validated fixes before production deployment.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Mobile Developer
       organisation: Lynxmind
       start: 2021-03
       end: 2021-04
+      stack: [React Native]
+      highlights:
+        - Started a mobile banking application in React Native using atomic design for reusable, scalable UI components; the project was discontinued early by the client for reasons unrelated to the team.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: React Developer
       organisation: everis
       start: 2019-09
       end: 2021-02
+      stack: [React]
       highlights:
-        - Internal collaborator and mediator portal for AGEAS Seguros in React.
+        - Developed the internal collaborator and mediator portal for AGEAS Seguros in React, in a front-end team working alongside back-end, design, QA and DevOps teams.
+        - Implemented UI from design specifications and kept components reusable.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: React Native Developer
       organisation: agap2IT Portugal
       start: 2018-08
       end: 2019-07
+      stack: [React Native]
       highlights:
-        - Health-tech app for a Dutch startup; solved list-rendering performance issues and contributed a FlatList solution to the open-source community.
+        - 'Developed a React Native app for a Netherlands-based health tech startup: tracking medical stats, dosage and prescription notifications, treatment schedules.'
+        - Solved critical list-rendering performance issues and contributed a FlatList rendering solution to the open-source community.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: React Native Developer
       organisation: Bubble Student
@@ -108,13 +133,22 @@ record:
       end: 2018-08
       stack: [React Native, Redux]
       highlights:
-        - Student-housing app (map search, group chat, payments) and the "B the Smart AI" housing chatbot.
+        - 'Built the React Native app (state management with Redux) for a student housing platform for UK university students: property listings with filters, favourites and recommendations, map and location-based search, invite system, shared group chatrooms, payment handling.'
+        - Built the "B the Smart AI" conversational chatbot for housing suggestions.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Xamarin Developer
       organisation: HNC.pt
       start: 2017-09
       end: 2018-03
+      stack: [Xamarin]
+      highlights:
+        - 'Developed a Xamarin mobile app for Sogenave (Trivalor Group) internal operations: vacation scheduling, colleague directory, employee self-service tools.'
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+  education:
+    - text: Self-taught software engineer.
+      source: { attested: "João's education history" }
+    - text: BSc in Electronics Engineering, NOVA FCT — starting 2027.
+      source: { attested: "João's education plans" }
   projects:
     - name: dotore
       summary: Rust static analyzer and auto-fixer for JS/TS, React, Angular, Python and Rust, with 1,076 rules.
@@ -134,6 +168,51 @@ record:
     - name: BrightBoi
       summary: Free macOS menu bar app that unlocks the MacBook Pro XDR display's extra brightness, up to 200%.
       source: { page: /projects/brightboi/ }
+  skillGroups:
+    - name: Mobile
+      skills:
+        - { name: React Native, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Expo, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: TypeScript, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }, { page: /projects/markdown-exporter/ }] }
+        - { name: Redux, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: MobX, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Xamarin, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Swift, demonstrated: [{ page: /projects/brightboi/ }] }
+    - name: Web / Backend
+      skills:
+        - { name: React, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Next.js, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Angular, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Node.js, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Python, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: FastAPI, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Tailwind CSS, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: HTML5, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: GraphQL, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+    - name: AI / Agents
+      skills:
+        - { name: Generative AI products (multi-agent assistants), demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Streaming chat with cited sources, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: On-device Whisper voice input, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Coding-agent tooling and skills, demonstrated: [{ page: /projects/ai-skills/ }] }
+    - name: Cloud / Security
+      skills:
+        - { name: Google Cloud, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Application Insights, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Microsoft Entra ID (OAuth2 + PKCE), demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Keychain/Keystore, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: CI/CD, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Azure DevOps, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+    - name: Engineering practice
+      skills:
+        - { name: Feature-sliced architecture enforced by tests and lint, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+        - { name: Architecture decision records (ADRs), demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }, { page: /projects/ai-skills/ }] }
+        - { name: Domain glossaries, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }, { page: /projects/ai-skills/ }] }
+        - { name: CI quality and security gates, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
+    - name: Systems / Tooling
+      skills:
+        - { name: Rust, demonstrated: [{ page: /projects/dotore/ }] }
+        - { name: Go, demonstrated: [{ url: https://www.linkedin.com/in/joaodavidsilvaa/ }] }
   publications:
     - title: AI changed the economics of planning
       url: https://joaodavidsilva.com/writing/ai-changed-the-economics-of-planning/

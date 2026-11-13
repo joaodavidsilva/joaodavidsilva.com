@@ -9,21 +9,34 @@ interface Props {
   heading: 'h2' | 'h3';
   /** Names each entry's category beside its kind, for lists that mix categories. */
   withCategory?: boolean;
+  /** Render title/summary pairs for one category instead of a standalone entry list. */
+  rows?: boolean;
 }
 
-const { entries, heading: Heading, withCategory = false } = Astro.props;
+const { entries, heading: Heading, withCategory = false, rows = false } = Astro.props;
 const ui = uiAt(Astro.url);
 const metaOf = ({ kind, category }: KnowledgeEntry['entry']['data']) => {
   const label = kind === 'concept' ? ui.concept : ui.guide;
   return withCategory ? `${label} · ${category}` : label;
 };
 ---
-<ul class="piece-list knowledge-list">
-  {entries.map(({ entry }) => (
-    <li>
-      <Heading><a href={pathOf(entry)}>{entry.data.title}</a></Heading>
-      <p class="piece-meta">{metaOf(entry.data)}</p>
-      <p>{entry.data.summary}</p>
-    </li>
-  ))}
-</ul>
+{rows ? (
+  <dl class="definition-rows knowledge-definition">
+    {entries.map(({ entry }) => (
+      <div>
+        <dt><a href={pathOf(entry)}>{entry.data.title}</a></dt>
+        <dd>{entry.data.summary}</dd>
+      </div>
+    ))}
+  </dl>
+) : (
+  <ul class="piece-list knowledge-list">
+    {entries.map(({ entry }) => (
+      <li>
+        <Heading><a href={pathOf(entry)}>{entry.data.title}</a></Heading>
+        <p class="piece-meta">{metaOf(entry.data)}</p>
+        <p>{entry.data.summary}</p>
+      </li>
+    ))}
+  </ul>
+)}

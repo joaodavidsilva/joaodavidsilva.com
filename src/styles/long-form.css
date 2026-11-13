@@ -11,12 +11,12 @@
  */
 :root {
   --astro-code-foreground: var(--ink);
-  --astro-code-background: var(--surface);
+  --astro-code-background: var(--tint);
   --astro-code-token-keyword: var(--accent);
   --astro-code-token-constant: var(--accent);
   --astro-code-token-link: var(--accent);
-  --astro-code-token-comment: var(--ink-muted);
-  --astro-code-token-punctuation: var(--ink-muted);
+  --astro-code-token-comment: var(--muted);
+  --astro-code-token-punctuation: var(--muted);
   --astro-code-token-string: var(--ink);
   --astro-code-token-string-expression: var(--ink);
   --astro-code-token-function: var(--ink);
@@ -27,16 +27,16 @@
 .long-form-header .summary,
 main > header .summary {
   font-size: 1.15em;
-  color: var(--ink-muted);
+  color: var(--muted);
 }
 
 .byline,
 .tags,
 .piece-meta,
 .discuss {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: 0.875em;
-  color: var(--ink-muted);
+  color: var(--muted);
 }
 
 .byline {
@@ -61,12 +61,133 @@ main > header .summary {
   padding: 0;
 }
 
-.tags li::before {
-  content: "#" / "";
+.long-form-page {
+  padding-block: clamp(40px,6vw,80px) clamp(56px,8vw,104px);
+}
+
+.long-form-header .article-title {
+  margin-block: 16px 20px;
+}
+
+.long-form-header .article-dek {
+  margin-block-end: 32px;
+}
+
+.meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  padding-block: 10px;
+  border-block-start: 2px solid var(--ink);
+  border-block-end: 1px solid var(--rule);
+}
+
+.meta-bar .byline,
+.meta-bar .tags {
+  margin: 0;
+  font-size: 13px;
+}
+
+.meta-bar .tags {
+  margin-inline-start: auto;
+}
+
+.long-form-layout {
+  margin-block-start: 40px;
 }
 
 .long-form-body {
-  margin-block-start: 2.5rem;
+  min-inline-size: 0;
+  margin-block-start: 0;
+}
+
+.long-form-body.prose > p {
+  margin-block-end: 1.25em;
+}
+
+.prose :is(ul,ol) {
+  padding-inline-start: 1.2em;
+}
+
+.prose li {
+  margin-block-end: 0.5em;
+}
+
+.prose h2 {
+  margin-block: 2em 0.6em;
+  font-size: 28px;
+}
+
+/* The closing paragraph of the introduction is the Article's designated pull line. */
+.prose > p:has(+ h2:first-of-type) {
+  font-size: clamp(26px,3vw,34px);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.toc {
+  align-self: flex-start;
+}
+
+.toc .eyebrow {
+  margin-block-end: 12px;
+}
+
+.toc li {
+  margin: 0;
+}
+
+.toc a {
+  font-size: 13px;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.author-box {
+  margin-block-start: 48px;
+  padding: 20px;
+  border-radius: 4px;
+  background-color: var(--tint);
+}
+
+.author-box p {
+  margin: 0;
+}
+
+.author-box .eyebrow {
+  margin-block-end: 8px;
+}
+
+.author-box .author-link {
+  margin-block-start: 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.long-form-after {
+  max-inline-size: 66ch;
+}
+
+.long-form .content-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-block-start: 40px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--rule);
+}
+
+.long-form .content-footer :is(p,ul) {
+  margin: 0;
+}
+
+.author-box a,
+.series-nav a,
+.content-footer a,
+.feed-note a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
 }
 
 /* Figures: the image, then its caption. */
@@ -108,7 +229,7 @@ figure img {
   padding: 0.75em 1em;
   border-inline-start: 3px solid var(--accent);
   border-radius: 0 4px 4px 0;
-  background-color: var(--surface);
+  background-color: var(--tint);
 }
 
 .callout > :last-child {
@@ -117,7 +238,7 @@ figure img {
 
 .callout-label {
   margin-block-end: 0.25em;
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: 0.875em;
   font-weight: 650;
 }
@@ -148,33 +269,46 @@ figure img {
   padding: 0;
 }
 
-.piece-list li + li {
-  margin-block-start: 2rem;
+/* Year groups use the shared 220px label column and a strong grouping rule. */
+.long-form-index > header {
+  margin-block-end: clamp(40px,6vw,64px);
 }
 
-/* A year in the Writing and Research indexes: a muted label on a rule, above that year's pieces. */
+.long-form-index .labelled-row--group {
+  border-block-start: 2px solid var(--ink);
+}
+
 .year > h2 {
-  margin-block: 3rem 1.5rem;
-  padding-block-end: 0.35em;
-  border-block-end: 1px solid var(--rule);
-  font-size: 0.875em;
+  margin: 0;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
-  color: var(--ink-muted);
 }
 
-.piece-list :is(h2, h3) {
-  font-size: 1.25em;
-  margin-block: 0 0.25em;
+.piece-list > li {
+  padding-block-end: 24px;
+  border-block-end: 1px solid var(--rule);
 }
 
-.piece-list :is(h2, h3) a {
+.piece-list li + li {
+  margin-block-start: 0;
+  padding-block-start: 24px;
+}
+
+.piece-list :is(h2, h3, h4) {
+  margin-block: 8px 12px;
+  font-size: clamp(26px,3.2vw,36px);
+  font-weight: 500;
+}
+
+.piece-list :is(h2, h3, h4) a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
   color: var(--ink);
   text-decoration: none;
 }
 
-.piece-list :is(h2, h3) a:hover {
-  text-decoration: underline;
+.piece-list :is(h2, h3, h4) a:hover {
+  color: var(--accent);
 }
 
 .piece-meta {
@@ -182,19 +316,79 @@ figure img {
   flex-wrap: wrap;
   gap: 0 1em;
   margin-block-end: 0.25em;
+  font-size: 13px;
 }
 
 .piece-list p {
   margin-block-end: 0;
 }
 
+.piece-list .piece-summary {
+  max-inline-size: 36em;
+}
+
+.piece-list .tags {
+  margin-block: 12px 0;
+  font-size: 13px;
+}
+
+.empty-state {
+  font-size: clamp(22px,2.6vw,30px);
+}
+
+.feed-note {
+  margin-block: 32px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.study-year + .study-year {
+  margin-block-start: 32px;
+}
+
+.study-year > h3 {
+  margin-block: 0 16px;
+}
+
+.study-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,150px),1fr));
+  gap: 24px 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.study-steps li {
+  display: flex;
+  gap: 12px;
+  padding-block-end: 12px;
+  border-block-end: 1px solid var(--rule);
+  font-size: 21px;
+}
+
+.study-steps span {
+  padding-block-start: 5px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
 /* Series: a part's position above its title, its neighbours after its body, and the Series' parts in order. */
 .series-position,
 .series-kind,
 .series-nav {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: 0.875em;
-  color: var(--ink-muted);
+  color: var(--muted);
+}
+
+.series-intro {
+  margin-block-start: 40px;
+}
+
+.series-contents {
+  margin-block-start: 48px;
 }
 
 .series-position,
@@ -223,14 +417,12 @@ figure img {
   padding-inline-start: 1.5em;
 }
 
-.series-parts li + li,
-.series-list li + li {
+.series-parts li + li {
   margin-block-start: 1.5rem;
 }
 
-.series-parts h3,
-.series-list h3 {
-  font-size: 1.1em;
+.series-parts h3 {
+  font-size: clamp(23px,2.6vw,30px);
   margin-block: 0 0.25em;
 }
 

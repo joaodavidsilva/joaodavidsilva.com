@@ -26,7 +26,7 @@ const meta = metadataOf(study);
 const ui = uiOf(meta.language);
 const status = ui.studyStatus[meta.status];
 const discussedIn = citing.map((article) => ({ path: writing.pathOf(article), ...writing.metadataOf(article) }));
-const { Content } = await render(study);
+const { Content, headings } = await render(study);
 const jsonLd = {
   ...jsonLdBase('ScholarlyArticle', meta),
   mainEntityOfPage: meta.canonical,
@@ -50,6 +50,8 @@ const jsonLd = {
   readingMinutes={readingMinutesOf(study)}
   jsonLd={jsonLd}
   translations={translations}
+  section="research"
+  headings={headings.filter((heading) => heading.depth === 2 && heading.slug !== 'footnote-label')}
 >
   <p slot="header" class="piece-meta"><span>{ui.study}</span><span class="status" data-status={meta.status}>{ui.status}: {status}</span></p>
   <Content />

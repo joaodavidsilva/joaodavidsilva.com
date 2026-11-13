@@ -7,6 +7,13 @@ tags: [developer-tools, rust, static-analysis]
 links:
   site: https://joaodavidsilva.github.io/dotore/
   repository: https://github.com/joaodavidsilva/dotore
+facts:
+  - label: Release
+    value: "None yet; built from source with `cargo install --path .`"
+  - label: Rules
+    value: "1,076"
+  - label: Checks
+    value: JavaScript/TypeScript, React, Angular, Python, Rust
 ---
 
 dotore is a static analyzer written in Rust. It checks JavaScript/TypeScript, React, Angular, Python and Rust code, applies safe fixes on its own, and turns the remaining findings into a plan for fixing them.

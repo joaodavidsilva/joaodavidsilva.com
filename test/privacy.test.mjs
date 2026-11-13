@@ -28,17 +28,9 @@ test('the site privacy notice is published', async (t) => {
     assert.match(md, /theme[^.]*local storage|local storage[^.]*theme/i);
   });
 
-  await t.test('names the Lozza Waitlist, Turnstile and storage on Cloudflare', () => {
+  await t.test('has no retired Lozza Waitlist or Turnstile section', () => {
     const md = site.read('privacy.md');
-    const waitlist = md.match(/\n## [^\n]*Waitlist[^\n]*\n(.*?)(?=\n## |$)/s)?.[1];
-    assert.ok(waitlist, 'no Waitlist section');
-    assert.match(waitlist, /Lozza/);
-    assert.match(waitlist, /\[Lozza Project page\]\(\/projects\/lozza\/\)/);
-    assert.match(waitlist, /consent/i);
-    assert.match(waitlist, /Cloudflare D1/);
-    assert.match(waitlist, /Turnstile/);
-    assert.match(waitlist, /https:\/\/www\.cloudflare\.com\/turnstile-privacy-policy\//);
-    assert.match(waitlist, /privacy@joaodavidsilva\.com/);
+    assert.doesNotMatch(md, /Waitlist|Turnstile|projects\/lozza|turnstile-privacy-policy/i);
   });
 });
 

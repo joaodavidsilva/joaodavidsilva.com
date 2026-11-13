@@ -1,0 +1,30 @@
+record:
+  name: João David Silva
+  headline: "Lead AI Engineer: plan comprehensively, build incrementally, evolve continuously."
+  url: https://joaodavidsilva.com/
+  email: me@joaodavidsilva.com
+  location: Lisbon, Portugal · remote within the EU
+  sameAs:
+    - https://github.com/joaodavidsilva
+    - https://www.linkedin.com/in/joaodavidsilvaa/
+  roles:
+    - title: AI Mobile Developer
+      organisation: EDP
+      start: 2025-10
+      stack: [React Native, Expo, TypeScript, Python, FastAPI]
+      highlights:
+        - text: Lead architect of Mind4EDP Mobile, the native iOS and Android client of EDP's multi-agent AI assistant, built with a team and used by more than 13,000 active EDP colleagues.
+          source: { attested: "Fixture usage metrics" }
+        - At parity with the web app, in Portuguese, English and Spanish.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+    - title: Lead Technology Developer
+      organisation: Reflaunt
+      start: 2022-03
+      end: 2023-09
+      highlights:
+        - Led a cross-functional team of developers, designers and Scrum Masters.
+      source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
+  projects:
+    - name: Lozza
+      summary: Native design tool for Mac and iPad with a Skia-based engine. In development, private repository.
+      source: { attested: "Fixture private repository" }

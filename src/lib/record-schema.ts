@@ -64,6 +64,7 @@ export const recordSchema = z.strictObject({
       }),
     )
     .default([]),
+  education: z.array(z.strictObject({ text, source })).default([]),
   projects: z
     .array(z.strictObject({ name: text, summary: text, url: z.url().optional(), source }))
     .default([]),
@@ -72,6 +73,17 @@ export const recordSchema = z.strictObject({
       z.strictObject({
         name: text,
         demonstrated: z.array(demonstration).min(1, 'a skill must point to where it was demonstrated'),
+      }),
+    )
+    .default([]),
+  skillGroups: z
+    .array(
+      z.strictObject({
+        name: text,
+        skills: z.array(z.strictObject({
+          name: text,
+          demonstrated: z.array(demonstration).min(1, 'a skill must point to where it was demonstrated'),
+        })).min(1),
       }),
     )
     .default([]),

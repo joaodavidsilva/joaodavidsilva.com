@@ -7,9 +7,16 @@
 import { uiAt } from '../lib/ui';
 import '../styles/knowledge.css';
 
+interface Props {
+  /** The no-query count, derived from the entries and populated categories. */
+  initialCount: string;
+}
+
+const { initialCount } = Astro.props;
 const ui = uiAt(Astro.url);
 const words = {
   locale: ui.locale,
+  initial: initialCount,
   one: ui.results.one,
   many: ui.results.many,
   searching: ui.searching,
@@ -19,17 +26,27 @@ const words = {
 };
 ---
 <form role="search" class="knowledge-search" data-knowledge-search-form data-words={JSON.stringify(words)} hidden>
-  <label for="knowledge-search-input">{ui.search}</label>
-  <input id="knowledge-search-input" type="search" name="q" autocomplete="off" enterkeyhint="search" />
-  <p class="knowledge-search-status" aria-live="polite" data-knowledge-search-status></p>
+  <label for="knowledge-search-input">
+    <span>{ui.redesign.home.searchKnowledge}</span>
+    <input
+      id="knowledge-search-input"
+      type="search"
+      name="q"
+      autocomplete="off"
+      enterkeyhint="search"
+      placeholder={ui.redesign.knowledge.searchPlaceholder}
+      aria-describedby="knowledge-search-status"
+    />
+  </label>
 </form>
+<p id="knowledge-search-status" class="knowledge-search-status" aria-live="polite" data-knowledge-search-status>{initialCount}</p>
 <ul class="piece-list knowledge-list" aria-label={ui.searchResults} data-knowledge-search-results hidden></ul>
 <button type="button" class="knowledge-search-more" data-knowledge-search-more hidden>{ui.showMore}</button>
 <script is:inline type="module" data-knowledge-search>
   const STEP = 10;
   const form = document.querySelector('[data-knowledge-search-form]');
   const input = form.querySelector('input');
-  const status = form.querySelector('[data-knowledge-search-status]');
+  const status = document.querySelector('[data-knowledge-search-status]');
   const list = document.querySelector('[data-knowledge-search-results]');
   const more = document.querySelector('[data-knowledge-search-more]');
   const index = document.querySelector('[data-knowledge-index]');
@@ -71,7 +88,7 @@ const words = {
 
   const countOf = (total) => (total === 1 ? words.one : words.many.replace('{n}', number.format(total)));
 
-  const showIndex = (message = '') => {
+  const showIndex = (message = words.initial) => {
     results = [];
     shown = 0;
     list.replaceChildren();

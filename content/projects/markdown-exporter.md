@@ -13,6 +13,11 @@ links:
 software:
   category: DeveloperApplication
   operatingSystems: [Visual Studio Code, Cursor, Windsurf, VSCodium]
+facts:
+  - label: Runs in
+    value: Visual Studio Code, Cursor, Windsurf, VSCodium
+  - label: Licence
+    value: MIT; written in TypeScript
 ---
 
 Markdown Exporter is published as "Selection Markdown Exporter". It turns files and folders picked in the VS Code Explorer (or Cursor, Windsurf and VSCodium) into a single, structured Markdown export, ready to paste into an LLM context window, attach to an issue or archive as documentation.

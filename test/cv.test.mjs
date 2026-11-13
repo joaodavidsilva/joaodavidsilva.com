@@ -79,7 +79,7 @@ test('the build emits the CV as a PDF from the Professional record', async (t) =
 
   await t.test('the About page offers the PDF for download', () => {
     const html = site.read('about/index.html');
-    assert.match(html, /<a href="\/cv\.pdf"[^>]*>PDF<\/a>/);
+    assert.match(html, /<a[^>]*href="\/cv\.pdf"[^>]*>CV · PDF<\/a>/);
     assert.doesNotMatch(html, /docx/i);
     const md = site.read('about.md');
     assert.ok(md.includes('[PDF](https://joaodavidsilva.com/cv.pdf)'), md);

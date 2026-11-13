@@ -1,11 +1,10 @@
 ---
-import { render } from 'astro:content';
 import Base from './Base.astro';
 import SuggestCorrection from '../components/SuggestCorrection.astro';
-import WaitlistForm from '../components/WaitlistForm.astro';
 import { SITE_URL } from '../../site.config.mjs';
 import { jsonLdBase } from '../lib/metadata';
-import { figuresOf, legalOf, linksOf, metadataOf, twinPathOf, type Project } from '../lib/projects';
+import { renderProjectBody } from '../lib/project-body';
+import { figuresOf, inlineFactOf, legalOf, linksOf, metadataOf, projectsIndexOf, twinPathOf, type Project } from '../lib/projects';
 import { translationJsonLd, type Translations } from '../lib/translations';
 import { uiOf } from '../lib/ui';
 import '../styles/projects.css';
@@ -21,8 +20,10 @@ const ui = uiOf(meta.language);
 const links = linksOf(project, ui);
 const legal = await legalOf(project);
 const figures = await figuresOf(project);
+const body = await renderProjectBody(project);
+const index = projectsIndexOf(meta.language);
+const customVersion = project.data.facts.some((fact) => fact.label === ui.version);
 const { software } = project.data;
-const { Content } = await render(project);
 
 // An application is described as one; any other Project as the page about it.
 const type = software ? 'SoftwareApplication' : 'WebPage';
@@ -47,41 +48,47 @@ const jsonLd = {
   translations={translations}
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <article class="project">
-    <header>
-      <h1>{meta.title}</h1>
-      <p class="summary">{meta.summary}</p>
-      <dl class="project-facts">
-        <div><dt>{ui.status}</dt> <dd>{ui.projectStatus[meta.status]}</dd></div>
-        {meta.version && <div><dt>{ui.version}</dt> <dd>{meta.version}</dd></div>}
+  <article class="project container">
+    <nav class="breadcrumb" aria-label={index.title}>
+      <a href={index.path}>{index.title}</a><span aria-hidden="true">/</span><span>{meta.title}</span>
+    </nav>
+    <header class="project-header">
+      <div class="project-hero">
+        <h1 class="project-title">{meta.title}</h1>
+        <p class="project-tagline">{meta.summary}</p>
+        {links.length > 0 && (
+          <nav class="cta-row" aria-label={ui.links}>
+            {links.map((link, i) => <a class:list={['button', i === 0 ? 'button--primary' : 'button--secondary']} href={link.url}>{link.label} ↗</a>)}
+          </nav>
+        )}
+      </div>
+      <dl class="facts project-facts">
+        <div><dt>{ui.status}</dt><dd>{ui.projectStatus[meta.status]}</dd></div>
+        {meta.version && !customVersion && <div><dt>{ui.version}</dt><dd>{meta.version}</dd></div>}
+        {project.data.facts.map((fact) => <div><dt>{fact.label}</dt><dd><Fragment set:html={inlineFactOf(fact.value)} /></dd></div>)}
+        {legal.length > 0 && (
+          <div><dt>{ui.redesign.projects.legal}</dt><dd class="project-legal">
+            {legal.map((doc, i) => <>{i > 0 && ' · '}<a href={doc.path} hreflang={doc.language === meta.language ? undefined : doc.language}>{doc.title}</a>{doc.language !== meta.language && ` ${ui.inEnglish}`}</>)}
+          </dd></div>
+        )}
       </dl>
-      {links.length > 0 && (
-        <ul class="project-links" aria-label={ui.links}>
-          {links.map((link) => <li><a href={link.url}>{link.label}</a></li>)}
-        </ul>
-      )}
     </header>
-    {/* Signing up is the purpose of a page with a Waitlist; figures come before the long body, legal documents last. */}
-    {project.data.waitlist && <WaitlistForm source={project.data.waitlist} />}
-    {figures.map((figure) => (
-      <figure>
-        <img src={figure.src} {...figure.attributes} alt={figure.alt} />
-        {figure.caption && <figcaption>{figure.caption}</figcaption>}
-      </figure>
-    ))}
-    <Content />
-    {legal.length > 0 && (
-      <section aria-labelledby="legal-documents">
-        <h2 id="legal-documents">{ui.legalDocuments}</h2>
-        <ul>
-          {legal.map((doc) => (
-            <li>
-              <a href={doc.path} hreflang={doc.language === meta.language ? undefined : doc.language}>{doc.title}</a>{doc.language !== meta.language && ` ${ui.inEnglish}`}
-            </li>
+    {figures.length > 0 && (
+      <div class="project-screenshots band">
+        <div class="screenshots">
+          {figures.map((figure) => (
+            <figure>
+              <img src={figure.src} {...figure.attributes} alt={figure.alt} />
+              {figure.caption && <figcaption>{figure.caption}</figcaption>}
+            </figure>
           ))}
-        </ul>
-      </section>
+        </div>
+      </div>
     )}
-    <SuggestCorrection title={meta.title} canonical={meta.canonical} />
+    <div class="project-body"><Fragment set:html={body} /></div>
+    <SuggestCorrection title={meta.title} canonical={meta.canonical}>
+      <p><a href={twinPathOf(project)}>{ui.redesign.readAsMarkdown}</a></p>
+      <p><a href={index.path}>{ui.redesign.allProjects}</a></p>
+    </SuggestCorrection>
   </article>
 </Base>

@@ -1,28 +1,176 @@
-/* The About page: Claims with their sources as muted trailing notes. */
-
-.record li + li {
-  margin-block-start: 0.5em;
+/* About: the complete Professional record, with readable evidence and responsive role rows. */
+.record-hero .eyebrow { margin-block-end: 18px; }
+.record-hero h1 { margin-block-end: 20px; }
+.record-headline {
+  max-inline-size: 42em;
+  margin-block-end: 16px;
+  font-size: clamp(20px,2.2vw,25px);
+  line-height: 1.45;
 }
+.record-headline strong { font-weight: 600; }
+.record-meta {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.record-stats { margin-block-end: 0; }
+.record-hero .cta-row { margin-block: 24px 0; }
+.record .section {
+  margin-block-start: clamp(32px,5vw,48px);
+  padding-block-start: 0;
+}
+.record-prose { max-inline-size: 66ch; }
+.record-prose p:first-child { margin-block-start: 0; }
+.record-prose p:last-child { margin-block-end: 0; }
 
-.record .period {
+.record-experience > h2 { margin-block-end: 20px; }
+.record-roles,
+.record-highlights,
+.record-education,
+.record-projects,
+.record-skills ul,
+.record-ungrouped-skills {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.record-role {
+  display: grid;
+  grid-template-columns: 220px minmax(0,1fr);
+  gap: 48px;
+  padding-block: 26px;
+  border-block-start: 1px solid var(--rule);
+}
+.record-role:first-child { border-block-start: 2px solid var(--ink); }
+.record-role-period {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.record-role-content { min-inline-size: 0; }
+.record-role h3 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  line-height: 1.3;
+}
+.record-stack {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.record-highlights { padding-inline-start: 18px; list-style: disc; }
+.record-highlights li {
+  padding-inline-start: 4px;
+  font-size: 17px;
+}
+.record-highlights li + li { margin-block-start: 7px; }
+.record-source { margin: 12px 0 0; }
+
+.source-note {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.source-note a,
+.record-demonstrated a,
+.record-contact a {
+  overflow-wrap: anywhere;
+}
+.source-note a,
+.record-projects h3 a,
+.record-demonstrated a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+}
+.attested-badge {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;
+  padding-inline: 8px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
-.record li > ul {
-  margin-block-start: 0.35em;
+.record-education > li { padding-block: 12px; border-block-start: 1px solid var(--rule); }
+.record-education > li:first-child { border-block-start: 0; padding-block-start: 0; }
+.record-projects > li {
+  display: grid;
+  grid-template-columns: minmax(140px,0.45fr) minmax(0,1fr) auto;
+  align-items: start;
+  gap: 12px 24px;
+  padding-block: 16px;
+  border-block-start: 1px solid var(--rule);
 }
+.record-projects > li:first-child { border-block-start: 0; padding-block-start: 0; }
+.record-projects h3,
+.record-projects p { margin: 0; }
+.record-projects h3 { font-size: 19px; }
+.record-projects p { color: var(--muted); font-size: 17px; }
 
-.record li > ul li + li {
-  margin-block-start: 0.2em;
+.record-skill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 24px;
+  padding-block: 12px;
+  border-block-end: 1px solid var(--rule);
 }
-
-.record .stack {
-  margin: 0.2em 0 0;
-  color: var(--ink-muted);
-  font-size: 0.875em;
+.record-skill-group h3 {
+  flex: 0 0 200px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
 }
+.record-skill-group > p {
+  flex: 1 1 260px;
+  min-inline-size: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.5;
+}
+.record-skill { overflow-wrap: anywhere; }
+.record-demonstrated {
+  color: var(--muted);
+  font-size: 15px;
+}
+.record-demonstrated a { color: var(--ink); }
+.record-ungrouped-skills { margin-block-end: 28px; }
+.record-ungrouped-skills li { padding-block: 8px; }
 
-.record .source-note {
-  color: var(--ink-muted);
-  font-size: 0.875em;
+.record-contact .row-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+}
+.record-contact a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+}
+.record-correction { margin-block-start: 32px; }
+
+@media (max-width: 640px) {
+  .record-role {
+    display: block;
+    padding-block: 20px;
+  }
+  .record-role-period { margin-block-end: 10px; white-space: normal; }
+  .record-role h3 { font-size: 20px; }
+  .record-projects > li { display: block; }
+  .record-projects h3 { margin-block-end: 6px; }
+  .record-projects p { margin-block-end: 8px; }
+  .record-skill-group li { display: block; }
+  .record-demonstrated { display: block; margin-block-start: 4px; }
 }

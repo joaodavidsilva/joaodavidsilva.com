@@ -5,15 +5,18 @@ import { uiAt } from '../lib/ui';
 interface Props {
   title: string;
   canonical: string;
+  /** Optional visible link to the page's Markdown twin. */
+  twin?: string;
 }
 
 // Opens the `correction` issue form with its `page` field pre-filled. Anything
 // slotted in (such as Discuss links) comes before it, so it always closes the page.
-const { title, canonical } = Astro.props;
+const { title, canonical, twin } = Astro.props;
 const params = new URLSearchParams({ template: 'correction.yml', title: `Correction: ${title}`, page: canonical });
 const href = `${REPO_URL}/issues/new?${params}`;
 ---
 <footer class="content-footer">
   <slot />
+  {twin && <p><a href={twin}>{uiAt(Astro.url).redesign.readAsMarkdown}</a></p>}
   <p><a href={href}>{uiAt(Astro.url).suggestCorrection}</a></p>
 </footer>

@@ -6,6 +6,7 @@ import SuggestCorrection from '../../../../components/SuggestCorrection.astro';
 import { AUTHOR } from '../../../../../site.config.mjs';
 import { jsonLdBase } from '../../../../lib/metadata';
 import { seriesRoutes } from '../../../../lib/routes';
+import { sectionPathIn } from '../../../../lib/sections';
 import { metadataOf, partsOf, twinPathOf, type Series } from '../../../../lib/series';
 import { translationJsonLd } from '../../../../lib/translations';
 import { uiOf } from '../../../../lib/ui';
@@ -20,6 +21,7 @@ const { series } = Astro.props;
 const meta = metadataOf(series);
 const ui = uiOf(meta.language);
 const parts = partsOf(series);
+const writing = await sectionPathIn('writing', '/writing/', meta.language);
 const { Content } = await render(series.entry);
 const jsonLd = {
   ...jsonLdBase('CreativeWorkSeries', meta),
@@ -32,24 +34,26 @@ const jsonLd = {
 ---
 <Base title={meta.title} description={meta.summary} canonical={meta.canonical} language={meta.language} twin={twinPathOf(series)} translations={series.translations}>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <article class="long-form">
+  <article class="long-form container long-form-page series-page">
     <header class="long-form-header">
-      <p class="series-kind">{ui.series}</p>
-      <h1>{meta.title}</h1>
-      <p class="summary">{meta.summary}</p>
-      <p class="byline">
-        <span>{ui.seriesStatus[meta.status]}</span>
-        <span>{ui.parts(parts.length)}</span>
-        <span>{ui.started} <Day date={meta.published} /></span>
-      </p>
+      <p class="breadcrumb"><a href={writing}>{ui.sections.writing}</a><span aria-hidden="true">/</span><span>{ui.series}</span></p>
+      <h1 class="article-title">{meta.title}</h1>
+      <p class="article-dek">{meta.summary}</p>
+      <div class="meta-bar">
+        <p class="byline">
+          <span>{ui.seriesStatus[meta.status]}</span>
+          <span>{ui.parts(parts.length)}</span>
+          <span>{ui.started} <Day date={meta.published} /></span>
+        </p>
+      </div>
     </header>
-    <div class="long-form-body">
+    <div class="long-form-body prose series-intro">
       <Content />
     </div>
-    <section aria-labelledby="parts-heading">
-      <h2 id="parts-heading">{ui.partsHeading}</h2>
+    <section class="series-contents labelled-row labelled-row--group" aria-labelledby="parts-heading">
+      <h2 class="row-label" id="parts-heading">{ui.partsHeading}</h2>
       {parts.length > 0 ? (
-        <ol class="series-parts">
+        <ol class="series-parts row-content">
           {parts.map(({ path, title, summary, published, language }) => (
             <li>
               <h3><a href={path} hreflang={language === meta.language ? undefined : language}>{title}</a>{language !== meta.language && ` ${ui.inEnglish}`}</h3>
@@ -59,9 +63,9 @@ const jsonLd = {
           ))}
         </ol>
       ) : (
-        <p>{ui.noParts}</p>
+        <p class="row-content">{ui.noParts}</p>
       )}
     </section>
-    <SuggestCorrection title={meta.title} canonical={meta.canonical} />
+    <SuggestCorrection title={meta.title} canonical={meta.canonical} twin={twinPathOf(series)} />
   </article>
 </Base>

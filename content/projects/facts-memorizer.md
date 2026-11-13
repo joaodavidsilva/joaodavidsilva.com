@@ -17,6 +17,11 @@ software:
 legal:
   - projects/facts-memorizer/privacy
   - projects/facts-memorizer/terms
+facts:
+  - label: Runs on
+    value: iOS, Android
+  - label: Data
+    value: None collected; works fully offline
 ---
 
 Facts Memorizer helps children practise their times tables. It is published as "Times Tables: Facts Memorizer" on the App Store and Google Play.

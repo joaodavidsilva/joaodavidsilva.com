@@ -1,0 +1,9 @@
+record:
+  name: Fixture Person
+  headline: Engineering beyond implementation.
+  url: https://joaodavidsilva.com/
+  skillGroups:
+    - name: Engineering
+      skills:
+        - name: Grouped Testing
+          demonstrated: []

@@ -20,8 +20,8 @@ const line = (title: string, twin: string, summary: string, translations: Transl
 const en = uiOf('en');
 
 /** The line of a section's index, pointing to the index in every language it exists in. */
-async function indexLine(section: Section, path: string, { title, summary }: { title: string; summary: string }) {
-  return line(title, twinOf(path), summary, generatedTranslations(path, await languagesOfSection(section)));
+async function indexLine(section: Section, path: string, { title, summary }: { title: string; summary: string }, languageSection: Section = section) {
+  return line(title, twinOf(path), summary, generatedTranslations(path, await languagesOfSection(languageSection)));
 }
 
 /** Every Original with a one-line summary, pointing to its available Translations (ADR-0005). */
@@ -65,6 +65,7 @@ export const GET: APIRoute = async () => {
     const { title, summary } = tagMetadataOf(tag, 'en', []);
     knowledge.push(line(title, twinOf(tagPathOf(tag, 'en')), summary, generatedTranslations(tagPathOf(tag, 'en'), [])));
   }
+  const researchLanguages = await languagesOfSection('feed');
   const body = [
     '# João David Silva',
     '',
@@ -75,7 +76,7 @@ export const GET: APIRoute = async () => {
     ...lines,
     '',
     ...(articles.length || series.length ? ['## Writing', '', await indexLine('writing', '/writing/', en.writing), ...series, ...articles, ''] : []),
-    ...(studies.length ? ['## Research', '', await indexLine('research', '/research/', en.research), ...studies, ''] : []),
+    ...(researchLanguages.length ? ['## Research', '', await indexLine('research', '/research/', en.research, 'feed'), ...studies, ''] : []),
     ...(projectLines.length ? ['## Projects', '', await indexLine('projects', '/projects/', en.projects), ...projectLines, ''] : []),
     ...(knowledge.length ? ['## Knowledge', '', await indexLine('knowledge', '/knowledge/', en.knowledge), ...knowledge, ''] : []),
   ].join('\n');

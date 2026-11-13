@@ -1,4 +1,5 @@
 ---
+import { getNow } from '../lib/now';
 import { getRecord } from '../lib/record';
 import { sectionPathIn } from '../lib/sections';
 import type { Language } from '../lib/translations';
@@ -8,38 +9,65 @@ interface Props {
   language: Language;
 }
 
-// One list of sections serves both widths: inline beside the name on wide screens, and a native
-// `popover` sheet on narrow ones, which closes on Escape, an outside tap or a link tap and returns
-// focus to its button without any JavaScript. The sheet's first row repeats the name (Home) beside
-// Close, so opening it never hides where you are. Sections link the page's language where they
-// exist in it, and English otherwise; About exists only when the content set has a record.
 const { language } = Astro.props;
 const ui = uiOf(language);
 const sections: (keyof typeof ui.sections)[] = ['writing', 'research', 'knowledge', 'projects'];
+if (await getNow()) sections.push('now');
 if (await getRecord()) sections.push('about');
-const SECTIONS = await Promise.all(
-  sections.map(async (section) => [ui.sections[section], await sectionPathIn(section, `/${section}/`, language)]),
+const items = await Promise.all(
+  sections.map(async (section) => ({
+    label: ui.sections[section],
+    href: await sectionPathIn(section, `/${section}/`, language),
+  })),
 );
 const home = await sectionPathIn('home', '/', language);
-
 const path = Astro.url.pathname;
-const currentOf = (href: string) => (path === href ? 'page' : path.startsWith(href) ? 'true' : undefined);
-const homeCurrent = path === home ? 'page' : undefined;
 ---
 <header class="site-header">
-  <a class="site-name" href={home} aria-current={homeCurrent}>João David Silva</a>
-  <nav class="site-nav" aria-label={ui.sectionsLabel}>
-    <button class="menu-button" type="button" popovertarget="site-menu">{ui.menu}</button>
-    <div class="site-menu" id="site-menu" popover>
-      <div class="site-menu-bar">
-        <a class="site-name" href={home} aria-current={homeCurrent}>João David Silva</a>
-        <button class="menu-button" type="button" popovertarget="site-menu" popovertargetaction="hide">{ui.close}</button>
-      </div>
+  <div class="site-header-inner container">
+    <a class="site-name" href={home}><span class="site-mark" aria-hidden="true"></span>João David Silva</a>
+    <button
+      class="menu-button"
+      type="button"
+      data-menu
+      aria-expanded="false"
+      aria-controls="site-nav"
+      data-menu-label={ui.menu}
+      data-close-label={ui.close}
+    ><span data-menu-label>{ui.menu}</span></button>
+    <nav class="site-nav" id="site-nav" aria-label={ui.sectionsLabel}>
       <ul>
-        {SECTIONS.map(([label, href]) => (
-          <li><a href={href} aria-current={currentOf(href)}>{label}</a></li>
+        {items.map(({ label, href }) => (
+          <li><a href={href} aria-current={path.startsWith(href) ? 'page' : undefined}>{label}</a></li>
         ))}
       </ul>
-    </div>
-  </nav>
+    </nav>
+    <a class="header-contact" data-hcontact href="mailto:me@joaodavidsilva.com">{ui.contact}</a>
+  </div>
+  <script is:inline data-menu-script>
+    (() => {
+      const header = document.querySelector('.site-header');
+      const button = header?.querySelector('[data-menu]');
+      const nav = header?.querySelector('.site-nav');
+      const contact = header?.querySelector('[data-hcontact]');
+      if (!header || !button || !nav) return;
+      const label = button.querySelector('[data-menu-label]');
+      const setOpen = (open) => {
+        header.dataset.open = String(open);
+        button.setAttribute('aria-expanded', String(open));
+        if (label) label.textContent = open ? button.dataset.closeLabel : button.dataset.menuLabel;
+      };
+      button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
+      nav.addEventListener('click', (event) => {
+        if (event.target.closest('a')) setOpen(false);
+      });
+      contact?.addEventListener('click', () => setOpen(false));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
+          setOpen(false);
+          button.focus();
+        }
+      });
+    })();
+  </script>
 </header>
