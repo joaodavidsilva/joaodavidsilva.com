@@ -252,7 +252,7 @@ test('Articles, the Writing index and the feed', async (t) => {
     assert.match(textOf(main), /#prototyping #measurement/);
     const feed = linksIn(main).find((l) => l.text === 'RSS/Atom');
     assert.equal(feed?.href, '/feed.xml');
-    assert.match(textOf(main), /New pieces arrive by RSS\/Atom\./);
+    assert.match(textOf(main), /New Articles arrive by RSS\/Atom\./);
     assert.match(index, /<link rel="alternate" type="text\/markdown" href="\/writing\.md">/);
     const ld = jsonLdOf(index);
     assert.equal(ld.url, `${SITE}/writing/`);

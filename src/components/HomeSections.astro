@@ -5,6 +5,7 @@ import { homeOf } from '../lib/home';
 import type { Page } from '../lib/pages';
 import { CV_PATH } from '../lib/record';
 import { pathIn } from '../lib/translations';
+import { projectStatusLabelOf } from '../lib/projects';
 import { uiOf } from '../lib/ui';
 import '../styles/home.css';
 
@@ -65,10 +66,10 @@ const home = await homeOf(language);
     <h2 class="practice-title"><Fragment set:html={content.practice.title} /></h2>
     <p><Fragment set:html={content.practice.copy} /></p>
     <dl class="stats">
-      {home.stats.map((stat) => <div><dd>{stat.value}</dd><dt>{stat.label}</dt></div>)}
+      {home.stats.map((stat) => <div><dt>{stat.label}</dt><dd>{stat.value}</dd></div>)}
     </dl>
     <p class="home-stack"><Fragment set:html={content.practice.stack} /></p>
-    <p class="home-meta"><Fragment set:html={content.practice.recordLink} /></p>
+    {home.record && <p class="home-meta"><Fragment set:html={content.practice.recordLink} /></p>}
   </div>
 </section>
 
@@ -98,7 +99,7 @@ const home = await homeOf(language);
         <li class="card">
           <p class="status">
             <span class:list={['status-dot', { 'status-dot--active': project.status === 'active' }]} aria-hidden="true" />
-            {ui.projectStatus[project.status]}{project.version && ` · v${project.version}`}{project.external && ` · ${ui.redesign.ownSite}`}
+            {projectStatusLabelOf(project, ui)}
           </p>
           <h3>{project.path ? <a href={project.path}>{project.name}</a> : project.name}</h3>
           <p>{project.oneLine}</p>

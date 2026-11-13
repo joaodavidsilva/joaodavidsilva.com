@@ -45,7 +45,7 @@ test('Translations', async (t) => {
 
   await t.test('a Portuguese Translation renders at /pt/ in Portuguese', () => {
     assert.match(pt, /<html lang="pt">/);
-    assert.match(pt, /<h1>Guia de teste<\/h1>/);
+    assert.match(pt, /<h1[^>]*>Guia de teste<\/h1>/);
     assert.match(pt, /O parágrafo do corpo traduzido\./);
     assert.match(pt, new RegExp(`<link rel="canonical" href="${SITE}/pt/guide/">`));
   });

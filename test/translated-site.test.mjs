@@ -103,6 +103,8 @@ test('every page type has a Portuguese Translation', async (t) => {
     const projects = hrefsIn(mainOf(site.read('pt/projects/index.html')));
     assert.ok(projects.includes('/pt/projects/p1/'));
     assert.ok(!projects.some((h) => h.includes('p2')));
+    const projectNames = [...mainOf(site.read('pt/projects/index.html')).matchAll(/<h2><a[^>]*>([^<]+?) →<\/a><\/h2>/g)].map((match) => match[1]);
+    assert.deepEqual(projectNames.slice(0, 2), ['AI Skills', 'Lozza']);
     assert.match(site.read('pt/writing.md'), /\[Artigo um\]\(https:\/\/joaodavidsilva\.com\/pt\/writing\/a1\.md\)/);
     assert.doesNotMatch(site.read('pt/writing.md'), /Article two/);
   });
@@ -139,7 +141,9 @@ test('every page type has a Portuguese Translation', async (t) => {
   await t.test('the Portuguese home lists Portuguese pieces, Projects and Now', () => {
     const home = site.read('pt/index.html');
     assert.deepEqual(hrefsIn(sectionOf(home, 'writing')), ['/pt/writing/a1/', '/pt/writing/a1/', '/pt/research/']);
-    assert.equal(sectionOf(home, 'projects'), '');
+    const homeProjects = sectionOf(home, 'projects');
+    const homeProjectNames = [...homeProjects.matchAll(/<h3><a[^>]*>([^<]+)<\/a><\/h3>/g)].map((match) => match[1]);
+    assert.deepEqual(homeProjectNames, ['AI Skills', 'Lozza']);
     assert.ok(hrefsIn(home).includes('/pt/now/'));
     assert.match(site.read('pt/index.md'), /\[Artigo um\]\(https:\/\/joaodavidsilva\.com\/pt\/writing\/a1\.md\)/);
     assert.deepEqual(hrefsIn(sectionOf(site.read('index.html'), 'writing')), ['/writing/a2/', '/writing/a2/', '/research/']);

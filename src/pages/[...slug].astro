@@ -31,12 +31,12 @@ const home = originalIdOf(page) === 'index';
   translations={translations}
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <article class:list={{ 'home-page': home }}>
+  <article class:list={[{ 'home-page': home }, !home && 'container index-page prose']}>
     {home ? <HomeSections page={page} /> : (
       <>
         <header class="long-form-header">
-          <h1>{meta.title}</h1>
-          <p class="summary">{meta.summary}</p>
+          <h1 class="page-title">{meta.title}</h1>
+          <p class="lede">{meta.summary}</p>
           <p class="byline"><span>{ui.published} <Day date={meta.published} /></span></p>
         </header>
         <Content />

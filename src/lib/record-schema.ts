@@ -29,6 +29,11 @@ const domainEmail = z.email().refine((email) => email.endsWith(`@${domain}`), { 
 
 const month = z.string().regex(/^\d{4}-\d{2}$/, 'a month like 2024-01');
 
+const skill = z.strictObject({
+  name: text,
+  demonstrated: z.array(demonstration).min(1, 'a skill must point to where it was demonstrated'),
+});
+
 // Strict objects: unknown fields (phone, address, …) fail the build.
 export const recordSchema = z.strictObject({
   ...translatable,
@@ -68,22 +73,12 @@ export const recordSchema = z.strictObject({
   projects: z
     .array(z.strictObject({ name: text, summary: text, url: z.url().optional(), source }))
     .default([]),
-  skills: z
-    .array(
-      z.strictObject({
-        name: text,
-        demonstrated: z.array(demonstration).min(1, 'a skill must point to where it was demonstrated'),
-      }),
-    )
-    .default([]),
+  skills: z.array(skill).default([]),
   skillGroups: z
     .array(
       z.strictObject({
         name: text,
-        skills: z.array(z.strictObject({
-          name: text,
-          demonstrated: z.array(demonstration).min(1, 'a skill must point to where it was demonstrated'),
-        })).min(1),
+        skills: z.array(skill).min(1),
       }),
     )
     .default([]),

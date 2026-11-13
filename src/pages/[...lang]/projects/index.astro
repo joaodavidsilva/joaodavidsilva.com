@@ -1,7 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import { collectionJsonLd } from '../../../lib/metadata';
-import { canonicalOf, getProjectListings, indexMetadataOf, pathOf, projectsIndexOf } from '../../../lib/projects';
+import { canonicalOf, getProjectListings, indexMetadataOf, pathOf, projectStatusLabelOf, projectsIndexOf } from '../../../lib/projects';
 import { languageParams, languagesOfSection } from '../../../lib/sections';
 import { generatedTranslations, type Language } from '../../../lib/translations';
 import { uiOf } from '../../../lib/ui';
@@ -35,9 +35,9 @@ const jsonLd = collectionJsonLd(
             <div class="project-index-meta">
               <p class="status">
                 <span class:list={['status-dot', project.data.status === 'active' && 'status-dot--active']} aria-hidden="true"></span>
-                {ui.projectStatus[project.data.status]}{project.data.version && <> · v{project.data.version}</>}{project.data.external && <> · {ui.redesign.ownSite}</>}
+                {projectStatusLabelOf(project.data, ui)}
               </p>
-              <p class="project-tags">{project.data.external ? 'external' : project.data.tags.map((tag) => `#${tag}`).join(' ')}</p>
+              <p class="project-tags">{project.data.external ? ui.redesign.external : project.data.tags.map((tag) => `#${tag}`).join(' ')}</p>
             </div>
             <div class="row-content project-index-copy">
               <h2>{project.data.external ? project.data.name : <a href={pathOf(project)}>{project.data.name} →</a>}</h2>

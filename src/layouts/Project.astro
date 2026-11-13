@@ -4,7 +4,8 @@ import SuggestCorrection from '../components/SuggestCorrection.astro';
 import { SITE_URL } from '../../site.config.mjs';
 import { jsonLdBase } from '../lib/metadata';
 import { renderProjectBody } from '../lib/project-body';
-import { figuresOf, inlineFactOf, legalOf, linksOf, metadataOf, projectsIndexOf, twinPathOf, type Project } from '../lib/projects';
+import { inlineMarkdown } from '../lib/inline-markdown';
+import { figuresOf, legalOf, linksOf, metadataOf, projectsIndexOf, twinPathOf, type Project } from '../lib/projects';
 import { translationJsonLd, type Translations } from '../lib/translations';
 import { uiOf } from '../lib/ui';
 import '../styles/projects.css';
@@ -65,7 +66,7 @@ const jsonLd = {
       <dl class="facts project-facts">
         <div><dt>{ui.status}</dt><dd>{ui.projectStatus[meta.status]}</dd></div>
         {meta.version && !customVersion && <div><dt>{ui.version}</dt><dd>{meta.version}</dd></div>}
-        {project.data.facts.map((fact) => <div><dt>{fact.label}</dt><dd><Fragment set:html={inlineFactOf(fact.value)} /></dd></div>)}
+        {project.data.facts.map((fact) => <div><dt>{fact.label}</dt><dd><Fragment set:html={inlineMarkdown(fact.value)} /></dd></div>)}
         {legal.length > 0 && (
           <div><dt>{ui.redesign.projects.legal}</dt><dd class="project-legal">
             {legal.map((doc, i) => <>{i > 0 && ' · '}<a href={doc.path} hreflang={doc.language === meta.language ? undefined : doc.language}>{doc.title}</a>{doc.language !== meta.language && ` ${ui.inEnglish}`}</>)}

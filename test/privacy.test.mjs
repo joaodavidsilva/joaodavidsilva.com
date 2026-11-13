@@ -13,6 +13,10 @@ test('the site privacy notice is published', async (t) => {
     assert.ok(site.has('privacy/index.html'));
     assert.ok(site.has('privacy.md'));
     assert.match(site.read('llms.txt'), /\(https:\/\/joaodavidsilva\.com\/privacy\.md\)/);
+    const html = site.read('privacy/index.html');
+    assert.match(html, /<article class="container index-page prose">/);
+    assert.match(html, /<h1 class="page-title">/);
+    assert.match(html, /<p class="lede">/);
   });
 
   await t.test('names cookie-free Cloudflare analytics, hosting and contact', () => {

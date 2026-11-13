@@ -4,7 +4,7 @@ import { LANGUAGES } from '../../site.config.mjs';
 import { listingDatesOf, metadataOf as sharedMetadataOf, type Metadata } from './metadata';
 import { getPages, pathOf as pagePathOf } from './pages';
 import {
-  alternateAt, assertTranslations, inLanguage, locate, ORIGINAL_LANGUAGE, pathIn, translationsOf as translationsAmong,
+  alternateAt, assertTranslations, inLanguage, locate, ORIGINAL_LANGUAGE, originalIdOf, pathIn, translationsOf as translationsAmong,
   type Language,
 } from './translations';
 import { uiOf, type Ui } from './ui';
@@ -33,8 +33,8 @@ export const translationsOf = (project: Project, projects: Project[]) => transla
 const STATUS_ORDER: Status[] = ['active', 'in development', 'paused', 'archived'];
 
 function byEditorialOrder(a: Project, b: Project) {
-  const aOrder = PROJECT_ORDER.indexOf(a.id);
-  const bOrder = PROJECT_ORDER.indexOf(b.id);
+  const aOrder = PROJECT_ORDER.indexOf(originalIdOf(a));
+  const bOrder = PROJECT_ORDER.indexOf(originalIdOf(b));
   if (aOrder >= 0 || bOrder >= 0) {
     if (aOrder < 0) return 1;
     if (bOrder < 0) return -1;
@@ -86,24 +86,18 @@ export function linksOf(project: Project, ui: Ui): { label: string; url: string 
   ];
 }
 
-const escapeHtml = (text: string) =>
-  text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
-
-/** Render the small inline Markdown vocabulary allowed in Project fact values. */
-export function inlineFactOf(value: string): string {
-  const token = /`([^`\n]+)`|\[([^\]\n]+)\]\(((?:https:\/\/|\/)[^)\s]+)\)|\*([^*\n]+)\*/g;
-  let html = '';
-  let at = 0;
-  for (const match of value.matchAll(token)) {
-    const index = match.index!;
-    html += escapeHtml(value.slice(at, index));
-    const [raw, code, label, url, emphasis] = match;
-    if (code !== undefined) html += `<code>${escapeHtml(code)}</code>`;
-    else if (label !== undefined) html += `<a href="${escapeHtml(url)}">${escapeHtml(label)}</a>`;
-    else html += `<em>${escapeHtml(emphasis)}</em>`;
-    at = index + raw.length;
-  }
-  return html + escapeHtml(value.slice(at));
+/** A shared Project status/version/own-site label for HTML and Markdown listings. */
+export function projectStatusLabelOf(
+  project: { status: Status; version?: string; external?: boolean },
+  ui: Ui,
+  markdown = false,
+) {
+  const facts = [
+    markdown ? project.status : ui.projectStatus[project.status],
+    project.version && (markdown ? `version ${project.version}` : `v${project.version}`),
+    project.external && ui.redesign.ownSite,
+  ].filter(Boolean);
+  return facts.join(markdown ? ', ' : ' · ');
 }
 
 /**

@@ -24,7 +24,7 @@ record:
     - { title: Engineer, organisation: Q, start: 2019-01, end: 2023-03, source: { url: "https://www.linkedin.com/in/joaodavidsilvaa/details/experience/" } }
   projects:
     - { name: Facts Memorizer, summary: A times-tables practice app that keeps every answer on the device., source: { page: /colophon/ } }
-    - { name: Lozza, summary: In development., url: "https://joaodavidsilva.com/projects/lozza/", source: { attested: Private repository } }
+    - { name: Lozza, summary: "Native design tool for Mac and iPad, in development.", source: { attested: Private repository } }
   skills:
     - name: Specification writing
       demonstrated:

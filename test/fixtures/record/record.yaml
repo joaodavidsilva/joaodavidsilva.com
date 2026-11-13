@@ -18,7 +18,7 @@ record:
       organisation: Fixture Corp
       start: 2024-01
       highlights:
-        - text: Supported more than 1,200 fixture users.
+        - text: Supported more than 1,200 Mind4EDP fixture users.
           source: { attested: "Usage metrics, kept by João" }
       source: { attested: "Employment contract, kept by João" }
     - title: Junior Fixture Engineer

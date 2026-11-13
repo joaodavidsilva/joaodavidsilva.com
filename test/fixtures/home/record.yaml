@@ -13,9 +13,9 @@ record:
       start: 2025-10
       stack: [React Native, Expo, TypeScript, Python, FastAPI]
       highlights:
-        - text: Lead architect of Mind4EDP Mobile, the native iOS and Android client of EDP's multi-agent AI assistant, built with a team and used by more than 13,000 active EDP colleagues.
+        - text: Arquiteto principal do Mind4EDP Mobile, cliente nativo iOS e Android do assistente de IA multiagente da EDP, criado em equipa e utilizado por mais de 13.000 colegas ativos da EDP.
           source: { attested: "Fixture usage metrics" }
-        - At parity with the web app, in Portuguese, English and Spanish.
+        - Paridade com a aplicação web, em Português, Inglês e Espanhol.
       source: { url: https://www.linkedin.com/in/joaodavidsilvaa/ }
     - title: Lead Technology Developer
       organisation: Reflaunt

@@ -51,9 +51,9 @@ const demonstration = (source: { page: string } | { url: string }) =>
         <a class="button button--secondary" href={CV_PATH} download={cvFileName(record)}>{ui.redesign.cvPdf}</a>
       </div>
       <dl class="stats record-stats">
-        <div><dd>{number.format(stats.yearsOfExperience)}</dd><dt>{about.yearsMobile}</dt></div>
-        <div><dd>{number.format(stats.roleCount)}</dd><dt>{about.rolesListed}</dt></div>
-        {stats.attestedUsers !== undefined && <div><dd>{number.format(stats.attestedUsers)}+</dd><dt>{about.attestedUsers}</dt></div>}
+        <div><dt>{about.yearsMobile}</dt><dd>{number.format(stats.yearsOfExperience)}</dd></div>
+        <div><dt>{about.rolesListed}</dt><dd>{number.format(stats.roleCount)}</dd></div>
+        {stats.attestedUsers !== undefined && <div><dt>{about.attestedUsers}</dt><dd>{number.format(stats.attestedUsers)}+</dd></div>}
       </dl>
     </header>
 

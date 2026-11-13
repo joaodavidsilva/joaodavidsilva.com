@@ -43,12 +43,15 @@ test('the About page and Person JSON-LD are generated from the Professional reco
   await t.test('stats are derived from role history and the attested usage claim', () => {
     const now = new Date();
     const years = now.getUTCFullYear() - 2015 - (now.getUTCMonth() + 1 < 1 ? 1 : 0);
-    assert.match(html, new RegExp(`<dd>${years}</dd><dt>years of mobile and front-end engineering</dt>`));
-    assert.match(html, /<dd>3<\/dd><dt>roles, all listed below<\/dt>/);
-    assert.match(html, /<dd>1,200\+<\/dd><dt>active EDP colleagues on Mind4EDP Mobile<\/dt>/);
+    assert.match(html, new RegExp(`<dt>years of mobile and front-end engineering</dt><dd>${years}</dd>`));
+    assert.match(html, /<dt>roles, all listed below<\/dt><dd>3<\/dd>/);
+    assert.match(html, /<dt>active EDP colleagues on Mind4EDP Mobile<\/dt><dd>1,200\+<\/dd>/);
     assert.match(md, /1,200\+ active EDP colleagues on Mind4EDP Mobile/);
   });
 
+  assert.match(html, /<dl class="stats record-stats">/);
+  const statGroups = html.match(/<dl class="stats record-stats">([\s\S]*?)<\/dl>/)?.[1] ?? '';
+  for (const group of statGroups.matchAll(/<div>(.*?)<\/div>/g)) assert.match(group[1], /^<dt>.*<\/dt><dd>.*<\/dd>$/);
   await t.test("João's interests and approach render as his own prose", () => {
     assert.match(html, /<h2[^>]*>Interests<\/h2>[\s\S]*?<p>Fixture interest paragraph one\.<\/p>\s*<p>Fixture interest paragraph two\.<\/p>/);
     assert.match(html, /<h2[^>]*>Approach to engineering<\/h2>[\s\S]*?<p>Fixture approach paragraph\.<\/p>/);
@@ -57,8 +60,8 @@ test('the About page and Person JSON-LD are generated from the Professional reco
   });
 
   await t.test('attested Claims carry a badge and never a public source link', () => {
-    assert.match(html, /Supported more than 1,200 fixture users\. <span class="attested-badge">Attested<\/span>/);
-    const claim = html.match(/<li>Supported more than 1,200 fixture users\.[\s\S]*?<\/li>/)[0];
+    assert.match(html, /Supported more than 1,200 Mind4EDP fixture users\. <span class="attested-badge">Attested<\/span>/);
+    const claim = html.match(/<li>Supported more than 1,200 Mind4EDP fixture users\.[\s\S]*?<\/li>/)[0];
     assert.doesNotMatch(claim, /<a /);
     assert.match(html, /Won the fixture prize\. <span class="attested-badge">Attested<\/span>/);
     assert.match(md, /Won the fixture prize\. \(Attested: Award letter, kept by João\)/);
@@ -208,7 +211,7 @@ test("João's Professional record builds into the complete About page", () => {
   assert.equal(ld['@type'], 'Person');
   assert.equal(ld.name, 'João David Silva');
   assert.equal((html.match(/class="record-role"/g) ?? []).length, 12);
-  assert.match(html, /<dd>12<\/dd><dt>roles, all listed below<\/dt>/);
+  assert.match(html, /<dt>roles, all listed below<\/dt><dd>12<\/dd>/);
   assert.match(html, /<dd>13,000\+<\/dd>/);
   for (const text of [
     'Lead architect of Mind4EDP Mobile', 'built with a team', 'coding-agent harnesses',

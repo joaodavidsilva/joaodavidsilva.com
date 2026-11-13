@@ -23,7 +23,7 @@ test('home hero uses authored copy and record-derived facts, with only Contact a
   assert.match(hero, /<h1[^>]*>Engineering <em>beyond<\/em> implementation\.<\/h1>/);
   assert.match(textOf(hero), /The fixture introduction\./);
   assert.match(textOf(hero), /Now AI Mobile Developer at EDP, building Mind4EDP Mobile/);
-  assert.match(textOf(hero), /Led A cross-functional team at Reflaunt, 2022–23/);
+  assert.match(textOf(hero), /Led Lead Technology Developer at Reflaunt, 2022–23/);
   assert.match(textOf(hero), /Stack React Native, TypeScript, Python/);
   assert.deepEqual(hrefsIn(hero), ['mailto:me@joaodavidsilva.com', '/cv.pdf', '/now/']);
   assert.doesNotMatch(html, /DOCX|cv\.docx/i);
@@ -44,8 +44,8 @@ test('In practice uses corrected EDP facts and derives its two stats from the re
   assert.match(text, /lead architect of Mind4EDP Mobile/);
   assert.match(text, /built with a team/);
   assert.doesNotMatch(text, /sole developer|mobile client is mine/i);
-  assert.match(practice, /<dd>13,000\+<\/dd>\s*<dt>active EDP colleagues · attested<\/dt>/);
-  assert.match(practice, /<dd>3<\/dd>\s*<dt>languages: Portuguese, English, Spanish<\/dt>/);
+  assert.match(practice, /<dt>active EDP colleagues · attested<\/dt>\s*<dd>13,000\+<\/dd>/);
+  assert.match(practice, /<dt>languages: Portuguese, English, Spanish<\/dt>\s*<dd>3<\/dd>/);
   assert.doesNotMatch(practice, /source:\s*LinkedIn/i);
 });
 
@@ -146,6 +146,7 @@ test('Home and Now keep semantic heading/definition structure', () => {
   assert.match(home, /<dl class="facts home-facts">/);
   assert.match(home, /<ol class="steps">/);
   assert.match(home, /<dl class="stats">/);
+  assert.match(stylesheetsOf(site, home), /\.stats dd\{[^}]*order:-1/);
   const now = site.read('now/index.html');
   assert.equal((now.match(/<h1\b/g) ?? []).length, 1);
   assert.equal((now.match(/<dt\b/g) ?? []).length, 3);

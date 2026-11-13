@@ -3,7 +3,7 @@ import * as knowledge from './knowledge';
 import * as projects from './projects';
 import { dateOf, getNow, NOW_PATH } from './now';
 import { readingMinutesOf } from './own-folder';
-import { CV_PATH, getRecord, type ProfessionalRecord } from './record';
+import { CV_PATH, getRecord, statsOf, type ProfessionalRecord } from './record';
 import { absolute, originalIdOf, pathIn, twinOf, type Language } from './translations';
 import { uiOf, type Ui } from './ui';
 
@@ -12,36 +12,43 @@ export interface HomeContactLink {
   href: string;
 }
 
-const edpRoleOf = (record?: ProfessionalRecord) => record?.roles.find((role) => role.organisation === 'EDP');
+const edpRoleOf = (record?: ProfessionalRecord) =>
+  record?.roles.find((role) => role.organisation === 'EDP' && !role.end);
 const highlightText = (highlight: ProfessionalRecord['roles'][number]['highlights'][number]) =>
   typeof highlight === 'string' ? highlight : highlight.text;
 
 /** The three record-backed facts beside the Home hero. */
-export function heroFactsOf(record: ProfessionalRecord | undefined) {
+export function heroFactsOf(record: ProfessionalRecord | undefined, ui = uiOf(record?.language ?? 'en')) {
   const edp = edpRoleOf(record);
   const led = record?.roles.find((role) => role.organisation === 'Reflaunt');
-  const product = edp?.highlights.map(highlightText).join(' ').match(/lead architect of ([^,]+)/i)?.[1];
-  const team = led?.highlights.map(highlightText).join(' ').match(/Led a (.+?) of/i)?.[1];
+  const period = led && `${led.start.slice(0, 4)}–${led.end?.slice(2, 4) ?? ui.record.present}`;
   return {
     eyebrow: record ? [record.headline.split(':')[0], record.location].filter(Boolean).join(' · ') : undefined,
-    now: edp && product ? `${edp.title} at ${edp.organisation}, building ${product}` : undefined,
-    led: led && team
-      ? `A ${team} at ${led.organisation}, ${led.start.slice(0, 4)}–${led.end?.slice(2, 4) ?? 'present'}`
-      : undefined,
+    now: edp ? ui.redesign.home.nowFact(edp.title, edp.organisation) : undefined,
+    led: led && period ? ui.redesign.home.ledFact(led.title, led.organisation, period) : undefined,
     stack: edp?.stack.filter((item) => ['React Native', 'TypeScript', 'Python'].includes(item)).join(', '),
   };
 }
 
+const LANGUAGE_ALIASES = [
+  ['portuguese', ['Portuguese', 'Português']],
+  ['english', ['English', 'Inglês']],
+  ['spanish', ['Spanish', 'Espanhol']],
+] as const;
+
 /** The Home EDP stats, derived from the attested role highlights rather than hard-coded numbers. */
 export function practiceStatsOf(record: ProfessionalRecord | undefined, ui: Ui) {
   const highlights = edpRoleOf(record)?.highlights.map(highlightText) ?? [];
-  const users = highlights.join(' ').match(/more than ([\d,]+)/i)?.[1];
-  const languageList = highlights.map((text) => text.match(/\bin ([A-Z][^.]+)\./)?.[1]).find(Boolean);
-  const languages = languageList?.split(/,| and /).map((item) => item.trim()).filter(Boolean);
+  const users = record ? statsOf(record).attestedUsers : undefined;
+  const text = highlights.join(' ').toLocaleLowerCase();
+  const languages = LANGUAGE_ALIASES
+    .filter(([, aliases]) => aliases.some((alias) => text.includes(alias.toLocaleLowerCase())))
+    .map(([language]) => ui.redesign.home.languageNames[language]);
   const attested = ui.record.attested.toLocaleLowerCase(ui.locale);
+  const number = new Intl.NumberFormat(ui.locale);
   return [
-    ...(users ? [{ value: `${users}+`, label: `${ui.redesign.about.attestedUsers.split(' on ')[0]} · ${attested}` }] : []),
-    ...(languages?.length ? [{ value: String(languages.length), label: `${ui.record.languages.toLocaleLowerCase(ui.locale)}: ${languages.join(', ')}` }] : []),
+    ...(users !== undefined ? [{ value: `${number.format(users)}+`, label: `${ui.redesign.home.attestedUsers} · ${attested}` }] : []),
+    ...(languages.length ? [{ value: String(languages.length), label: `${ui.record.languages.toLocaleLowerCase(ui.locale)}: ${languages.join(', ')}` }] : []),
   ];
 }
 
@@ -105,8 +112,6 @@ export async function homeOf(language: Language) {
 export async function homeMarkdown(language: Language): Promise<string> {
   const ui = uiOf(language);
   const home = await homeOf(language);
-  const status = (project: (typeof home.projects)[number]) =>
-    `${ui.projectStatus[project.status]}${project.version ? ` · v${project.version}` : ''}${project.external ? ` · ${ui.redesign.ownSite}` : ''}`;
   return [
     '## At a glance',
     '',
@@ -124,7 +129,7 @@ export async function homeMarkdown(language: Language): Promise<string> {
     ...(home.projects.length ? [
       '## Projects', '',
       `[${ui.redesign.home.allProjects}](${absolute(twinOf(pathIn('/projects/', language)))})`, '',
-      ...home.projects.map((project) => `- ${project.twin ? `[${project.name}](${absolute(project.twin)})` : project.name} (${status(project)}): ${project.oneLine}`), '',
+      ...home.projects.map((project) => `- ${project.twin ? `[${project.name}](${absolute(project.twin)})` : project.name} (${projects.projectStatusLabelOf(project, ui)}): ${project.oneLine}`), '',
     ] : []),
     ...(home.knowledge.length ? [
       '## Knowledge', '',

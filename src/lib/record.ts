@@ -115,11 +115,11 @@ export function statsOf(record: ProfessionalRecord, now = new Date()) {
     yearsOfExperience = Math.max(0, now.getUTCFullYear() - year - (now.getUTCMonth() + 1 < month ? 1 : 0));
   }
   const usage = record.roles.flatMap((role) => role.highlights).find((highlight) =>
-    typeof highlight !== 'string' && 'attested' in highlight.source && /more than [\d,]+/i.test(highlight.text),
+    typeof highlight !== 'string' && 'attested' in highlight.source && /Mind4EDP/i.test(highlight.text) && /(\d[\d.,\s]*\d|\d)/.test(highlight.text),
   );
   const count = typeof usage === 'string' || !usage
     ? undefined
-    : Number(usage.text.match(/more than ([\d,]+)/i)?.[1].replaceAll(',', ''));
+    : Number(usage.text.replace(/Mind4EDP/gi, '').match(/(\d[\d.,\s]*\d|\d)/g)?.at(-1).replace(/\D/g, ''));
   return {
     yearsOfExperience,
     roleCount: record.roles.length,
@@ -184,6 +184,8 @@ export function aboutMarkdown(record: ProfessionalRecord): string {
   const words = ui.record;
   const sourceMd = (source: Source) =>
     'attested' in source ? `(${words.attested}: ${source.attested})` : `([${words.source}](${absoluteUrl(hrefOf(source))}))`;
+  const skillMd = (skill: ProfessionalRecord['skills'][number]) =>
+    `- ${skill.name}, ${words.demonstratedIn} ${skill.demonstrated.map((d) => `<${absoluteUrl(hrefOf(d))}>`).join(', ')}`;
   const cv = `${words.downloadCv} [PDF](${absoluteUrl(CV_PATH)})`;
   const stats = statsOf(record);
   const number = new Intl.NumberFormat(ui.locale);
@@ -214,15 +216,11 @@ export function aboutMarkdown(record: ProfessionalRecord): string {
   section(
     words.skills,
     [
-      ...record.skills.map(
-        (s) => `- ${s.name}, ${words.demonstratedIn} ${s.demonstrated.map((d) => `<${absoluteUrl(hrefOf(d))}>`).join(', ')}`,
-      ),
+      ...record.skills.map(skillMd),
       ...record.skillGroups.flatMap((group) => [
         `### ${group.name}`,
         '',
-        ...group.skills.map(
-          (s) => `- ${s.name}, ${words.demonstratedIn} ${s.demonstrated.map((d) => `<${absoluteUrl(hrefOf(d))}>`).join(', ')}`,
-        ),
+        ...group.skills.map(skillMd),
         '',
       ]),
     ],

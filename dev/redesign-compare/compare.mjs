@@ -1,12 +1,10 @@
 import { spawn } from 'node:child_process';
-import { createReadStream } from 'node:fs';
-import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
-import { createServer } from 'node:http';
-import { dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { mkdir, rm, stat, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import pixelmatch from 'pixelmatch';
 import { chromium } from 'playwright';
-import { PNG } from 'pngjs';
+import { comparePngs } from './png-compare.mjs';
+import { isWithin, startStaticServer } from './static-server.mjs';
 
 const root = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const dist = resolve(root, 'dist');
@@ -103,10 +101,6 @@ function numberOption(name, fallback, minimum, maximum) {
   return value;
 }
 
-function isWithin(parent, candidate) {
-  return candidate === parent || candidate.startsWith(`${parent}${sep}`);
-}
-
 function portablePath(path) {
   const pathFromRoot = relative(root, path);
   return (isAbsolute(pathFromRoot) ? path : pathFromRoot).split(sep).join('/');
@@ -162,69 +156,6 @@ function runBuild() {
       else rejectBuild(new Error(`pnpm build failed (${signal ? `signal ${signal}` : `exit ${code}`})`));
     });
   });
-}
-
-const mimeTypes = {
-  '.avif': 'image/avif', '.css': 'text/css; charset=utf-8', '.gif': 'image/gif',
-  '.html': 'text/html; charset=utf-8', '.ico': 'image/x-icon', '.jpeg': 'image/jpeg',
-  '.jpg': 'image/jpeg', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8', '.pdf': 'application/pdf', '.png': 'image/png',
-  '.svg': 'image/svg+xml', '.txt': 'text/plain; charset=utf-8', '.webmanifest': 'application/manifest+json',
-  '.webp': 'image/webp', '.woff': 'font/woff', '.woff2': 'font/woff2', '.xml': 'application/xml; charset=utf-8',
-};
-
-async function startStaticServer() {
-  const server = createServer(async (request, response) => {
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-      response.writeHead(405, { Allow: 'GET, HEAD' }).end();
-      return;
-    }
-    try {
-      const url = new URL(request.url ?? '/', 'http://127.0.0.1');
-      const pathname = decodeURIComponent(url.pathname);
-      if (pathname.includes('\0')) {
-        response.writeHead(400).end('Bad request');
-        return;
-      }
-      let filename = resolve(dist, `.${pathname}`);
-      if (!isWithin(dist, filename)) {
-        response.writeHead(403).end('Forbidden');
-        return;
-      }
-      let info = await stat(filename).catch(() => null);
-      if (info?.isDirectory()) {
-        if (!pathname.endsWith('/')) {
-          response.writeHead(308, { Location: `${pathname}/${url.search}` }).end();
-          return;
-        }
-        filename = join(filename, 'index.html');
-        info = await stat(filename).catch(() => null);
-      } else if (!info && pathname.endsWith('/')) {
-        filename = join(filename, 'index.html');
-        info = await stat(filename).catch(() => null);
-      }
-      if (!info?.isFile()) {
-        response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Not found');
-        return;
-      }
-      response.writeHead(200, {
-        'Content-Type': mimeTypes[extname(filename).toLowerCase()] ?? 'application/octet-stream',
-        'Content-Length': info.size,
-        'Cache-Control': 'no-store',
-      });
-      if (request.method === 'HEAD') response.end();
-      else createReadStream(filename).pipe(response);
-    } catch (error) {
-      response.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' }).end(String(error));
-    }
-  });
-  await new Promise((resolveListen, rejectListen) => {
-    server.once('error', rejectListen);
-    server.listen(0, '127.0.0.1', resolveListen);
-  });
-  const address = server.address();
-  if (!address || typeof address === 'string') throw new Error('Could not determine local server port');
-  return { server, origin: `http://127.0.0.1:${address.port}` };
 }
 
 function check(caseReport, name, passed, details = {}) {
@@ -341,43 +272,9 @@ async function captureAndCompare(page, route, theme, capture, caseReport) {
     diffPath: portablePath(differencePath),
   };
   try {
-    const [referenceBytes, currentBytes] = await Promise.all([readFile(referencePath), readFile(currentPath)]);
-    const reference = PNG.sync.read(referenceBytes);
-    const current = PNG.sync.read(currentBytes);
-    const width = Math.max(reference.width, current.width);
-    const height = Math.max(reference.height, current.height);
-    const paddedReference = new PNG({ width, height });
-    const paddedCurrent = new PNG({ width, height });
-    paddedReference.data.fill(0);
-    paddedCurrent.data.fill(0);
-    PNG.bitblt(reference, paddedReference, 0, 0, reference.width, reference.height, 0, 0);
-    PNG.bitblt(current, paddedCurrent, 0, 0, current.width, current.height, 0, 0);
-    const difference = new PNG({ width, height });
-    const differentPixels = pixelmatch(
-      paddedReference.data, paddedCurrent.data, difference.data, width, height,
-      { threshold: pixelThreshold, includeAA: false, diffMask: true, diffColor: [255, 0, 64] },
-    );
-    await writeFile(differencePath, PNG.sync.write(difference));
-    const diffRatio = differentPixels / (width * height);
-    const widthMatch = reference.width === current.width;
-    const heightMatch = reference.height === current.height;
-    const dimensionsMatch = widthMatch && heightMatch;
-    Object.assign(entry, {
-      referenceDimensions: { width: reference.width, height: reference.height },
-      currentDimensions: { width: current.width, height: current.height },
-      comparisonDimensions: { width, height },
-      widthDifference: current.width - reference.width,
-      heightDifference: current.height - reference.height,
-      widthMatch,
-      heightMatch,
-      dimensionsMatch,
-      differentPixels,
-      comparedPixels: width * height,
-      diffRatio,
-      maxDiffRatio: captureMaxDiffRatio,
-      pixelThreshold,
-      passed: widthMatch && diffRatio <= captureMaxDiffRatio,
-    });
+    Object.assign(entry, await comparePngs(
+      referencePath, currentPath, differencePath, pixelThreshold, captureMaxDiffRatio,
+    ));
   } catch (error) {
     entry.passed = false;
     entry.error = error.stack ?? String(error);
@@ -593,7 +490,7 @@ try {
   await rm(diffDir, { recursive: true, force: true });
   await Promise.all([mkdir(currentDir, { recursive: true }), mkdir(diffDir, { recursive: true })]);
   await runBuild();
-  ({ server, origin: report.origin } = await startStaticServer());
+  ({ server, origin: report.origin } = await startStaticServer(dist));
   browser = await chromium.launch({
     executablePath: chromeExecutable,
     headless: true,

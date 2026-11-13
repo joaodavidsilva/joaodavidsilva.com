@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getProjectListings, indexMetadataOf, projectsIndexOf, twinPathOf } from '../../lib/projects';
+import { getProjectListings, indexMetadataOf, projectStatusLabelOf, projectsIndexOf, twinPathOf } from '../../lib/projects';
 import { languageParams } from '../../lib/sections';
 import { absolute, type Language } from '../../lib/translations';
 import { markdownResponse } from '../../lib/twin';
@@ -13,8 +13,8 @@ export const GET: APIRoute = async ({ props }) => {
   const ui = uiOf(language);
   const projects = await getProjectListings(language);
   const list = projects.map((project) => {
-    const { name, status, version, oneLine, external } = project.data;
-    const facts = [status, version && `version ${version}`, external && ui.redesign.ownSite].filter(Boolean).join(', ');
+    const { name, oneLine, external } = project.data;
+    const facts = projectStatusLabelOf(project.data, ui, true);
     return external
       ? `- ${name} (${facts}): ${oneLine}`
       : `- [${name}](${absolute(twinPathOf(project))}) (${facts}): ${oneLine}`;

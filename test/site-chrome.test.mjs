@@ -19,6 +19,7 @@ const SECTIONS = [
 const PAGES = {
   'index.html': ['https://joaodavidsilva.com/', 'Chrome home'],
   'writing/sample/index.html': ['https://joaodavidsilva.com/writing/sample/', 'Sample piece'],
+  'projects/sample/index.html': ['https://joaodavidsilva.com/projects/sample/', 'Sample Project'],
 };
 
 const decode = (text) => text.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
@@ -160,6 +161,7 @@ test('site chrome', async (t) => {
     const current = (html) => linksIn(elementAt(siteHeaderOf(html), /<nav\b[^>]*id="site-nav"[^>]*>/)).filter((link) => link.attrs['aria-current']).map((link) => [link.text, link.attrs['aria-current']]);
     assert.deepEqual(current(pages[0].html), []);
     assert.deepEqual(current(pages[1].html), [['Writing', 'page']]);
+    assert.deepEqual(current(pages[2].html), [['Projects', 'page']]);
   });
 
   const rules = nestedRulesOf(stylesheetsOf(site, pages[0].html));
