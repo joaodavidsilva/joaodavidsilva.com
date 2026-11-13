@@ -18,9 +18,9 @@ The command always performs a fresh `pnpm build` into `dist`. It checks all 13 e
 
 The deterministic overflow sweep covers every 10px from 320 through 1280 inclusive, in both themes on every route, with additional 641/821/941px boundary probes. Separate browser assertions cover:
 
-- menu open, button close, Escape close/focus restoration, and navigation close;
+- menu open, button close, Escape close/focus restoration, navigation close, and state reset when resizing through the desktop breakpoint;
 - mobile navigation at 820px and desktop navigation at 821px;
-- Article TOC sticky/static/hidden behavior across 940px and 640px;
+- Article TOC aligned with or before the body, sticky/static/hidden behavior across 940px and 640px;
 - BrightBoi's four screenshots changing from four columns to two at 820px;
 - computed Source Serif 4 and JetBrains Mono fonts and every key light/dark palette token.
 

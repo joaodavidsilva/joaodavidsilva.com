@@ -361,8 +361,8 @@
 
 .long-form-layout {
   display: flex;
-  flex-wrap: wrap-reverse;
-  align-items: flex-end;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 32px 48px;
 }
 .prose {
@@ -388,7 +388,11 @@
 }
 
 @media (max-width: 940px) {
-  .toc { position: static; }
+  .toc {
+    position: static;
+    order: -1;
+    flex-basis: 100%;
+  }
 }
 
 @media (max-width: 820px) {

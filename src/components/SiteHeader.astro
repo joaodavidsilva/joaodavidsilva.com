@@ -57,6 +57,10 @@ const path = Astro.url.pathname;
         button.setAttribute('aria-expanded', String(open));
         if (label) label.textContent = open ? button.dataset.closeLabel : button.dataset.menuLabel;
       };
+      const mobile = matchMedia('(max-width: 820px)');
+      mobile.addEventListener('change', (event) => {
+        if (!event.matches) setOpen(false);
+      });
       button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
       nav.addEventListener('click', (event) => {
         if (event.target.closest('a')) setOpen(false);

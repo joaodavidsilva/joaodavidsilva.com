@@ -73,12 +73,14 @@ function runMenu(source) {
   button.focus = () => { button.focused = true; };
   header.querySelector = (selector) => ({ '[data-menu]': button, '[data-hcontact]': contact, '.site-nav': nav })[selector] ?? null;
   const document = { querySelector: (selector) => selector === '.site-header' ? header : null, addEventListener: (type, fn) => (listeners[type] ??= []).push(fn) };
-  vm.runInNewContext(source, { document });
+  const media = { matches: true, listeners: {}, addEventListener(type, fn) { (this.listeners[type] ??= []).push(fn); } };
+  vm.runInNewContext(source, { document, matchMedia: () => media });
   return {
     header, button, nav, label,
     click: () => button.listeners.click.forEach((fn) => fn({})),
     navigate: () => nav.listeners.click.forEach((fn) => fn({ target: { closest: (selector) => selector === 'a' ? {} : null } })),
     escape: () => listeners.keydown.forEach((fn) => fn({ key: 'Escape' })),
+    resize: (matches) => { media.matches = matches; media.listeners.change.forEach((fn) => fn({ matches })); },
     focused: () => button.focused,
   };
 }
@@ -133,7 +135,7 @@ test('site chrome', async (t) => {
     }
   });
 
-  await t.test('the one menu script toggles, closes after navigation and closes with Escape', () => {
+  await t.test('the one menu script toggles, closes after navigation, Escape and desktop resizing', () => {
     for (const { file, html } of pages) {
       assert.doesNotMatch(siteHeaderOf(html), /\son\w+=/, `${file}: inline event handler`);
       const scripts = [...html.matchAll(/<script\b([^>]*)>(.*?)<\/script>/gs)];
@@ -154,6 +156,11 @@ test('site chrome', async (t) => {
       assert.equal(page.button['aria-expanded'], 'false');
       assert.equal(page.label.textContent, 'Menu');
       assert.ok(page.focused());
+      page.click();
+      page.resize(false);
+      assert.equal(page.button['aria-expanded'], 'false');
+      assert.equal(page.header.dataset.open, 'false');
+      assert.equal(page.label.textContent, 'Menu');
     }
   });
 

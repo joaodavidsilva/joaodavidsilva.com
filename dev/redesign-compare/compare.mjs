@@ -334,15 +334,24 @@ async function verifyBreakpoint(page, width, route, caseReport) {
       { width, ...state });
   }
   if (route.id === 'article' && [1280, 941, 940, 641, 640, 390].includes(width)) {
-    const toc = await page.evaluate(() => {
+    const layout = await page.evaluate(() => {
       const element = document.querySelector('.toc');
-      return element ? { display: getComputedStyle(element).display, position: getComputedStyle(element).position } : null;
+      const prose = document.querySelector('.prose');
+      if (!element || !prose) return null;
+      const tocBox = element.getBoundingClientRect();
+      const proseBox = prose.getBoundingClientRect();
+      return {
+        display: getComputedStyle(element).display,
+        position: getComputedStyle(element).position,
+        tocTop: tocBox.top,
+        proseTop: proseBox.top,
+      };
     });
     const hidden = width <= 640;
     const sticky = width > 940;
-    check(caseReport, `TOC layout at ${width}px`, Boolean(toc)
-      && (hidden ? toc.display === 'none' : toc.display !== 'none')
-      && (hidden || toc.position === (sticky ? 'sticky' : 'static')), { width, ...toc });
+    check(caseReport, `TOC layout at ${width}px`, Boolean(layout)
+      && (hidden ? layout.display === 'none' : layout.display !== 'none' && layout.tocTop <= layout.proseTop + 1)
+      && (hidden || layout.position === (sticky ? 'sticky' : 'static')), { width, ...layout });
   }
   if (route.id === 'project' && [1280, 821, 820, 390].includes(width)) {
     const grid = await page.evaluate(() => {
@@ -387,6 +396,19 @@ async function verifyMenuInteractionsAndCapture(page, route, theme, origin, case
   verifyMenuState(caseReport, await menuState(page), true, 'opens with real button');
   await captureAndCompare(page, route, theme, captureNames(route.id, theme)[2], caseReport);
 
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const desktopState = await menuState(page);
+  check(caseReport, 'menu state resets when resizing to desktop', desktopState.expanded === 'false'
+    && desktopState.headerOpen === 'false'
+    && desktopState.label === desktopState.expectedClosedLabel
+    && desktopState.navDisplay !== 'none'
+    && desktopState.contactDisplay !== 'none', { ...desktopState, width: 1280 });
+  await page.setViewportSize({ width: 390, height: 900 });
+  verifyMenuState(caseReport, await menuState(page), false, 'stays closed after returning to mobile');
+
+  await button.click();
+  verifyMenuState(caseReport, await menuState(page), true, 'reopens after resizing');
   await button.click();
   verifyMenuState(caseReport, await menuState(page), false, 'closes with real button');
 
